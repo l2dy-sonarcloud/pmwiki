@@ -100,7 +100,8 @@ Markup('urllink','>[[',
   "Keep(MakeLink(\$pagename,'$0','$0'),'L')");
 
 ## mailto: links 
-Markup('mailto','<urllink','/\\bmailto:(\\S+)/e',
+Markup('mailto','<urllink',
+  "/\\bmailto:([^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars])/e",
   "Keep(MakeLink(\$pagename,'$0','$1'),'L')");
 
 ## inline images
@@ -115,7 +116,7 @@ Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
 
 #### Block markups ####
 ## process any <:...> markup
-Markup('^<:','<inline','/^(<:([^>]+)>)?/e',"Block('$2')");
+Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
 
 ## bullet lists
 Markup('^*','block','/^(\\*+)/','<:ul,$1>');
