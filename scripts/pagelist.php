@@ -28,20 +28,20 @@ Markup('searchbox','>links','/\\(:searchbox:\\)/',
     $pagename));
 Markup('searchresults','directives','/\\(:searchresults\\s*(.*?):\\)/e',
   "Keep(FmtPageList(\$GLOBALS['SearchResultsFmt'],\$pagename,
-    array('q'=>PSS('$1'))))");
+    array('o'=>PSS('$1'),'req'=>1)))");
 Markup('pagelist','directives','/\\(:pagelist\\s*(.*):\\)/e',
-  "Keep(FmtPageList('\$MatchList',\$pagename,array('q'=>PSS('$1 '))))");
+  "Keep(FmtPageList('\$MatchList',\$pagename,array('o'=>PSS('$1 '))))");
 
 SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple',
   'group'=>'FPLGroup'));
 
 function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
-  $opt = array_merge(@$_REQUEST,$opt);
-  if (!$opt['q']) $opt['q']=stripmagic(@$_REQUEST['q']);
-  if (!$opt['q']) return;
+  if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
+  $opt = array_merge($opt,@$_REQUEST);
+  $terms = $opt['o'] . ' ' . stripmagic(@$_REQUEST['q']);
   $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
-    $opt['q'],-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+    $terms,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",@$terms[0],$match)) 
   { 
     $opt['group'] = @$match[1]; 
@@ -56,6 +56,7 @@ function FmtPageList($fmt,$pagename,$opt) {
     if ($match[1]=='-') $excl[] = $match[3];
     else $incl[] = $match[3];
   }
+  if (@$opt['req'] && !$incl && !$excl && !isset($_REQUEST['q'])) return;
   $show = (isset($opt['list'])) ? $opt['list'] : 'default';
   $pats = (array)@$SearchPatterns[$show];
   if (@$opt['group']) array_unshift($pats,"/^({$opt['group']})\./i");
@@ -81,7 +82,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   sort($matches);
   $FmtV['$MatchCount'] = count($matches);
   $FmtV['$MatchSearched'] = count($pagelist);
-  $FmtV['$Needle'] = $opt['q'];
+  $FmtV['$Needle'] = @$opt['q'];
   $GLOBALS['SearchIncl'] = $incl;
   $GLOBALS['SearchExcl'] = $excl;
   $GLOBALS['SearchGroup'] = @$opt['group'];
