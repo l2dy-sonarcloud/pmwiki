@@ -98,10 +98,9 @@ setlocale(LC_CTYPE,'en_US');
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
-  "Last-Modified: ".gmstrftime('%a, %d %b %Y %H:%M:%S GMT'),
-  "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
-  "Pragma: no-cache",
+  "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=iso-8859-1;");
+$CachedActions = array('browse','diff','print');
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
@@ -376,7 +375,7 @@ function XLPage($lang,$p) {
 ## filesystem.
 class PageStore {
   var $dirfmt;
-  function PageStore($d='wiki.d') { $this->dirfmt=$d; }
+  function PageStore($d='$WorkDir/$PageName') { $this->dirfmt=$d; }
   function read($pagename) {
     $newline = "\262";
     $pagefile = FmtPageName($this->dirfmt,$pagename);
@@ -465,8 +464,9 @@ function ReadPage($pagename,$defaulttext=NULL) {
 }
 
 function WritePage($pagename,$page) {
-  global $WikiDir;
+  global $WikiDir,$LastModFile;
   $WikiDir->write($pagename,$page);
+  if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
 }
 
 function PageExists($pagename) {
