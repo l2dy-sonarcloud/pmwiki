@@ -1197,6 +1197,7 @@ function HandlePostAttr($pagename) {
     else if ($newpw>'') $page[$attr]=crypt($newpw);
   }
   WritePage($pagename,$page);
+  $_SESSION['authpw'] = array();
   Redirect($pagename);
   exit;
 } 
