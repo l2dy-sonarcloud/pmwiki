@@ -219,8 +219,9 @@ Markup('^||','>^||||','/^\\|\\|(.*)$/e',
   "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PQA(PSS('<table $1>')))
     .'<:block>'");
 
-## headers
-Markup('^!','block','/^(!{1,6})(.*)$/e',
+## headings
+Markup('^!', 'block',
+  '/^(!{1,6})\\s?(.*)$/e',
   "'<:block><h'.strlen('$1').PSS('>$2</h').strlen('$1').'>'");
 
 ## horiz rule
