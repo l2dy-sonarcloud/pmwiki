@@ -542,13 +542,35 @@ function IncludeText($pagename,$inclspec) {
   global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV;
   SDV($MaxIncludes,10);
   SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
+  $npat = '[[:alpha:]][-\\w]*';
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
-  if (preg_match("/^(include|INCLUDE)\\s+([^#]+)$/",$inclspec,$match)) {
-    @list($inclstr,$incltype,$inclname) = $match;
+  if (preg_match("/^include\\s+([^#\\s]+)(.*)$/",$inclspec,$match)) {
+    @list($inclstr,$inclname,$opts) = $match;
     $inclname = MakePageName($pagename,$inclname);
     if ($inclname==$pagename) return '';
     $inclpage=RetrieveAuthPage($inclname,'read',false,'');
-    return htmlentities($inclpage['text'],ENT_QUOTES);
+    $itext=$inclpage['text'];
+    foreach(preg_split('/\\s+/',$opts) as $o) {
+      if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/",$o,$match)) {
+        @list($x,$aa,$dots,$b,$bb)=$match;
+        if (!$dots && !$b) $bb=$npat;
+        if ($b=='#') $bb=$npat;
+        if ($aa)
+          $itext=preg_replace("/^.*?([^\n]*\\[\\[#$aa\\]\\])/s",'$1',$itext,1);
+        if ($bb)
+          $itext=preg_replace("/(.)[^\n]*\\[\\[#$bb\\]\\].*$/s",'$1',$itext,1);
+        continue;
+      } 
+      if (preg_match('/^(l|lines)=(\\d*)(\\.\\.(\\d*))?$/',$o,$match)) {
+        @list($x,$unit,$a,$dots,$b) = $match;
+        if (!$dots) { $b=$a; $a=0; }
+        if ($a>0) $a--;
+        $itext=preg_replace("/^(([^\n]*\n)\{0,$b}).*$/s",'$1',$itext,1);
+        $itext=preg_replace("/^([^\n]*\n)\{0,$a}/s",'',$itext,1); 
+        continue;
+      }
+    }
+    return htmlentities($itext,ENT_QUOTES);
   }
   return Keep($inclspec);
 }
