@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+@session_start();
 if (@$_REQUEST['details']) 
   $_SESSION['details'] = ($_REQUEST['details']!='n');
 
