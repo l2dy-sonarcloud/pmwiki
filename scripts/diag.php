@@ -20,7 +20,7 @@ if ($action=='phpinfo') { phpinfo(); exit(); }
 
 session_start();
 if (@$_REQUEST['redirect']) 
-  $_SESSION['redirect'] = ($_REQUEST['redirect']!='y');
+  $_SESSION['redirect'] = ($_REQUEST['redirect']!='n');
 $EnableRedirect = @$_SESSION['redirect'];
 
 ?>
