@@ -109,6 +109,7 @@ $HTMLTitleFmt = "  <title>\$WikiTitle - \$PageTitle</title>\n";
 $HTMLStylesFmt = array("
   body { margin-left:20px; }
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   ");
@@ -201,6 +202,7 @@ $MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
   "Keep(\"<a name='$1' id='$1'></a>\")";
 $MarkupPatterns[3100]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
+$MarkupPatterns[3100]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'))";
 $MarkupPatterns[3200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
 $MarkupPatterns[3300]['/\\bmailto:(\\S+)/e'] =
