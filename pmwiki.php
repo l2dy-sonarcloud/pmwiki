@@ -57,12 +57,12 @@ $PageEditFmt = "<div id='wikiedit'>
 $EditMessageFmt = '';
 $EditFields = array('text');
 $EditFunctions = array('RestorePage','PostPage','PostRecentChanges');
-$RCDelimPattern = ' \\. ';
+$RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
-    '* [[$Group.$Name]] . . . $CurrentTime by $AuthorLink',
+    '* [[$Group.$Name]]  . . . $CurrentTime by $AuthorLink',
   '$Group.RecentChanges' =>
-    '* [[$Group/$Name]] . . . $CurrentTime by $AuthorLink');
+    '* [[$Group/$Name]]  . . . $CurrentTime by $AuthorLink');
 $DefaultPageTextFmt = 'Describe [[$Name]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
@@ -596,7 +596,8 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
   foreach($pagelist as $p) {
     if (PageExists($p)) {
       $page = ReadPage($p,'');
-      if ($page['text']) echo MarkupToHTML($pagename,$page['text']);
+      if ($page['text']) 
+        echo MarkupToHTML($pagename,ProcessIncludes($pagename,$page['text']));
       return;
     }
   }
