@@ -649,7 +649,7 @@ function IncludeText($pagename,$inclspec) {
         continue;
       }
     }
-    return htmlentities($itext,ENT_QUOTES);
+    return htmlspecialchars($itext,ENT_NOQUOTES);
   }
   return Keep($inclspec);
 }
