@@ -1140,7 +1140,9 @@ function BasicAuth($pagename,$level,$authprompt=true) {
     "<p><b>Password required</b></p>
       <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
         Password: <input tabindex='1' type='password' name='authpw' value='' />
-        <input type='submit' value='OK' />$postvars</form>", &$HTMLEndFmt));
+        <input type='submit' value='OK' />$postvars</form>
+        <script language='javascript'><!--
+          document.authform.authpw.focus() //--></script>", &$HTMLEndFmt));
   PrintFmt($pagename,$SessionAuthFmt);
   exit;
 }
