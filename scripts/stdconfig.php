@@ -23,6 +23,9 @@ if ($pagename=='') $pagename=$DefaultPage;
 
 if (!IsEnabled($EnableStdConfig,1)) return;
 
+if (IsEnabled($EnablePerGroupCust,1))
+  include_once("$FarmD/scripts/pgcust.php");
+
 ## Browser cache-control.  If this is a cacheable action (e.g., browse,
 ## diff), then set the Last-Modified header to the time the site was 
 ## last modified.  If the browser has provided us with a matching 
@@ -40,8 +43,6 @@ if (@$EnableIMSCaching && in_array($action,(array)$CacheActions)) {
 }
 
 ## Scripts that are part of a standard PmWiki distribution.
-if (IsEnabled($EnablePerGroupCust,1))
-  include_once("$FarmD/scripts/pgcust.php");
 if (IsEnabled($EnableStdMarkup,1))
   include_once("$FarmD/scripts/stdmarkup.php");
 if (IsEnabled($EnableAuthorTracking,1)) 
