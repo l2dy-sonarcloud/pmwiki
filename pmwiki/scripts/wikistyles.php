@@ -12,7 +12,7 @@ Markup('%%','style','%','return ApplyStyles($x);');
 Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
   '$GLOBALS[\'KPV\'][\'$1\']');
 ## Place a closing %% at the end of any line with a (possible) WikiStyle in it
-Markup('%%$','<block','/(%.*?)$/','$1 %%');
+Markup('%%$','<block','/([^%]%[^%]+?)$/','$1 %%');
 
 # define PmWiki's standard/default wikistyles
 if (IsEnabled($EnableStdWikiStyles,1)) {
