@@ -189,14 +189,14 @@ Markup('^!<:', '<^<:',
   '<:block>');
 
 ## bullet lists
-Markup('^*','block','/^(\\*+)/','<:ul,$1>');
+Markup('^*','block','/^(\\*+)\\s?/','<:ul,$1>');
 
 ## numbered lists
-Markup('^#','block','/^(#+)/','<:ol,$1>');
+Markup('^#','block','/^(#+)\\s?/','<:ol,$1>');
 
 ## indented (->) /hanging indent (-<) text
-Markup('^->','block','/^(?>(-+))&gt;/','<:indent,$1>');
-Markup('^-<','block','/^(?>(-+))&lt;/','<:outdent,$1>');
+Markup('^->','block','/^(?>(-+))&gt;\\s?/','<:indent,$1>');
+Markup('^-<','block','/^(?>(-+))&lt;\\s?/','<:outdent,$1>');
 
 ## definition lists
 Markup('^::','block','/^(:+)([^:]+):/','<:dl,$1><dt>$2</dt><dd>');
