@@ -137,7 +137,7 @@ Markup('blank','<^ ','/^\\s*$/','<:vspace>');
 ## tables
 Markup('^||||','block','/^\\|\\|.*\\|\\|.*$/e',"FormatTableRow(PSS('$0'))");
 Markup('^||','>^||||','/^\\|\\|(.*)$/e',
-  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1'>))");
+  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))");
 
 ## headers
 Markup('^!','block','/^(!{1,6})(.*)$/e',
@@ -164,15 +164,16 @@ Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
   "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
     PSS('$3</span>')");
 
-## =markup for displaying markup examples
-Markup('=markup','<[=',"/\n=markup\\s+\\[=(.*?)=\\]/se",
-  "'\n'.Keep('<pre class=\"markup\">'.wordwrap(PSS('$1'),60).
-    '</pre><div class=\"markup\">').PSS('\n$1\n<:block,0></div>\n')");
+## [:markup:] for displaying markup examples
+Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
+  "'\n'.Keep('<div class=\"markup\" <pre>'.wordwrap(PSS('$1'),60).
+    '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 $HTMLStylesFmt[] = "
-  .markup { margin-left:30px; margin-right:30px; padding-left:10px;
-    padding-right:10px; }
-  pre.markup { border:1px solid; background-color:#ccf; padding-top:10px;
-    padding-bottom:10px; }
+  div.markup { border:2px dotted #ccf; 
+    margin-left:30px; margin-right:30px; 
+    padding-left:10px; padding-right:10px; }
+  div.markup pre { border-bottom:1px solid #ccf; 
+    padding-top:10px; padding-bottom:10px; }
   ";
 
 ?>
