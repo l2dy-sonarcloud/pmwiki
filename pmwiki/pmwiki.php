@@ -19,7 +19,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-error_reporting(E_ALL);
+error_reporting(E_ALL ^ E_NOTICE);
 StopWatch('PmWiki');
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { unset(${$k}); }
