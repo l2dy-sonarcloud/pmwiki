@@ -140,8 +140,7 @@ $HandleActions = array(
   'browse' => 'HandleBrowse',
   'edit' => 'HandleEdit', 'source' => 'HandleSource', 
   'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
-$DefaultPasswords['admin'] = '*';
-$DefaultPasswords['read'] = '';
+$DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
 
 $Conditions['false'] = 'false';
 
