@@ -164,6 +164,10 @@ Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
   "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
     PSS('$3</span>')");
 
+## [[<<]] (break)
+Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
+
+#### special stuff ####
 ## [:markup:] for displaying markup examples
 Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
   "'\n'.Keep('<div class=\"markup\" <pre>'.wordwrap(PSS('$1'),60).
