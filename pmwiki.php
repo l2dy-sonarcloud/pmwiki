@@ -79,8 +79,8 @@ $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
-$LinkPageCreateFmt = 
-  "\$LinkText<a class='createlink' href='\$PageUrl?action=edit'>?</a>";
+$LinkPageCreateFmt = "<span class='createlink'>\$LinkText</span><a 
+  class='createlink' href='\$PageUrl?action=edit'>?</a>";
 $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
@@ -112,6 +112,9 @@ $HTMLStylesFmt = array("
   code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
+  .createlink { border-bottom:1px dotted grey; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
   ");
 $HTMLHeaderFmt = array(
   "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
