@@ -518,9 +518,21 @@ function CmpPageAttr($a, $b) {
 class PageStore {
   var $dirfmt;
   function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
+  function pagefile($pagename) {
+    global $FarmD;
+    $pagename = str_replace('/', '.', $pagename);
+    $dfmt = $this->dirfmt;
+    if ($dfmt == 'wiki.d/$FullName')                   # optimizations for
+      return "wiki.d/$pagename";                       # standard locations
+    if ($dfmt == '$FarmD/wikilib.d/$FullName')         # 
+      return "$FarmD/wikilib.d/$pagename";             #
+    if ($dfmt == 'wiki.d/$Group/$FullName')
+      return preg_replace('/([^.]+).*/', 'wiki.d/$1/$0', $pagename);
+    return FmtPageName($dfmt, $pagename);
+  }
   function read($pagename, $since=0) {
     $newline = "\262";
-    $pagefile = FmtPageName($this->dirfmt,$pagename);
+    $pagefile = $this->pagefile($pagename);
     if ($pagefile && $fp=@fopen($pagefile,"r")) {
       while (!feof($fp)) {
         $line = fgets($fp,4096);
@@ -551,7 +563,7 @@ class PageStore {
     unset($page['version']); unset($page['newline']);
     uksort($page, 'CmpPageAttr');
     $s = false;
-    $pagefile = FmtPageName($this->dirfmt,$pagename);
+    $pagefile = $this->pagefile($pagename);
     $dir = dirname($pagefile); mkdirp($dir);
     if (!file_exists("$dir/.htaccess") && $fp = @fopen("$dir/.htaccess", "w")) 
       { fwrite($fp, "Order Deny,Allow\nDeny from all\n"); fclose($fp); }
@@ -569,19 +581,19 @@ class PageStore {
     PCache($pagename, $page);
   }
   function exists($pagename) {
-    $pagefile = FmtPageName($this->dirfmt,$pagename);
+    $pagefile = $this->pagefile($pagename);
     return ($pagefile && file_exists($pagefile));
   }
   function delete($pagename) {
     global $Now;
-    $pagefile = FmtPageName($this->dirfmt,$pagename);
+    $pagefile = $this->pagefile($pagename);
     @rename($pagefile,"$pagefile,$Now");
   }
   function ls($pats=NULL) {
     global $GroupPattern, $NamePattern;
     $pats=(array)$pats; 
     array_unshift($pats, "/^$GroupPattern\.$NamePattern$/");
-    $dir = FmtPageName($this->dirfmt,'');
+    $dir = $this->pagefile('');
     $dirlist = array(preg_replace('!/?[^/]*\$.*$!','',$dir));
     $out = array();
     while (count($dirlist)>0) {
