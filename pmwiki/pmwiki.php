@@ -701,6 +701,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt;
   $t = preg_replace('/[()]/','',trim($tgt));
+  $t = preg_replace('/<[^>]*>/','',$t);
   preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
   if (!$m[1]) $m[1]='<:page>';
   if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txt,$tm)) 
@@ -709,7 +710,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   else {
     if (is_null($txt)) {
       $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-      if ($m[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
+      if ($m[1]=='<:page>') $txt = preg_replace('!^.*[^<]/!','',$txt);
     }
     $txt .= $suffix;
   }
