@@ -52,14 +52,109 @@ $HTMLVSpace = "<p class='vspace'></p>";
 $BlockCS = array();
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
+$LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl'>\$LinkText</a>";
+$LinkPageCreateFmt = 
+  "\$LinkText<a class='createlink' href='\$PageUrl?action=edit'>?</a>";
+$LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 
-## PSS is a helper function to strip the slashes inserted by /e in preg_replace.
+$HandleActions = array(
+  'browse' => 'HandleBrowse',
+  'edit' => 'HandleEdit', 'source' => 'HandleSource');
+
+foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
+  as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
+$LinkFunctions['<:page>'] = 'LinkPage';
+
+if (strpos($_SERVER['QUERY_STRING'],'?')===true) {
+  unset($_GET);
+  parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
+}
+
+foreach(array('pagename','action','text','restore','preview') as $v) {
+  if (isset($_GET[$v])) $$v=$_GET[$v];
+  elseif (isset($_POST[$v])) $$v=$_POST[$v];
+  else $$v='';
+}
+if ($action=='') $action='browse';
+
+if (!$pagename) $pagename=substr($_SERVER['PATH_INFO'],1);
+
+@include_once('local/config.php');
+
+$LinkPattern = implode('|',array_keys($LinkFunctions));
+
+$MarkupPatterns[50]["/\\r/"] = '';
+$MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
+  "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
+$MarkupPatterns[300]["/(\\\\*)\\\\\n/e"] =
+  "Keep(' '.str_repeat('<br />',strlen('$1')))";
+$MarkupPatterns[2000]["\n"] = 
+  '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
+$MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
+  "<a name='$1' id='$1'></a>";
+$MarkupPatterns[4100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
+  "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
+$MarkupPatterns[4200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
+  "Keep(MakeLink(\$pagename,'$1',NULL,'$2'))";
+$MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
+  "Keep(MakeLink(\$pagename,'$0','$1'))";
+$MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
+  "Keep(MakeLink(\$pagename,'$0','$0'))";
+$MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
+  "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
+$MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
+$MarkupPatterns[5200]['/^(#+)/'] = '<:ol,$1>';
+$MarkupPatterns[5300]['/^(-+)&gt;/'] = '<:indent,$1>';
+$MarkupPatterns[5400]['/^\\s*$/'] = '<:vspace>';
+$MarkupPatterns[5500]['/^(\\s)/'] = '<:pre,1>';
+$MarkupPatterns[5550]['/^\\|\\|.*\\|\\|.*$/e'] =
+  "FormatTableRow(PSS('$0'))";
+$MarkupPatterns[5555]['/^\\|\\|(.*)$/e'] =
+  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
+$MarkupPatterns[5600]['/^(:+)([^:]+):/'] =
+  '<:dl,$1><dt>$2</dt><dd>';
+$MarkupPatterns[5700]['/^----+/'] = 
+  '<:block><hr />';
+$MarkupPatterns[5900]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
+$MarkupPatterns[7000]["/'''''(.*?)'''''/"] =
+  '<strong><em>$1</em></strong>';
+$MarkupPatterns[7010]["/'''(.*?)'''/"] =
+  '<strong>$1</strong>';
+$MarkupPatterns[7020]["/''(.*?)''/"] =
+  '<em>$1</em>';
+$MarkupPatterns[7030]["/@@(.*?)@@/"] =
+  '<code>$1</code>';
+$MarkupPatterns[7040]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
+  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
+$MarkupPatterns[8000]["/$KeepToken(\\d+?)$KeepToken/e"] =
+  '$GLOBALS[\'KPV\'][\'$1\']';
+
+SDVA($BlockMarkups,array(
+  'block' => array('','',''),
+  'ul' => array('<ul><li>','</li><li>','</li></ul>'),
+  'dl' => array('<dl>','</dd>','</dd></dl>'),
+  'ol' => array('<ol><li>','</li><li>','</li></ol>'),
+  'p' => array('<p>','','</p>'),
+  'indent' => 
+     array("<div class='indent'>","</div><div class='indent'>",'</div>'),
+  'pre' => array('<pre> ',' ','</pre>'),
+  'table' => array("<table width='100%'>",'','</table>')));
+
+if (!function_exists($HandleActions[$action])) $action='browse';
+$HandleActions[$action]($pagename);
+Lock(0);
+exit();
+
+## helper functions
 function stripmagic($x) 
   { return get_magic_quotes_gpc() ? stripslashes($x) : $x; }
 function PSS($x) 
   { return str_replace('\\"','"',$x); }
+function PZZ($x) { return ''; }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
+function SDVA(&$var,$val) 
+  { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.
@@ -78,6 +173,7 @@ function FmtPageName($fmt,$pagename) {
   static $qk = array('$PageUrl','$ScriptUrl','$Group','$Name');
   $qv = array('$ScriptUrl/$Group/$Name',$GLOBALS['ScriptUrl'],$match[1],
     $match[2]);
+  $fmt = str_replace('$PageName','$Group.$Name',$fmt);
   $fmt = str_replace($qk,$qv,$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
@@ -93,7 +189,6 @@ function FmtPageName($fmt,$pagename) {
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
   return $fmt;
 }
-
 
 class PageStore {
   var $dirfmt;
@@ -123,6 +218,7 @@ class PageStore {
     $page['rev'] = @$page['rev']+1;
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
+    echo "pagefile=$pagefile pagename=$pagename";
     mkgiddir(dirname($pagefile));
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
       $s = true && fputs($fp,"version=$Version\nnewline=$Newline\n");
@@ -193,74 +289,6 @@ function Keep($x) {
   return $KeepToken.$KPCount.$KeepToken;
 }
 
-foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
-  as $m) { $LinkFunctions[$m] = 'IMapLink';  $IMap[$m]="$m$1"; }
-
-$LinkFunctions['PmWiki:'] = 'IMapLink'; 
-$IMap['PmWiki:'] = 'http://www.pmichaud.com/wiki/$1';
-
-$LinkFunctions['<:page>'] = 'PageLink';
-
-$LinkPattern = implode('|',array_keys($LinkFunctions));
-
-$MarkupPatterns[50]["/\\r/"] = '';
-$MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
-  "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
-$MarkupPatterns[300]["/(\\\\*)\\\\\n/e"] =
-  "Keep(' '.str_repeat('<br />',strlen('$1')))";
-$MarkupPatterns[2000]["\n"] = 
-  '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
-$MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
-  "<a name='$1' id='$1'></a>";
-$MarkupPatterns[4100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
-  "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
-$MarkupPatterns[4200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
-  "Keep(MakeLink(\$pagename,'$1',NULL,'$2'))";
-$MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
-  "Keep(MakeLink(\$pagename,'$0','$1'))";
-$MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
-  "Keep(MakeLink(\$pagename,'$0','$0'))";
-$MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
-  "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
-$MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
-$MarkupPatterns[5200]['/^(#+)/'] = '<:ol,$1>';
-$MarkupPatterns[5300]['/^(-+)&gt;/'] = '<:indent,$1>';
-$MarkupPatterns[5400]['/^\\s*$/'] = '<:vspace>';
-$MarkupPatterns[5500]['/^(\\s)/'] = '<:pre,1>';
-$MarkupPatterns[5550]['/^\\|\\|.*\\|\\|.*$/e'] =
-  "FormatTableRow(PSS('$0'))";
-$MarkupPatterns[5555]['/^\\|\\|(.*)$/e'] =
-  "substr(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'),0,0)";
-$MarkupPatterns[5600]['/^(:+)([^:]+):/'] =
-  '<:dl,$1><dt>$2</dt><dd>';
-$MarkupPatterns[5700]['/^----+/'] = 
-  '<:block><hr />';
-$MarkupPatterns[5900]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
-$MarkupPatterns[7000]["/'''''(.*?)'''''/"] =
-  '<strong><em>$1</em></strong>';
-$MarkupPatterns[7010]["/'''(.*?)'''/"] =
-  '<strong>$1</strong>';
-$MarkupPatterns[7020]["/''(.*?)''/"] =
-  '<em>$1</em>';
-$MarkupPatterns[7030]["/@@(.*?)@@/"] =
-  '<code>$1</code>';
-$MarkupPatterns[7040]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
-  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
-$MarkupPatterns[8000]["/$KeepToken(\\d+?)$KeepToken/e"] =
-  '$GLOBALS[\'KPV\'][\'$1\']';
-
-$BlockMarkups = array(
-  'block' => array('','',''),
-  'ul' => array('<ul><li>','</li><li>','</li></ul>'),
-  'dl' => array('<dl>','</dd>','</dd></dl>'),
-  'ol' => array('<ol><li>','</li><li>','</li></ol>'),
-  'p' => array('<p>','','</p>'),
-  'indent' => 
-     array("<div class='indent'>","</div><div class='indent'>",'</div>'),
-  'pre' => array('<pre> ',' ','</pre>'),
-  'table' => array("<table width='100%'>",'','</table>')
-);
-
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$BlockCS;
   static $vspaces;
@@ -311,7 +339,7 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
-function IMapLink($pagename,$match,$txt) {
+function LinkIMap($pagename,$match,$txt) {
   global $IMap;
   @list($tgt,$imap,$path,$q,$title) = $match;
   $path = str_replace(' ','%20',$path);
@@ -319,7 +347,8 @@ function IMapLink($pagename,$match,$txt) {
   return "<a class='urllink' href='$url'>$txt</a>";
 }
 
-function PageLink($pagename,$match,$txt) {
+function LinkPage($pagename,$match,$txt) {
+  global $LinkPageExistsFmt,$LinkPageCreateSpaceFmt,$LinkPageCreateFmt;
   $PageNameChars = '-[:alnum:]';
   @list($tgt,$imap,$path,$q,$title) = $match;
   preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$path,$m);
@@ -327,7 +356,10 @@ function PageLink($pagename,$match,$txt) {
   else $group=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
   $name = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
   $tgtname = "$group.$name";
-  return FmtPageName("<a class='wikilink' href='\$PageUrl'>$txt</a>",$tgtname);
+  if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
+  elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
+  else $fmt=$LinkPageCreateFmt;
+  return str_replace('$LinkText',$txt,FmtPageName($fmt,$tgtname));
 }
 
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
@@ -429,11 +461,5 @@ function HandleSource($pagename) {
   $page = ReadPage($pagename);
   echo $page['text'];
 }
-
-$action = @$_REQUEST['action'];
-if ($action=='edit') HandleEdit('PmWiki.WikiSandbox');
-elseif ($action=='source') HandleSource('PmWiki.WikiSandbox');
-elseif ($action=='test') include_once('tests/00test.php');
-else HandleBrowse('PmWiki.WikiSandbox'); 
 
 ?> 
