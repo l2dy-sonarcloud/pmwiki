@@ -72,7 +72,8 @@ function HandleApprove($pagename) {
   }
   if (count($addpat)>0) {
     $aname = FmtPageName($ApprovedUrlPagesFmt[0],$pagename);
-    $apage = ReadPage($aname,'');
+    $apage = RetrieveAuthPage($aname,'edit');
+    if (!$apage) Abort("?cannot edit $aname");
     $new = $apage;
     if (substr($new['text'],-1,1)!="\n") $new['text'].="\n";
     foreach($addpat as $pat) $new['text'].="  $pat\n";
