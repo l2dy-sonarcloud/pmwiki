@@ -117,6 +117,8 @@ function ApplyStyles($x) {
         if (!@$WikiStyleApply[$a]) $p="<span $spanattr>$p</span>";
         elseif (!preg_match('/^(\\s*<[^>]+>)*$/',$p))
           $p = preg_replace("/<({$WikiStyleApply[$a]})\\b/","<$1 $spanattr",$p);
+      if ($s['color'])
+        $p = preg_replace('/<a\\b/', "<a style='color: {$s['color']}'", $p);
     }
     $out[] = $p;
   }
