@@ -42,7 +42,7 @@ function RequireAuthor($pagename,&$page,&$new) {
   global $Author,$EditMessageFmt,$AuthorRequiredFmt;
   if (!$Author) {
     $EditMessageFmt .= $AuthorRequiredFmt;
-    $_REQUEST['post'] = '';
+    $_POST['post'] = '';
   }
 }
 ?>

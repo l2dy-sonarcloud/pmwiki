@@ -80,7 +80,7 @@ function HandleApprove($pagename) {
     $new = $apage;
     if (substr($new['text'],-1,1)!="\n") $new['text'].="\n";
     foreach($addpat as $pat) $new['text'].="  $pat\n";
-    $_REQUEST['post'] = 'y';
+    $_POST['post'] = 'y';
     PostPage($aname,$apage,$new);
   }
   Redirect($pagename);
