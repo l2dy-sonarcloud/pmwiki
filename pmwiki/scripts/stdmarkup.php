@@ -67,10 +67,18 @@ Markup('notitle','directives','/\\[:notitle:\\]/e',
 
 ## [:title:]
 Markup('title','directives','/\\[:title\\s(.*?):\\]/e',
-  "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))");
+  "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
 
 ## [:comment:]
 Markup('comment','directives','/\\[:comment .*?:\\]/','');
+
+## [:spacewikiwords:]
+Markup('spacewikiwords','directives','/\\[:(no)?spacewikiwords:\\]/e',
+  "PZZ(\$GLOBALS['SpaceWikiWords']=('$1'!='no'))");
+
+## [:wikiwords:]
+Markup('wikiwords','directives','/\\[:(no)?wikiwords:\\]/e',
+  "PZZ(\$GLOBALS['LinkWikiWords']=('$1'!='no'))");
 
 #### inline markups ####
 ## character entities
