@@ -181,18 +181,20 @@ if (!$pagename &&
   $pagename = urldecode($match[1]);
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
-$pagename = MakePageName('',$pagename);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
 if (file_exists('local/config.php')) 
   include_once('local/config.php');
 
+SDV($DefaultPage,"$DefaultGroup.$DefaultName");
+if ($pagename && !preg_match("/^$GroupPattern([\/.])$NamePattern$/",$pagename))
+  Redirect(MakePageName($DefaultPage,$pagename));
+$pagename = MakePageName($DefaultPage,$pagename);
+
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
 
-SDV($DefaultPage,"$DefaultGroup.$DefaultName");
-if (!$pagename) $pagename=$DefaultPage;
 
 foreach((array)$InterMapFiles as $f) {
   if (@!($mapfd=fopen($f,"r"))) continue;
@@ -277,9 +279,9 @@ function fixperms($fname) {
 ## If no group is supplied, then it uses $PagePathFmt to look
 ## for the page in other groups, or else uses the group of the
 ## pagename passed as an argument.
-function MakePageName($pagename,$x) {
+function MakePageName($basepage,$x) {
   global $MakePageNameFunction,$PageNameChars,$PagePathFmt;
-  if (@$MakePageNameFunction) return $MakePageNameFunction($pagename,$x);
+  if (@$MakePageNameFunction) return $MakePageNameFunction($basepage,$x);
   SDV($PageNameChars,'-[:alnum:]');
   if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
   $name=str_replace(' ','',
@@ -292,10 +294,10 @@ function MakePageName($pagename,$x) {
     return "$group.$name";
   }
   foreach((array)$PagePathFmt as $pg) {
-    $pn = FmtPageName(str_replace('$1',$name,$pg),$pagename);
+    $pn = FmtPageName(str_replace('$1',$name,$pg),$basepage);
     if (PageExists($pn)) return $pn;
   }
-  $group=preg_replace('/[\\/.].*$/','',$pagename);
+  $group=preg_replace('/[\\/.].*$/','',$basepage);
   return "$group.$name";
 }
   
