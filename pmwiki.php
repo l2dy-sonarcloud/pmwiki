@@ -64,6 +64,7 @@ $PagePreviewFmt = "<div id='wikipreview'>
   <hr /><p><b>$[End of preview -- remember to save]</b><br />
   <a href='#top'>$[Top]</a></p></div>";
 $EditMessageFmt = '';
+$BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
 $EditFunctions = array('RestorePage','ReplaceOnSave','SaveAttributes',
   'PostPage','PostRecentChanges','PreviewPage');

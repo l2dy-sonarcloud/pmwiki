@@ -14,6 +14,14 @@
     The script also provides ?action=approveurls and ?action=approvesites, 
     which scan the current page for any new URLs to be automatically added
     the first page of $UrlApprovalPagesFmt.
+
+    Finally, the script will block any post containing more than
+    $UnapprovedLinkCountMax unapproved urls in it.  By default this
+    is set to a very large number, leaving the posting of unapproved
+    urls wide open, but by setting $UnapprovedLinkCountMax to a smaller
+    number you can limit the number of unapproved urls that make it into
+    a page.  (Wikispammers seem to like to post long lists of urls, while
+    more "normal" authors tend to only post a few.)
 */
 
 $LinkFunctions['http:'] = 'LinkHTTP';
@@ -27,10 +35,13 @@ $ApproveUrlPattern =
 $WhiteUrlPatterns = array();
 $HandleActions['approveurls'] = 'HandleApprove';
 $HandleActions['approvesites'] = 'HandleApprove';
+SDV($UnapprovedLinkCountMax, 1000000);
+array_splice($EditFunctions, array_search('PostPage', $EditFunctions),
+  0, 'BlockUnapprovedPosts');
 
 function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $EnableUrlApprovalRequired,$IMap,$WhiteUrlPatterns,$FmtV,
-    $UnapprovedLinkFmt;
+  global $EnableUrlApprovalRequired, $IMap, $WhiteUrlPatterns, $FmtV,
+    $UnapprovedLinkCount, $UnapprovedLinkFmt;
   if (!IsEnabled($EnableUrlApprovalRequired,1))
     return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   static $havereadpages;
@@ -42,6 +53,7 @@ function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
       return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   }
   $FmtV['$LinkText'] = $txt;
+  @$UnapprovedLinkCount++;
   return FmtPageName($UnapprovedLinkFmt,$pagename);
 }
 
@@ -84,6 +96,15 @@ function HandleApprove($pagename) {
     PostPage($aname,$apage,$new);
   }
   Redirect($pagename);
+}
+
+function BlockUnapprovedPosts($pagename, &$page, &$new) {
+  global $EnableUrlApprovalRequired, $UnapprovedLinkCount, 
+    $UnapprovedLinkCountMax, $EditMessageFmt, $BlockMessageFmt;
+  if (!IsEnabled($EnableUrlApprovalRequired, 1)) return;
+  if ($UnapprovedLinkCount <= $UnapprovedLinkCountMax) return;
+  unset($_POST['post']);
+  $EditMessageFmt .= $BlockMessageFmt;
 }
     
 ?>
