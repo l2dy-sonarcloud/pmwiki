@@ -101,7 +101,8 @@ $PageAttributes = array(
   'passwdedit' => '$[Set new edit password:]',
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
-if (setlocale(LC_ALL,NULL)=='C') setlocale(LC_ALL,'en_US');
+if (preg_match('/^C$|\.UTF-?8/i',setlocale(LC_ALL,NULL)))
+  setlocale(LC_ALL,'en_US');
 $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
   '/\\$FullName/' => '$Group.$Name',
@@ -736,8 +737,8 @@ function WikiLink($pagename,$word) {
   
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap,$IMapLinkFmt,$UrlLinkFmt;
-  $path = str_replace(' ','%20',$path);
-  $FmtV['$LinkUrl'] = str_replace('$1',$path,$IMap[$imap]);
+  $FmtV['$LinkUrl'] = preg_replace('/[\\x80-\\xff ]/e',"'%'.dechex(ord('$0'))",
+    str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
   if (!$fmt) 
