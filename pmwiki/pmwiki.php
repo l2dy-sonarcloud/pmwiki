@@ -112,6 +112,7 @@ $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
   '/\\$FullName/' => '$Group.$Name',
   '/\\$PageName/' => '$Group.$Name',       # deprecated, 2.0.devel14
+  '/\\$Titlespaced/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : \'$Namespaced\'',
   '/\\$Title/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : (($GLOBALS["SpaceWikiWords"]) ? \'$Namespaced\' : \'$Name\')',
   '/\\$Groupspaced/e' => '$AsSpacedFunction(@$match[1])',
   '/\\$Group/e' => '@$match[1]',
