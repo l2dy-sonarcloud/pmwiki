@@ -722,13 +722,15 @@ function Block($b) {
 }
 
 function FormatTableRow($x) {
-  global $Block, $TableCellAttr, $MarkupFrame, $TableRowIndexMax;
+  global $Block, $TableCellAttrFmt, $MarkupFrame, $TableRowAttrFmt, 
+    $TableRowIndexMax, $FmtV;
   static $rowcount;
   $x = preg_replace('/\\|\\|$/','',$x);
   $td = explode('||',$x); $y='';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
-    $attr = $TableCellAttr;
+    $FmtV['$TableCellCount'] = $i;
+    $attr = FmtPageName($TableCellAttrFmt, '');
     if (preg_match('/^\\s+$/',$td[$i])) $td[$i]='&nbsp;';
     if (preg_match('/^!(.*?)!$/',$td[$i],$match))
       { $td[$i]=$match[1]; $t='caption'; $attr=''; }
@@ -744,10 +746,11 @@ function FormatTableRow($x) {
     $y .= "<$t $attr>".$td[$i]."</$t>";
   }
   if ($t=='caption') return "<:table,1>$y";
-  if ($MarkupFrame[0]['cs'][0] != 'table') $rowcount = 1; else $rowcount++;
-  $rowindex = ($TableRowIndexMax < 1) ? '' :
-    'wikiti' . (($rowcount - 1) % $TableRowIndexMax + 1);
-  return "<:table,1><tr class='wikitr$rowcount $rowindex'>$y</tr>";
+  if ($MarkupFrame[0]['cs'][0] != 'table') $rowcount = 0; else $rowcount++;
+  $FmtV['$TableRowCount'] = $rowcount + 1;
+  $FmtV['$TableRowIndex'] = ($rowcount % $TableRowIndexMax) + 1;
+  $trattr = FmtPageName($TableRowAttrFmt, $pagename);
+  return "<:table,1><tr $trattr>$y</tr>";
 }
 
 function WikiLink($pagename, $word) {
