@@ -10,6 +10,8 @@
     software authors when debugging PmWiki or other scripts.
 */
 
+ini_set('track_errors','1');
+
 if ($action=='diag') {
   header('Content-type: text/plain');
   print_r($GLOBALS);
@@ -22,5 +24,21 @@ if ($action=='phpinfo') { phpinfo(); exit(); }
 if (@$_REQUEST['redirect']) 
   $_SESSION['redirect'] = ($_REQUEST['redirect']!='n');
 $EnableRedirect = @$_SESSION['redirect'];
+
+function Ruleset() {
+  global $MarkupTable;
+  $out = array();
+  BuildMarkupRules();
+  foreach($MarkupTable as $id=>$m) 
+    $out[] = sprintf("%-16s %-16s",$id,@$m['seq']);
+  return implode("\n",$out);
+}
+
+$HandleActions['ruleset'] = 'HandleRuleset';
+
+function HandleRuleset($pagename) {
+  header("Content-type: text/plain");
+  print Ruleset();
+}
 
 ?>

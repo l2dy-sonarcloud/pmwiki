@@ -25,6 +25,8 @@ if (!IsEnabled($EnableStdConfig,1)) return;
 
 if (IsEnabled($EnablePerGroupCust,1))
   include_once("$FarmD/scripts/pgcust.php");
+if (IsEnabled($EnableStdMarkup,1))
+  include_once("$FarmD/scripts/stdmarkup.php");
 if (IsEnabled($EnableAuthorTracking,1)) 
   include_once("$FarmD/scripts/author.php");
 if (IsEnabled($EnableTemplateLayout,1))
