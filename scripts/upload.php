@@ -118,7 +118,7 @@ function HandleUpload($pagename) {
   $page = RetrieveAuthPage($pagename,'upload');
   if (!$page) Abort("?cannot upload to $pagename");
   SetPage($pagename,$page);
-  $FmtV['$UploadName'] = MakeUploadName($pagename,$_REQUEST['upname']);
+  $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $upresult = @$_REQUEST['upresult'];
   $FmtV['$upext'] = @$_REQUEST['upext'];
   $FmtV['$upmax'] = @$_REQUEST['upmax'];
@@ -152,7 +152,7 @@ function HandlePostUpload($pagename) {
 
 function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   global $EnableUploadOverwrite,$UploadExtSize,$UploadPrefixQuota,
-    $UploadDirQuota;
+    $UploadDirQuota,$UploadDir;
   if (!$EnableUploadOverwrite && file_exists($filepath)) 
     return 'upresult=exists';
   preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=@$match[1];
@@ -169,12 +169,25 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   }
   $filedir = preg_replace('#/[^/]*$#','',$filepath);
   if ($UploadPrefixQuota && 
-      @(dirsize($filedir)-filesize($filepath)+$uploadfile['size']) >
+      (dirsize($filedir)-@filesize($filepath)+$uploadfile['size']) >
         $UploadPrefixQuota) return 'upresult=pquota';
   if ($UploadDirQuota && 
-      @(dirsize($UploadDir)-filesize($filepath)+$uploadfile['size']) >
+      (dirsize($UploadDir)-@filesize($filepath)+$uploadfile['size']) >
         $UploadDirQuota) return 'upresult=tquota';
   return '';
+}
+
+function dirsize($dir) {
+  $size = 0;
+  $dirp = @opendir($dir);
+  if (!$dirp) return 0;
+  while (($file=readdir($dirp)) !== false) {
+    if ($file[0]=='.') continue;
+    if (is_dir("$dir/$file")) $size+=dirsize("$dir/$file");
+    else $size+=filesize("$dir/$file");
+  }
+  closedir($dirp);
+  return $size;
 }
 
 ?>
