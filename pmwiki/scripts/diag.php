@@ -20,11 +20,6 @@ if ($action=='diag') {
 
 if ($action=='phpinfo') { phpinfo(); exit(); }
 
-@session_start();
-if (@$_REQUEST['redirect']) 
-  $_SESSION['redirect'] = ($_REQUEST['redirect']!='n');
-$EnableRedirect = @$_SESSION['redirect'];
-
 function Ruleset() {
   global $MarkupTable;
   $out = array();

@@ -91,6 +91,7 @@ $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
   'passwdedit' => '$[Set new edit password:]',
   'passwdattr' => '$[Set new attribute password:]');
+$XLLangs = array('en');
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -221,7 +222,6 @@ function SDVA(&$var,$val)
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
-function XL($x)  { return $x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.  It does not "lock pages" for editing.
@@ -264,6 +264,8 @@ function MakePageName($pagename,$x) {
   return "$group.$name";
 }
   
+## FmtPageName handles $[internationalization] and $Variable 
+## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals,$FmtV;
@@ -291,6 +293,18 @@ function FmtPageName($fmt,$pagename) {
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
   $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
   return $fmt;
+}
+
+## The XL functions provide translation tables for $[i18n] strings
+## in FmtPageName().
+function XL($key) {
+  global $XL,$XLLangs;
+  foreach($XLLangs as $l) if (isset($XL[$l][$key])) return $XL[$l][$key];
+  return $key;
+}
+function XLSDV($lang,$a) {
+  global $XL;
+  foreach($a as $k=>$v) { if (!isset($XL[$lang][$k])) $XL[$lang][$k]=$v; }
 }
 
 ## class PageStore holds objects that store pages via the native
@@ -402,12 +416,12 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
-  if (!isset($EnableRedirect) || $EnableRedirect) {
+  if (IsEnabled($EnableRedirect,0)) {
     header("Location: $pageurl");
     header("Content-type: text/html");
     echo "<html><head>
       <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$pageurl' />
-      <title>Redirect</title></head><body></body></html>";
+     <title>Redirect</title></head><body></body></html>";
   } else echo "<a href='$pageurl'>Redirect to $pageurl</a>";
   exit;
 }
