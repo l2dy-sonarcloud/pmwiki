@@ -4,12 +4,13 @@
 <html>
 <head>
   <title>$WikiTitle | $Group / $Title $Action</title>
-  <link rel='stylesheet' href='$SkinDirUrl/screen.css' type='text/css' />
+  <link rel='stylesheet' href='$SkinDirUrl/pmwiki.css' type='text/css' />
   <!--HeaderText-->
 </head>
 <body>
 <!--PageHeaderFmt-->
-  $PageLogoFmt
+  <div id='wikilogo'><a href='$ScriptUrl'><img src='$PageLogoUrl'
+    alt='$WikiTitle' border='0' /></a></div>
   <div id='wikihead'>
   <form action='$ScriptUrl/$[Main/SearchWiki]'>
     <input type='hidden' name='pagename' value='$[Main/SearchWiki]' />
