@@ -123,6 +123,7 @@ function HandleUpload($pagename) {
   $page = RetrieveAuthPage($pagename,'upload');
   if (!$page) Abort("?cannot upload to $pagename");
   PCache($pagename,$page);
+  Lock(0);
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $upresult = @$_REQUEST['upresult'];
   $uprname = @$_REQUEST['uprname'];
