@@ -29,6 +29,8 @@ if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableTemplateLayout,1))
   include_once("$FarmD/scripts/tlayout.php");
+if (IsEnabled($EnableMailPosts,0))
+  include_once("$FarmD/scripts/mailposts.php");
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
 
