@@ -106,7 +106,7 @@ $PageAttributes = array(
   'passwdedit' => '$[Set new edit password:]',
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
-if (preg_match('/^C$|\.UTF-?8/i',setlocale(LC_ALL,NULL)))
+if (preg_match('/^C$|\.UTF-?8/i',setlocale(LC_ALL,0)))
   setlocale(LC_ALL,'en_US');
 $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
