@@ -7,7 +7,7 @@
 
     This file attempts to ease conversions of PmWiki 1.x installations
     to PmWiki 2.  This is definitely a preliminary implementation and
-    still needs a fair amount of work.
+    still probably needs some work.
 
     The major component is the PageStore1x, which allows pages
     to be read from an existing PmWiki 1.x wiki.d/ directory, 
@@ -19,28 +19,8 @@
     test a PmWiki 2 installation on an existing set of PmWiki 1.x pages 
     without losing or modifying the 1.x page files.
 
-    Here's a suggested sequence of steps:
-
-    1.  Install PmWiki 2 somewhere other than the location of
-        the existing PmWiki 1.x installation.  Make sure the new
-        installation works properly.
-
-    2.  In the config.php for the PmWiki 2 installation, add the line
-
-            array_push($WikiLibDirs,
-                new PageStore1x("path/to/pmwiki1/wiki.d/$PageName"));
-
-        where "path/to/pmwiki1/wiki.d" is the path to the wiki.d
-        directory of the PmWiki 1.x installation.  
-
-    The approach is that the PmWiki 2 installation will read pages from
-    the PmWiki 1 installation (and convert them to the new markups),
-    but save edited pages in the new markup to the new installation,
-    leaving the PmWiki 1 installation intact.
-
-    For more details, see 
-        http://www.pmwiki.org/pmwiki2/pmwiki.php/PmWiki/UpgradingFromPmWiki1
-    
+    Details on this are being maintained at the UpgradingFromPmWiki1 page 
+    http://www.pmwiki.org/pmwiki2/pmwiki.php/PmWiki/UpgradingFromPmWiki1 .
 */
 
 SDVA($Compat1x,array(
