@@ -1,9 +1,10 @@
-version=pmwiki-2.0.devel3
+version=pmwiki-2.0.devel11
 newline=�
 version=pmwiki-2.0.devel3
-text=<<|[[PmWiki.Variables]]|>>께:$HTMLStylesFmt:An array of CSS statements to be included in the page's output along with other HTML headers.  This array provides an easy place for scripts to add custom CSS statements.께
-time=1094132058
+text=<<|[[PmWiki.Variables]]|>>께:$HTMLStylesFmt:An array of CSS statements to be included in the page's output along with other HTML headers.  This array provides an easy place for scripts to add custom CSS statements.께:$PageTitle:A variable which contains the Page title, by default the content is equal to $Name, but that can be modified by the directive [@[:title write a new title:]@]께:$WikiTitle:A variable which contains the Wiki title as displayed by the browser
+time=1097342916
 name=PmWiki.LayoutVariables
-host=24.1.26.221
-agent=Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7) Gecko/20040707 Firefox/0.8
-rev=3
+host=82.120.154.162
+agent=Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.4) Gecko/20030624 Netscape/7.1 (ax)
+rev=9
+author=PRZ
