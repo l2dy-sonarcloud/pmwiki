@@ -30,6 +30,7 @@ $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$Group.$Name');
 $WikiLibDirs = array($WikiDir,new PageStore('wikilib.d/$Group.$Name'));
+$InterMapFiles = array('scripts/intermap.txt','local/localmap.txt');
 $KeepToken = "\377\377";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
@@ -66,6 +67,8 @@ $LinkPageCreateFmt =
   "\$LinkText<a class='createlink' href='\$PageUrl?action=edit'>?</a>";
 $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
+$DefaultGroup = 'Main';
+$DefaultName = 'HomePage';
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -121,6 +124,20 @@ if (!$pagename &&
   $pagename = $match[1];
 
 include_once('local/config.php');
+
+SDV($DefaultPage,"$DefaultGroup.$DefaultName");
+if (!$pagename) $pagename=$DefaultPage;
+
+foreach((array)$InterMapFiles as $f) {
+  if (@!($mapfd=fopen($f,"r"))) continue;
+  while ($mapline=fgets($mapfd,1024)) {
+    if (preg_match('/^\\s*$/',$mapline)) continue;
+    list($imap,$url) = preg_split('/\\s+/',$mapline);
+    if (strpos($url,'$1')===false) $url.='$1';
+    $LinkFunctions["$imap:"] = 'LinkIMap';
+    $IMap["$imap:"] = $url;
+  }
+}
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($ImgExtPattern,"\\.(?:gif|jpg|jpeg|png)");
