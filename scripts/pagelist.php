@@ -39,7 +39,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
   if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
   $opt = array_merge($opt,@$_REQUEST);
-  $rq = stripmagic(@$_REQUEST['q']);
+  $rq = htmlspecialchars(stripmagic(@$_REQUEST['q']), ENT_NOQUOTES);
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",$rq,$match)) 
   { 
     $opt['group'] = @$match[1]; 
