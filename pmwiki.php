@@ -51,6 +51,7 @@ $RecentChangesFmt = array(
     '* [[$Group/$Name]] . . . $CurrentTime by $AuthorLink');
 $DefaultPageTextFmt = 'Describe [[$PageName]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
+$PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $RedirectDelay = 0;
 $DiffFunction = 'Diff';
 $SysDiffCmd = '/usr/bin/diff';
@@ -65,6 +66,7 @@ $LinkPageCreateFmt =
 $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 
+$WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
   "Last-Modified: ".gmstrftime('%a, %d %b %Y %H:%M:%S GMT'),
@@ -194,6 +196,7 @@ function PZZ($x,$y='') { return ''; }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
+function XL($x)  { return $x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.
@@ -216,13 +219,14 @@ function FmtPageName($fmt,$pagename) {
   $fmt = str_replace($qk,$qv,$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
-  if (count($GLOBALS)!=$GCount) {
+  if ($GCount != count($GLOBALS)+count($FmtV)) {
+    $g = array();
     foreach($GLOBALS as $n=>$v) {
       if (is_array($v) || is_object($v) ||
-         isset($FmtV[$n]) || in_array($n,$UnsafeGlobals)) continue;
+         isset($FmtV["\$$n"]) || in_array($n,$UnsafeGlobals)) continue;
       $g["\$$n"] = $v;
     }
-    $GCount = count($GLOBALS);
+    $GCount = count($GLOBALS)+count($FmtV);
     krsort($g); reset($g);
   }
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
@@ -443,7 +447,7 @@ function MarkupToHTML($pagename,$text) {
 }
 
 function PrintFmt($pagename,$fmt) {
-  global $HTTPHeaders;
+  global $HTTPHeaders,$FmtV;
   if (is_array($fmt)) 
     { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
   $x = FmtPageName($fmt,$pagename);
@@ -451,7 +455,7 @@ function PrintFmt($pagename,$fmt) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
-  print $x;
+  echo $x;
 }
 
 function HandleBrowse($pagename) {
