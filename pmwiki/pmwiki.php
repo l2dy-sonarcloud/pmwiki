@@ -76,7 +76,7 @@ $RecentChangesFmt = array(
     '* [[$Group.$Name]]  . . . $CurrentTime by $AuthorLink',
   '$Group.RecentChanges' =>
     '* [[$Group/$Name]]  . . . $CurrentTime by $AuthorLink');
-$DefaultPageTextFmt = 'Describe [[$Group/$Name]] here.';
+$DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
@@ -954,13 +954,14 @@ function SaveAttributes($pagename,&$page,&$new) {
   $new['targets'] = implode(',',array_keys((array)$LinkTargets));
 }
 
-function PostPage($pagename,&$page,&$new) {
-  global $DiffKeepDays,$DiffFunction,$DeleteKeyPattern,
-    $Now,$Author,$WikiDir,$IsPagePosted;
+function PostPage($pagename, &$page, &$new) {
+  global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern,
+    $Now, $Author, $WikiDir, $IsPagePosted, $Newline;
   SDV($DiffKeepDays,3650);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if (@$_POST['post']) {
+    $new['text'] = str_replace($Newline, "\n", $new['text']);
     if ($new['text']==@$page['text']) { Redirect($pagename); return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
