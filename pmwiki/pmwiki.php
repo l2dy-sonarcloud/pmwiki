@@ -467,7 +467,7 @@ class PageStore {
     $page['name'] = $pagename;
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
-    $page['agent'] = $_SERVER['HTTP_USER_AGENT'];
+    $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
     $page['rev'] = @$page['rev']+1;
     unset($page['version']); unset($page['newline']);
     $s = false;
@@ -734,8 +734,8 @@ function FormatTableRow($x) {
 function WikiLink($pagename,$word) {
   global $LinkWikiWords,$SpaceWikiWords,$AsSpacedFunction;
   $text = ($SpaceWikiWords) ? $AsSpacedFunction($word) : $word;
-  $text = preg_replace('!.*/!','',$text);
   if (!$LinkWikiWords) return $text;
+  $text = preg_replace('!.*/!','',$text);
   return MakeLink($pagename,$word,$text);
 }
   
@@ -1015,7 +1015,7 @@ function HandleSource($pagename) {
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort("?cannot source $pagename");
   header("Content-type: text/plain");
-  echo $page['text'];
+  echo @$page['text'];
 }
 
 
