@@ -23,8 +23,10 @@ function TestResult($pagename,$testname,$testmarkup,$testresult) {
   $x = "<table width='100%' border='1' cellspacing='0'>
     <tr><td colspan='2' class='$pass'><b>$pagename</b> - $testname: $pass</td></tr>";
   if (!$pass || @$_SESSION['details'])
-    $x .= "<tr><td width='50%'><pre>".htmlspecialchars($out)."</pre></td>
-      <td><pre>".htmlspecialchars($testresult)."</pre></td></tr>";
+    $x .= "<tr><td width='50%'><pre>$testmarkup</pre></td>
+        <td><pre>".htmlspecialchars($out)."</pre></td></tr>
+      <tr><td>$out</td>
+        <td><pre>".htmlspecialchars($testresult)."</pre></td></tr>";
   return "$x</table>";
 }
 
