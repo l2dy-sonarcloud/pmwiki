@@ -39,9 +39,9 @@ function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
   if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
   $opt = array_merge($opt,@$_REQUEST);
-  $terms = $opt['o'] . ' ' . stripmagic(@$_REQUEST['q']);
+  $needle = $opt['o'] . ' ' . stripmagic(@$_REQUEST['q']);
   $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
-    $terms,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+    $needle,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",@$terms[0],$match)) 
   { 
     $opt['group'] = @$match[1]; 
@@ -82,7 +82,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   sort($matches);
   $FmtV['$MatchCount'] = count($matches);
   $FmtV['$MatchSearched'] = count($pagelist);
-  $FmtV['$Needle'] = @$opt['q'];
+  $FmtV['$Needle'] = $needle;
   $GLOBALS['SearchIncl'] = $incl;
   $GLOBALS['SearchExcl'] = $excl;
   $GLOBALS['SearchGroup'] = @$opt['group'];
