@@ -587,13 +587,16 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   $t = preg_replace('/[()]/','',trim($tgt));
   preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
   if (!$m[1]) $m[1]='<:page>';
-  if (is_null($txt)) {
-    $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-    if ($m[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
+  if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txt,$tm)) 
+    $txt = $LinkFunctions[$tm[2]]($pagename,$tm[2],$tm[3],@$tm[5],
+      $tm[1],$ImgTagFmt);
+  else {
+    if (is_null($txt)) {
+      $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
+      if ($m[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
+    }
+    $txt .= $suffix;
   }
-  if (preg_match("/^($LinkPattern)?([^$UrlExcludeChars]+$ImgExtPattern)(\"(.*)\")?$/",$txt,$tm)) 
-    $txt = $LinkFunctions[$tm[1]]($pagename,$tm[1],$tm[2],@$tm[4],'',$ImgTagFmt);
-  else $txt .= $suffix;
   $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
   return $out;
 }
