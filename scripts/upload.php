@@ -88,7 +88,8 @@ XLSDV('en',array(
 SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
 SDV($DefaultPasswords['upload'],'*');
 
-Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
+Markup('attachlist', '<block', 
+  '/\\(:attachlist:\\)/ei',
   "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
 SDV($GUIButtons['attach'], array(220, 'Attach:', '', '$[file.ext]',
   '$GUIButtonDirUrlFmt/attach.gif"$[Attach file]"'));
