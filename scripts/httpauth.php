@@ -14,18 +14,19 @@ $AuthFunction = 'HTTPBasicAuth';
 
 ## HTTPBasicAuth provides password-protection of pages using HTTP Basic
 ## Authentication.  It is normally called from RetrieveAuthPage.
-function HTTPBasicAuth($pagename,$level,$authprompt=true) {
+function HTTPBasicAuth($pagename, $level, $authprompt=true, $since=0) {
   global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
     $AllowPassword,$GroupAttributesFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
   SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
   SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
-  $page = ReadPage($pagename);
+  $page = ReadPage($pagename, $since);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
   if ($passwd=="") { 
-    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt,$pagename));
+    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt, $pagename),
+                   READPAGE_CURRENT);
     $passwd = @$grouppg["passwd$level"];
     if ($passwd=='') $passwd = @$DefaultPasswords[$level];
     if ($passwd=='') $passwd = @$page["passwdread"];

@@ -39,7 +39,7 @@ function ReadTrail($pagename,$trailname) {
   if (preg_match('/^\\[\\[(.+?)(-&gt;|\\|)(.+?)\\]\\]$/', $trailname, $m)) 
     $trailname = ($m[2] == '|') ? $m[1] : $m[3];
   $trailname = MakePageName($pagename,$trailname);
-  $trailpage = ReadPage($trailname);
+  $trailpage = ReadPage($trailname, READPAGE_CURRENT);
   if (!$trailpage) return false;
   $t = array();
   $n = 0;
