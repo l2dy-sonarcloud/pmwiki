@@ -1112,11 +1112,18 @@ function BasicAuth($pagename,$level,$authprompt=true) {
     foreach($authpw as $pwresp)
       if (@crypt($pwresp,$pwchal)==$pwchal) return $page;
   if (!$authprompt) return false;
+  $postvars = '';
+  foreach($_POST as $k=>$v) {
+    if ($k == 'authpw') continue;
+    $v = str_replace('$', '&#036;', 
+      htmlspecialchars(stripmagic($v), ENT_COMPAT));
+    $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
+  }
   SDV($SessionAuthFmt,array(&$HTMLStartFmt,
     "<p><b>Password required</b></p>
       <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
         Password: <input tabindex='1' type='password' name='authpw' value='' />
-        <input type='submit' value='OK' /></form>", &$HTMLEndFmt));
+        <input type='submit' value='OK' />$postvars</form>", &$HTMLEndFmt));
   PrintFmt($pagename,$SessionAuthFmt);
   exit;
 }
