@@ -50,13 +50,15 @@ $SysDiffCmd = '/usr/bin/diff';
 $DiffKeepDays = 0;
 $HTMLVSpace = "<p class='vspace'></p>";
 $BlockCS = array();
+$UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
+$SuffixPattern = '(?:-?[[:alnum:]]+)*';
 umask(0);
 
 ## PSS is a helper function to strip the slashes inserted by /e in preg_replace.
 function stripmagic($x) 
   { return get_magic_quotes_gpc() ? stripslashes($x) : $x; }
 function PSS($x) 
-  { return str_replace('\\\"','\"',$x); }
+  { return str_replace('\\"','"',$x); }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
@@ -191,6 +193,16 @@ function Keep($x) {
   return $KeepToken.$KPCount.$KeepToken;
 }
 
+foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
+  as $m) { $LinkFunctions[$m] = 'IMapLink';  $IMap[$m]="$m$1"; }
+
+$LinkFunctions['PmWiki:'] = 'IMapLink'; 
+$IMap['PmWiki:'] = 'http://www.pmichaud.com/wiki/$1';
+
+$LinkFunctions['<:page>'] = 'PageLink';
+
+$LinkPattern = implode('|',array_keys($LinkFunctions));
+
 $MarkupPatterns[50]["/\\r/"] = '';
 $MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
   "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
@@ -200,12 +212,14 @@ $MarkupPatterns[2000]["\n"] =
   '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
 $MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
-$MarkupPatterns[4100]['/\\[\\[([^|]+)\\|(.*?)\\]\\]/e'] =
-  "Keep(MakeLink(\$pagename,'$1',PSS('$2')))";
-$MarkupPatterns[4200]['/\\[\\[(.*?)\\]\\]/e'] =
-  "Keep(MakeLink(\$pagename,'$1'))";
+$MarkupPatterns[4100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
+  "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
+$MarkupPatterns[4200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
+  "Keep(MakeLink(\$pagename,'$1',NULL,'$2'))";
 $MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
   "Keep(MakeLink(\$pagename,'$0','$1'))";
+$MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
+  "Keep(MakeLink(\$pagename,'$0','$0'))";
 $MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
   "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
 $MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
@@ -297,9 +311,6 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
-foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
-  as $m) { $LinkFunctions[$m] = 'IMapLink';  $IMap[$m]="$m$1"; }
-
 function IMapLink($pagename,$match,$txt) {
   global $IMap;
   @list($tgt,$imap,$path,$q,$title) = $match;
@@ -308,16 +319,27 @@ function IMapLink($pagename,$match,$txt) {
   return "<a class='urllink' href='$url'>$txt</a>";
 }
 
-function MakeLink($pagename,$tgt,$txt=NULL,$ext=NULL) {
-  global $LinkPattern,$LinkFunctions;
-  if (is_null($txt)) $txt=preg_replace('/\\([^)]*\\)/','',$tgt);
-  $txt .= $ext;
-  if (!isset($LinkPattern)) 
-    $LinkPattern = implode('|',array_keys($LinkFunctions));
-  $tgt = preg_replace('/[()]/','',trim($tgt));
-  if (!preg_match("/^($LinkPattern)([^\"]+)(\"(.*)\")?$/",$tgt,$match))
-    return "nomatch: tgt=$tgt, txt=$txt";
-  $out = $LinkFunctions[$match[1]]($pagename,$match,$txt);
+function PageLink($pagename,$match,$txt) {
+  $PageNameChars = '-[:alnum:]';
+  @list($tgt,$imap,$path,$q,$title) = $match;
+  preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$path,$m);
+  if (!$m[1]) $group=FmtPageName('$Group',$pagename);
+  else $group=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
+  $name = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
+  $tgtname = "$group.$name";
+  return FmtPageName("<a class='wikilink' href='\$PageUrl'>$txt</a>",$tgtname);
+}
+
+function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
+  global $LinkPattern,$LinkFunctions,$UrlExcludeChars;
+  $t = preg_replace('/[()]/','',trim($tgt));
+  preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$match);
+  if (!$match[1]) $match[1]='<:page>';
+  if (is_null($txt)) {
+    $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
+    if ($match[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
+  }
+  $out = $LinkFunctions[$match[1]]($pagename,$match,$txt.$suffix);
   return $out;
 }
 
