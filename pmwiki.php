@@ -129,8 +129,8 @@ $HandleActions = array(
 
 $Conditions['false'] = 'false';
 
-$MarkupTable['_beg']['pos'] = 'B';
-$MarkupTable['_end']['pos'] = 'E';
+$MarkupTable['_begin']['seq'] = 'B';
+$MarkupTable['_end']['seq'] = 'E';
 Markup('fulltext','>_begin');
 Markup('split','>fulltext',"\n",
   '$RedoMarkupLine=1; return explode("\n",$x);');
@@ -139,6 +139,9 @@ Markup('links','>directives');
 Markup('block','>links');
 Markup('inline','>block');
 Markup('style','>inline');
+
+$ImgExtPattern="\\.(?:gif|jpg|jpeg|png)";
+$ImgTagFmt="<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />";
 
 $BlockMarkups = array(
   'block' => array('','',''),
@@ -210,106 +213,6 @@ foreach((array)$InterMapFiles as $f) {
 }
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
-SDV($ImgExtPattern,"\\.(?:gif|jpg|jpeg|png)");
-SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
-
-###### MarkupPatterns controls conversion of wiki markup to XHTML ######
-#### 0000: keeps, variables, includes
-  $MarkupPatterns[200]["/\\r/"] = '';
-  $MarkupPatterns[300]["/\\[([=@])(.*?)\\1\\]/se"] =
-    "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
-  $MarkupPatterns[400]["/\{\\$(Group|Name)}/e"] =
-    "FmtPageName('$$1',\$pagename)";
-  $MarkupPatterns[420]["/\{\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost)}/e"] =
-    "\$GLOBALS['$1']";
-#### 1000: conditional markups, includes, group header/footers
-  $MarkupPatterns[1200]["/\\[:(if[^\n]*?):\\](.*?)(?=\\[:if[^\n]*:\\]|$)/se"]=
-    "CondText(\$pagename,PSS('$1'),PSS('$2'))";
-  $MarkupPatterns[1300]["/\\[:(include\\s+.+?):\\]/e"] = 
-    "PRR().IncludeText(\$pagename,'$1')";
-  $MarkupPatterns[1400]['/\\[:nogroupheader:\\]/e'] =
-    "PZZ(\$GLOBALS['GroupHeaderFmt']='')";
-  $MarkupPatterns[1400]['/\\[:nogroupfooter:\\]/e'] =
-    "PZZ(\$GLOBALS['GroupFooterFmt']='')";
-  $MarkupPatterns[1420]['/\\[:groupheader:\\]/e'] = 
-    "PRR().FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename)";
-  $MarkupPatterns[1420]['/\\[:groupfooter:\\]/e'] = 
-    "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)";
-#### 2000: line breaks
-  $MarkupPatterns[2200]["/(\\\\*)\\\\\n/e"] =
-    "Keep(' '.str_repeat('<br />',strlen('$1')))";
-  $MarkupPatterns[2220]["/(?<!\n)\\[:nl:\\](?!\n)/"] = "\n";
-  $MarkupPatterns[2225]["/\\[:nl:\\]/"] = '';
-  $MarkupPatterns[2800]["\n"] = 
-    '$RedoMarkupLine=1; return explode("\n",$x);';
-#### 3000: directives
-  $MarkupPatterns[3200]['/\\[:noheader:\\]/e'] = 
-    "PZZ(\$GLOBALS['PageHeaderFmt']='')";
-  $MarkupPatterns[3220]['/\\[:nofooter:\\]/e'] = 
-    "PZZ(\$GLOBALS['PageFooterFmt']='')";
-  $MarkupPatterns[3240]['/\\[:notitle:\\]/e'] = 
-    "PZZ(\$GLOBALS['PageTitleFmt']='')";
-  $MarkupPatterns[3300]['/\\[:title\\s(.*?):\\]/e'] =
-    "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))";
-  $MarkupPatterns[3320]['/\\[:keywords\\s(.*?):\\]/e'] =
-    "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='keywords' content='\".
-    str_replace(\"'\",'&#039;',PSS('$1')).\"' />\")";
-  $MarkupPatterns[3340]['/\\[:comments .*?:\\]/'] = '';
-#### 4000: links
-  $MarkupPatterns[4200]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
-    "Keep(\"<a name='$1' id='$1'></a>\",'7')";
-  $MarkupPatterns[4300]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
-    "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'7')";
-  $MarkupPatterns[4320]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'7')";
-  $MarkupPatterns[4340]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
-    "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'7')";
-  $MarkupPatterns[4400]['/\\bmailto:(\\S+)/e'] =
-    "Keep(MakeLink(\$pagename,'$0','$1'),'7')";
-  $MarkupPatterns[4420]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
-    "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
-      \$GLOBALS['ImgTagFmt']),'7')";
-  $MarkupPatterns[4440]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
-    "Keep(MakeLink(\$pagename,'$0','$0'),'7')";
-  $MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
-    "Keep(MakeLink(\$pagename,'$0'),'7')";
-#### 5000: block markups
-  $MarkupPatterns[5200]['/^(\\*+)/'] = '<:ul,$1>';
-  $MarkupPatterns[5220]['/^(#+)/'] = '<:ol,$1>';
-  $MarkupPatterns[5240]['/^(-+)&gt;/'] = '<:indent,$1>';
-  $MarkupPatterns[5260]['/^(:+)([^:]+):/'] =
-  '<:dl,$1><dt>$2</dt><dd>';
-  $MarkupPatterns[5300]['/^\\s*$/'] = '<:vspace>';
-  $MarkupPatterns[5320]['/^(\\s)/'] = '<:pre,1>';
-  $MarkupPatterns[5400]['/^\\|\\|.*\\|\\|.*$/e'] =
-    "FormatTableRow(PSS('$0'))";
-  $MarkupPatterns[5420]['/^\\|\\|(.*)$/e'] =
-    "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
-  $MarkupPatterns[5500]['/^(!{1,6})(.*)$/e'] =
-    "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
-  $MarkupPatterns[5520]['/^----+/'] = 
-    '<:block><hr />';
-  $MarkupPatterns[5800]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
-#### 6000: inline markups
-  $MarkupPatterns[6200]["/'''''(.*?)'''''/"] =
-    '<strong><em>$1</em></strong>';
-  $MarkupPatterns[6220]["/'''(.*?)'''/"] =
-    '<strong>$1</strong>';
-  $MarkupPatterns[6240]["/''(.*?)''/"] =
-    '<em>$1</em>';
-  $MarkupPatterns[6260]["/@@(.*?)@@/"] =
-    '<code>$1</code>';
-  $MarkupPatterns[6300]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
-    "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
-#### 6999: Restore keeps that still need WikiStyle processing ('7')
-  $MarkupPatterns[6999]["/$KeepToken(\\d+?,7)$KeepToken/e"] =
-    '$GLOBALS[\'KPV\'][\'$1\']';
-#### 7000: wikistyles
-  $MarkupPatterns[7300]['%'] =
-    'return ApplyStyles($x);';
-#### 8000: restore keeps
-  $MarkupPatterns[8500]["/$KeepToken(\\d+?)$KeepToken/e"] =
-    '$GLOBALS[\'KPV\'][\'$1\']';
-
 
 if (!function_exists($HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
@@ -552,7 +455,6 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
 function Keep($x,$level='') {
   # Keep preserves a string from being processed by wiki markups
   global $KeepToken,$KPV,$KPCount;
-  if ($level) $level=",$level";
   $KPCount++; $KPV[$KPCount.$level]=$x;
   return $KeepToken.$KPCount.$level.$KeepToken;
 }
@@ -751,15 +653,15 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   return $out;
 }
 
-function MP($id,$cmd,$pat=NULL,$rep=NULL) {
-  global $MarkupTable,$MarkupPatterns;
-  unset($MarkupPatterns);
+function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
+  global $MarkupTable,$MarkupRules;
+  unset($MarkupRules);
   if (preg_match('/^([<>])?(.+)$/',$cmd,$m)) {
     $MarkupTable[$m[2]]['dep']=array($id=>$m[1]);
     if (!$m[1]) $m[1]='=';
-    if ($MarkupTable[$m[2]]['pos']) {
-      $MarkupTable[$id]['pos'] = $MarkupTable[$m[2]]['pos'].$m[1];
-      foreach((array)$MarkupTable[$id]['dep'] as $i=>$m)
+    if (@$MarkupTable[$m[2]]['seq']) {
+      $MarkupTable[$id]['seq'] = $MarkupTable[$m[2]]['seq'].$m[1];
+      foreach((array)@$MarkupTable[$id]['dep'] as $i=>$m)
         MP($i,"$m$id");
       unset($MarkupTable[$id]['dep']);
     }
@@ -770,31 +672,33 @@ function MP($id,$cmd,$pat=NULL,$rep=NULL) {
   }
 }
 
-function mpcmp($a,$b) { return strcmp($a['pos'].'=',$b['pos'].'='); }
-function BuildMarkupPatterns() {
-  global $MarkupTable,$MarkupPatterns;
-  if (!$MarkupPatterns) {
+function mpcmp($a,$b) { return strcmp($a['seq'].'=',$b['seq'].'='); }
+function BuildMarkupRules() {
+  global $MarkupTable,$MarkupRules;
+  if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if ($m['pat']) $MarkupPatterns[$m['pat']]=$m['rep'];
+      if (@$m['pat']) $MarkupRules[$m['pat']]=$m['rep'];
   }
-  return $MarkupPatterns;
+  return $MarkupRules;
 }
 
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupPatterns,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
+  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
 
   array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
-  $markpats = BuildMarkupPatterns();
+  $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
+  $out = array();
   while (count($lines)>0) {
     $x = array_shift($lines);
     $RedoMarkupLine=0;
-    foreach($markpats as $p=>$r) {
+    foreach($markrules as $p=>$r) {
       if (substr($p,0,1)=='/') $x=preg_replace($p,$r,$x); 
       elseif ($p=='' || strstr($x,$p)!==false) $x=eval($r);
+      if (isset($php_errormsg)) { echo "pat=$p"; unset($php_errormsg); }
       if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
     }
     if ($x>'') $out[] = "$x\n";
