@@ -41,7 +41,7 @@ function DisplayStopWatch() {
   StopWatch('now');
   $u = $StopWatch[0];
   $au=$u; 
-  $out[] = "<table><th>Event</th><th>Time</th><th>Cumulative</th>\n";
+  $out[] = "<table><tr><th>Event</th><th>Time</th><th>Cumulative</th></tr>\n";
   for($i=0;$i<count($StopWatch);$i++) {
     list($bu,$bevent) = explode(' ',$StopWatch[$i],2);
     $t = sprintf('%.02f',$bu-$au);
