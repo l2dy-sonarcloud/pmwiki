@@ -125,10 +125,11 @@ function HandleUpload($pagename) {
   PCache($pagename,$page);
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $upresult = @$_REQUEST['upresult'];
+  $uprname = @_$REQUEST['uprname'];
   $FmtV['$upext'] = @$_REQUEST['upext'];
   $FmtV['$upmax'] = @$_REQUEST['upmax'];
   $FmtV['$UploadResult'] = ($upresult) ?
-    FmtPageName("<i>\$UploadName</i>: $[UL$upresult]",$pagename) : '';
+    FmtPageName("<i>$uprname</i>: $[UL$upresult]",$pagename) : '';
   SDV($HandleUploadFmt,array(&$PageStartFmt,&$PageUploadFmt,&$PageEndFmt));
   PrintFmt($pagename,$HandleUploadFmt);
 }
@@ -154,7 +155,7 @@ function HandlePostUpload($pagename) {
     if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
     $result = "upresult=success";
   }
-  Redirect($pagename,"\$PageUrl?action=upload&upname=$upname&$result");
+  Redirect($pagename,"\$PageUrl?action=upload&uprname=$upname&$result");
 }
 
 function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
@@ -167,13 +168,13 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   if ($maxsize<=0) return "upresult=badtype&upext=$ext";
   if ($uploadfile['size']>$maxsize) 
     return "upresult=toobigext&upext=$ext&upmax=$maxsize";
-  if (!is_uploaded_file($uploadfile['tmp_name'])) return 'upresult=nofile';
   switch (@$uploadfile['error']) {
     case 1: return 'upresult=toobig';
     case 2: return 'upresult=toobig';
     case 3: return 'upresult=partial';
     case 4: return 'upresult=nofile';
   }
+  if (!is_uploaded_file($uploadfile['tmp_name'])) return 'upresult=nofile';
   $filedir = preg_replace('#/[^/]*$#','',$filepath);
   if ($UploadPrefixQuota && 
       (dirsize($filedir)-@filesize($filepath)+$uploadfile['size']) >
