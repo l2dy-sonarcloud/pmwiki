@@ -604,7 +604,7 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
     if (@$MarkupTable[$m[2]]['seq']) {
       $MarkupTable[$id]['seq'] = $MarkupTable[$m[2]]['seq'].$m[1];
       foreach((array)@$MarkupTable[$id]['dep'] as $i=>$m)
-        MP($i,"$m$id");
+        Markup($i,"$m$id");
       unset($MarkupTable[$id]['dep']);
     }
   }

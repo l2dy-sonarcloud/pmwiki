@@ -14,9 +14,9 @@
 */
 
 SDV($VarPagesFmt,array('PmWiki.Variables'));
-Markup('$WikiWord','<wikilink',"/\\$($WikiWordPattern)\\b/e",
+Markup('varlink','<wikilink',"/\\$($WikiWordPattern)\\b/e",
   "Keep(VarLink(\$pagename,'$1','$$1'))");
-Markup('^:$WikiWord','<links',"/^:\\$($WikiWordPattern):/",
+Markup('vardef','<links',"/^:\\$($WikiWordPattern):/",
   ':[[#$1]]$$1:');
 Markup('varindex','directives','/\\[:varindex:\\]/e',
   "Keep(VarIndexList())");
