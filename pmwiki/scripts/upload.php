@@ -56,7 +56,7 @@ SDV($UploadDir,'uploads');
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
 SDV($UploadUrlFmt,preg_replace('#/[^/]*$#',"/$UploadDir",$ScriptUrl,1));
-SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText</a><a class='createlink' href='\$LinkUrl'>?</a>");
+SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText</a><a class='createlink' href='\$LinkUrl'>&nbsp;&#8657;</a>");
 
 SDV($PageUploadFmt,array("
   <h2 class='wikiaction'>$[Attachments for] \$PageName</h2>
