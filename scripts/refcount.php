@@ -85,10 +85,11 @@ function PrintRefCount($pagename) {
       elseif ($whichrefs=='existing' && !PageExists($p)) continue;
       elseif ($whichrefs=='orphaned' &&
         (@$tref[$p]['page']>0 || !PageExists($p))) continue;
-      echo "<tr><td valign='top'>",WikiLink($pagename,$p);
+      echo "<tr><td valign='top'>",LinkPage($pagename, '', $p, '', $p);
       if (@$tref[$p]['time']) echo strftime($RefCountTimeFmt,$tref[$p]['time']);
       if ($showrefs && is_array(@$pref[$p])) {
-        foreach($pref[$p] as $pr=>$pc) echo "<dd>",WikiLink($pagename,$pr);
+        foreach($pref[$p] as $pr=>$pc) 
+          echo "<dd>", LinkPage($pagename, '', $pr, '', $pr);
       }
       echo "</td>";
       echo "<td align='center' valign='top'>",@$tref[$p]['page']+0,"</td>";
