@@ -29,10 +29,10 @@
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 if ($pagename=='') $pagename=$DefaultPage;
 
-$v = 1;
+$f = 1;
 for($p=$pagename;$p;$p=preg_replace('/\\.*[^.]*$/','',$p)) {
   if (!IsEnabled($EnablePGCust,1)) return;
-  if (file_exists("local/$p.php")) { include_once("local/$p.php"); $v=0; }
+  if (file_exists("local/$p.php")) { include_once("local/$p.php"); $f=0; }
 }
 
 if ($v && IsEnabled($EnablePGCust,1) && file_exists('local/default.php'))
