@@ -87,6 +87,8 @@ XLSDV('en',array(
 SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
 SDV($DefaultPasswords['upload'],'*');
 
+Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
+  "'<ul>'.FmtUploadList('$pagename','$1').'</ul>'");
 SDV($LinkFunctions['Attach:'],'LinkUpload');
 SDV($IMap['Attach:'],'$1');
 SDV($HandleActions['upload'],'HandleUpload');
@@ -193,6 +195,32 @@ function dirsize($dir) {
   }
   closedir($dirp);
   return $size;
+}
+
+function FmtUploadList($pagename,$opt) {
+  global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $TimeFmt;
+  $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
+  $uploadurl = preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))",
+    FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename));
+
+  $dirp = @opendir($uploaddir);
+  if (!$dirp) return '';
+  $filelist = array();
+  while (($file=readdir($dirp)) !== false) {
+    if (substr($file,0,1)=='.') continue;
+    $filelist[$file] = $file;
+  }
+  closedir($dirp);
+  $out = array();
+  asort($filelist);
+  foreach($filelist as $file=>$x) {
+    $name = preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $file);
+    $stat = stat("$uploaddir/$file");
+    $out[] = "<li> <a href='$uploadurl$name'>$file</a> ... 
+      {$stat['size']} bytes ... " . strftime($TimeFmt, $stat['mtime']) 
+      . "</li>";
+  }
+  return implode("\n",$out);
 }
 
 ?>
