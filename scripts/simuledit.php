@@ -52,6 +52,6 @@ function MergeSimulEdits($pagename,&$page,&$new) {
     &gt;&gt;&gt;&gt;&gt;&gt;&gt;.  (<a target='_blank' 
     href='\$PageUrl?action=diff'>View changes</a>)</p>\n";
   $old = array();
-  RestorePage($pagename,&$page,&$old,"diff:{$_REQUEST['basetime']}");
+  RestorePage($pagename,$page,$old,"diff:{$_REQUEST['basetime']}");
   $new['text'] = Merge($new['text'],$old['text'],$page['text']);
 }
