@@ -14,9 +14,9 @@
 */
 
 SDV($VarPagesFmt,array('PmWiki.Variables'));
-$MarkupPatterns[3550]["/\\$($WikiWordPattern)\\b/e"] =
+$MarkupPatterns[4490]["/\\$($WikiWordPattern)\\b/e"] =
   "Keep(VarLink(\$pagename,'$1','$$1'))";
-$MarkupPatterns[2800]["/^:\\$($WikiWordPattern):/"] = 
+$MarkupPatterns[3800]["/^:\\$($WikiWordPattern):/"] = 
   ':[[#$1]]$$1:';
 $HTMLStylesFmt[] = "a.varlink { text-decoration:none; }\n";
 

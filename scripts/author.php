@@ -13,7 +13,7 @@ SDV($AuthorCookieDir,'/');
 SDV($AuthorGroup,'Profiles');
 SDV($AuthorRequiredFmt,
   "<h3 class='wikimessage'>$[An author name is required.]</h3>");
-$MarkupPatterns[3050]['/\\[\\[~(.*?)\\]\\]/'] =
+$MarkupPatterns[4100]['/\\[\\[~(.*?)\\]\\]/'] =
   "[[$AuthorGroup/$1]]";
 
 if (!isset($Author)) {
