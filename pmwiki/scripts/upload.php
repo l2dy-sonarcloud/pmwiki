@@ -84,6 +84,8 @@ XLSDV('en',array(
   'ULexists' => 'file with that name already exists',
   'ULpquota' => 'group quota exceeded',
   'ULtquota' => 'upload quota exceeded'));
+SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
+SDV($DefaultPasswords['upload'],'*');
 
 SDV($LinkFunctions['Attach:'],'LinkUpload');
 SDV($IMap['Attach:'],'$1');
