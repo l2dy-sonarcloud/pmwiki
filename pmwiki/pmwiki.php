@@ -644,7 +644,7 @@ function MarkupToHTML($pagename,$text) {
 function HandleBrowse($pagename) {
   # handle display of a page
   global $FmtV,$GroupHeaderFmt,$GroupFooterFmt,
-    $HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
+    $HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
   Lock(1);
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
@@ -654,8 +654,18 @@ function HandleBrowse($pagename) {
   $text = ProcessIncludes($pagename,
     "[:HF nogroupheader $hdname:]".$page['text'].
     "[:HF nogroupfooter $ftname:]");
+  SDV($PageRedirectFmt,"<p><i>($[redirected from] 
+    <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
+  if (@!$_GET['from']) {
+    $PageRedirectFmt = '';
+    if (preg_match('/\\[:redirect\\s+(.+?):\\]/',$text,$match)) {
+      $rname = MakePageName($pagename,$match[1]);
+      if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
+    }
+  } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
-  SDV($HandleBrowseFmt,array(&$PageStartFmt,'$PageText',&$PageEndFmt));
+  SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
+    &$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
 }
 
