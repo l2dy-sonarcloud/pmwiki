@@ -59,7 +59,7 @@ Markup('\\$','>nl1',"/(\\\\*)\\\\\n/e",
 ## [:noheader:],[:nofooter:],[:notitle:]...
 Markup('noheader','directives','/\\[:noheader:\\]/e',
   "PZZ(\$GLOBALS['PageHeaderFmt']='')");
-Markup('nofooter','directives','/\\[:noheader:\\]/e',
+Markup('nofooter','directives','/\\[:nofooter:\\]/e',
   "PZZ(\$GLOBALS['PageFooterFmt']='')");
 Markup('notitle','directives','/\\[:notitle:\\]/e',
   "PZZ(\$GLOBALS['PageTitleFmt']='')");
