@@ -792,14 +792,16 @@ function MarkupToHTML($pagename,$text) {
    
 function HandleBrowse($pagename) {
   # handle display of a page
-  global $FmtV,$HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
+  global $DefaultPageTextFmt,$FmtV,$HandleBrowseFmt,$PageStartFmt,
+    $PageEndFmt,$PageRedirectFmt;
   Lock(1);
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort('?cannot read $pagename');
   SetPage($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
     <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
-  $text = $page['text'];
+  if (isset($page['text'])) $text=$page['text'];
+  else $text = FmtPageName($DefaultPageTextFmt,$pagename);
   if (@!$_GET['from']) {
     $PageRedirectFmt = '';
     if (preg_match('/\\[:redirect\\s+(.+?):\\]/',$text,$match)) {
@@ -883,14 +885,14 @@ function PostPage($pagename,&$page,&$new) {
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if (@$_REQUEST['post']) {
-    if ($new['text']==$page['text']) { Redirect($pagename); return; }
+    if ($new['text']==@$page['text']) { Redirect($pagename); return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
     $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
     $diffclass = preg_replace('/\\W/','',@$_POST['diffclass']);
     if ($page["time"]>0) 
       $new["diff:$Now:{$page['time']}:$diffclass"] =
-        $DiffFunction($new['text'],$page['text']);
+        $DiffFunction($new['text'],@$page['text']);
     $keepgmt = $Now-$DiffKeepDays * 86400;
     $keys = array_keys($new);
     foreach($keys as $k)
