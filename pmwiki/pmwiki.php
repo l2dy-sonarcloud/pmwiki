@@ -28,7 +28,6 @@ define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
-$MakePageName = 'MakePageName';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$PageName');
 $WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
@@ -256,7 +255,8 @@ function mkgiddir($dir) { if (!file_exists($dir)) mkdir($dir); }
 ## If no group is supplied, then it uses the group of the pagename
 ## passed as an argument.
 function MakePageName($pagename,$x) {
-  global $PageNameChars;
+  global $MakePageNameFunction,$PageNameChars;
+  if (@$MakePageNameFunction) return $MakePageNameFunction($pagename,$x);
   SDV($PageNameChars,'-[:alnum:]');
   if (!preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$x,$m)) return '';
   if (!$m[1]) $group=preg_replace('/[\\/.].*$/','',$pagename);
@@ -405,6 +405,41 @@ function Keep($x) {
   return $KeepToken.$KPCount.$KeepToken;
 }
 
+function ProcessIncludes($pagename,$text) {
+  global $MaxIncludes,$FmtV,$K0,$K1,$IncludeBadAnchorFmt;
+  SDV($MaxIncludes,10);
+  SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
+  for($i=0;$i<$MaxIncludes;$i++) {
+    $text = preg_replace("/\\[([=@)(.*?)\\1\\]/se",
+      "Keep(\$K0['$1'].htmlentities(PSS('$2'),ENT_NOQUOTES).\$K1['$1'])",$text);
+    if (!preg_match("/\\[:include\\s+([^#]+?)(#(\\w[-.:\\w]*)?(#(\\w[-.:\\w]*)?)?)?:\\]/",$text,$match)) break;
+    @list($inclrepl,$inclname,$a,$aa,$b,$bb) = $match;
+    $inclpage = ReadPage(MakePageName($pagename,$inclname));
+    $incltext = $inclpage['text'];
+    $FmtV['$BadAnchor'] = '';
+    if ($bb && !ctype_digit($bb) && strpos($incltext,"[[#$bb]]")===false)
+      $FmtV['$BadAnchor']=$bb;
+    if ($aa && !ctype_digit($aa) && strpos($incltext,"[[#$aa]]")===false)
+      $FmtV['$BadAnchor']=$aa;
+    if ($FmtV['$BadAnchor'])
+      $incltext=FmtPageName($IncludeBadAnchorFmt,$inclname);
+    if (ctype_digit($bb))
+      $incltext=preg_replace("/^(([^\\n]*\\n)\{0,$bb}).*$/s",'$1',$incltext,1);
+    elseif ($bb)
+      $incltext=preg_replace("/[^\\n]*\\[\\[#$bb\\]\\].*$/s",'',$incltext,1);
+    if (ctype_digit($aa)) {
+      $aa--; $incltext=preg_replace("/^([^\\n]*\\n)\{0,$aa}/s",'',$incltext,1);
+      if (!$b) $incltext=preg_replace("/\\n.*$/s",'',$incltext,1);
+    } elseif ($aa && $b)
+      $incltext=preg_replace("/^.*?([^\\n]*\\[\\[#$aa\\]\\])/s",'$1',$incltext,1);
+    elseif ($aa)      
+      $incltext=preg_replace("/^.*?([^\\n]*\\[\\[#$aa\\]\\]( *\\n)?[^\\n]*).*/s",'$1',$incltext,1);
+    $text = str_replace($inclrepl,$incltext,$text);
+  }
+  return $text;
+}
+
+
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$BlockCS,$BlockVS;
   $cs = &$BlockCS[0];  $vspaces = &$BlockVS[0];
@@ -464,10 +499,10 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 }
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $QueryFragPattern,$MakePageName,$LinkPageExistsFmt,
+  global $QueryFragPattern,$LinkPageExistsFmt,
     $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
   preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match);
-  $tgtname = $MakePageName($pagename,$match[1]); $qf=@$match[2];
+  $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
     if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
@@ -548,11 +583,13 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
 }
    
 function HandleBrowse($pagename) {
-  global $FmtV,$HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
   # handle display of a page
+  global $FmtV,$GroupHeaderFmt,$GroupFooterFmt,
+    $HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
-  $FmtV['$PageText'] = MarkupToHTML($pagename,$page['text']);
+  $text = ProcessIncludes($pagename,$page['text']);
+  $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,'$PageText',&$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
 }
