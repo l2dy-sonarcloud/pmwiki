@@ -81,6 +81,7 @@ $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageCreateFmt = "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
   class='createlink' href='\$PageUrl?action=edit'>?</a>";
+$UrlLinkFmt = "<a class='urllink' href='\$LinkUrl'>\$LinkText</a>";
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
@@ -662,12 +663,13 @@ function FormatTableRow($x) {
 }
 
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $IMap;
+  global $IMap,$IMapLinkFmt,$UrlLinkFmt;
   $path = str_replace(' ','%20',$path);
   $FmtV['$LinkUrl'] = str_replace('$1',$path,$IMap[$imap]);
   $FmtV['$LinkText'] = $txt;
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
-  if (!$fmt) $fmt="<a class='urllink' href='\$LinkUrl'>\$LinkText</a>";
+  if (!$fmt) 
+    $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
