@@ -9,11 +9,11 @@
     included from stdconfig.php unless $EnableStdMarkup==0.
 
     Each call to Markup() below adds a new rule to PmWiki's translation
-    engine.  The form of the call is Markup($id,$where,$pat,$rep); $id
-    is a unique name for the rule, $where is the position of the rule
+    engine (unless a rule with the same name has already been defined).  
+    The form of the call is Markup($id,$where,$pat,$rep); 
+    $id is a unique name for the rule, $where is the position of the rule
     relative to another rule, $pat is the pattern to look for, and
     $rep is the string to replace it with.
-    
     
 */
 
@@ -72,9 +72,30 @@ Markup('title','directives','/\\[:title\\s(.*?):\\]/e',
 ## [:comment:]
 Markup('comment','directives','/\\[:comment .*?:\\]/','');
 
+#### inline markups ####
 ## character entities
 Markup('&','directives','/&amp;([A-Za-z0-9]+;|#\\d+;|#[xX][A-Fa-f0-9]+;)/',
   '&$1');
+
+## ''emphasis''
+Markup("''",'inline',"/''(.*?)''/",'<em>$1</em>');
+
+## '''strong'''
+Markup("'''","<''","/'''(.*?)'''/",'<strong>$1</strong>');
+
+## '''''strong emphasis'''''
+Markup("'''''","<'''","/'''''(.*?)'''''/",'<strong><em>$1</em></strong>');
+
+## @@code@@
+Markup('@@','inline','/@@(.*?)@@/','<code>$1</code>');
+
+## [+big+], [-small-]
+Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
+  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
+    PSS('$3</span>')");
+
+## [[<<]] (break)
+Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 ## [[free links]]
@@ -147,27 +168,6 @@ Markup('^!','block','/^(!{1,6})(.*)$/e',
 
 ## horiz rule
 Markup('^----','>^->','/^----+/','<:block><hr />');
-
-#### inline markups ####
-## ''emphasis''
-Markup("''",'inline',"/''(.*?)''/",'<em>$1</em>');
-
-## '''strong'''
-Markup("'''","<''","/'''(.*?)'''/",'<strong>$1</strong>');
-
-## '''''strong emphasis'''''
-Markup("'''''","<'''","/'''''(.*?)'''''/",'<strong><em>$1</em></strong>');
-
-## @@code@@
-Markup('@@','inline','/@@(.*?)@@/','<code>$1</code>');
-
-## [+big+], [-small-]
-Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
-  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
-    PSS('$3</span>')");
-
-## [[<<]] (break)
-Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 #### special stuff ####
 ## [:markup:] for displaying markup examples
