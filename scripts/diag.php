@@ -25,7 +25,7 @@ function Ruleset() {
   $out = array();
   BuildMarkupRules();
   foreach($MarkupTable as $id=>$m) 
-    $out[] = sprintf("%-16s %-16s",$id,@$m['seq']);
+    $out[] = sprintf("%-16s %-16s %-16s",$id,@$m['cmd'],@$m['seq']);
   return implode("\n",$out);
 }
 
