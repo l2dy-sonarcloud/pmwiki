@@ -24,7 +24,7 @@ SDV($RssItemsRDFList,array());			# RDF <items> elements
 
 if ($action=='rdf') {
   ### RSS 1.0 (RDF) definitions
-  SDV($RssTimeFmt,'%Y-%m-%dT%H:%M+00:00');	# time format
+  SDV($RssTimeFmt,'%Y-%m-%dT%H:%MZ');	# time format
   SDV($RssItemsRDFListFmt,"<rdf:li rdf:resource=\"\$PageUrl\" />\n");
   SDV($RssChannelFmt,array('<?xml version="1.0"?'.'>
     <!DOCTYPE rdf:RDF [
@@ -57,7 +57,7 @@ if ($action=='rdf') {
 }
 
 ### RSS 2.0 definitions
-SDV($RssTimeFmt,'%a, %d %b %Y %H:%M:%S GMT');
+SDV($RssTimeFmt,'%Y-%m-%dT%H:%MZ');
 SDV($RssChannelFmt,'<?xml version="1.0"?'.'>
   <!DOCTYPE rdf:RDF [
   <!ENTITY % HTMLlat1 PUBLIC "-//W3C//ENTITIES Latin 1 for XHTML//EN"
@@ -65,7 +65,7 @@ SDV($RssChannelFmt,'<?xml version="1.0"?'.'>
   <!ENTITY % HTMLspecial PUBLIC "-//W3C//ENTITIES Special for XHTML//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml-special.ent"> %HTMLspecial;
   ]>
-  <rss version="2.0">
+  <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
       <title>$WikiTitle - $Group.$Name</title>
       <link>$PageUrl</link>
@@ -77,7 +77,8 @@ SDV($RssItemFmt,'
           <title>$FullName</title>
           <link>$PageUrl</link>
           <description>$RssItemDesc</description>
-          <pubDate>$RssItemPubDate</pubDate>
+          <dc:contributor>$RssItemAuthor</dc:contributor>
+          <dc:date>$RssItemPubDate</dc:date>
         </item>');
 SDV($HandleRssFmt,array(&$RssChannelFmt,&$RssItems,'</channel></rss>'));
 
@@ -87,8 +88,8 @@ function rssencode($s)
 function HandleRss($pagename) {
   global $RssMaxItems,$RssSourceSize,$RssDescSize,
     $RssChannelFmt,$RssChannelDesc,$RssTimeFmt,$RssChannelBuildDate,
-    $RssItemsRDFList,$RssItemsRDFListFmt,$RssItems,$RssItemFmt,$RssItemDesc,
-    $RssItemPubDate,$GCount,$HandleRssFmt;
+    $RssItemsRDFList,$RssItemsRDFListFmt,$RssItems,$RssItemFmt,
+    $HandleRssFmt,$FmtV;
   $t = ReadTrail($pagename,$pagename);
   $page = RetrieveAuthPage($pagename,false);
   $cbgmt = $page['time'];
@@ -101,14 +102,15 @@ function HandleRss($pagename) {
     $text = rssencode(preg_replace("/<.*?>/s","",$text)); 
     preg_match("/^(.{0,$RssDescSize}\\s)/s",$text,$match);
     $r[] = array('name' => $t[$i]['pagename'],'time' => $page['time'],
-       'desc' => $match[1]." ...");
+       'desc' => $match[1]." ...", 'author' => $page['author']);
     if ($page['time']>$cbgmt) $cbgmt=$page['time'];
   }
   SDV($RssChannelBuildDate,rssencode(gmstrftime($RssTimeFmt,$cbgmt)));
   SDV($RssChannelDesc,rssencode(FmtPageName('$Group.$Title',$pagename)));
   foreach($r as $page) {
-    $RssItemPubDate = gmstrftime($RssTimeFmt,$page['time']);
-    $RssItemDesc = $page['desc']; $GCount = 0; 
+    $FmtV['$RssItemPubDate'] = gmstrftime($RssTimeFmt,$page['time']);
+    $FmtV['$RssItemDesc'] = $page['desc']; 
+    $FmtV['$RssItemAuthor'] = $page['author'];
     $RssItemsRDFList[] = 
       rssencode(FmtPageName($RssItemsRDFListFmt,$page['name']));
     $RssItems[] = 
