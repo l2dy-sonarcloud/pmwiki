@@ -325,16 +325,24 @@ function Lock($op) {
 ## mkdirp creates a directory and its parents as needed, and sets
 ## permissions accordingly.
 function mkdirp($dir) {
+  global $ScriptUrl;
   if (file_exists($dir)) return;
   if (!file_exists(dirname($dir))) mkdirp(dirname($dir));
   if (!mkdir($dir,0777)) {
     $parent = realpath(dirname($dir)); 
-    $perms=decoct(fileperms($parent) & 03777);
-    Abort("PmWiki wants permission to create the <tt>$dir</tt> directory
-      in <tt>$parent</tt>.  Try executing <pre>    chmod 2777 $parent</pre>
-      or <pre>    chmod 777 $parent</pre> on your server and reloading this
-      page.  Afterwards, you can restore the permissions to their current
-      setting by executing <pre>    chmod $perms $parent</pre>");
+    $perms = decoct(fileperms($parent) & 03777);
+    $safemode = ini_get('safe_mode');
+    $msg = "PmWiki needs to have a writable <tt>$dir/</tt> directory 
+      before it can continue.  You can create the directory manually 
+      by executing the following commands on your server:
+      <pre>    mkdir $parent/$dir\n    chmod 777 $parent/$dir</pre>
+      Then, <a href='$ScriptUrl'>reload this page</a>.";
+    if (!$safemode) $msg .= "<br /><br />Or, for a slightly more 
+      secure installation, try executing <pre>    chmod 2777 $parent</pre> 
+      on your server and following <a target='_blank' href='$ScriptUrl'>
+      this link</a>.  Afterwards you can restore the permissions to 
+      their current setting by executing <pre>    chmod $perms $parent</pre>.";
+    Abort($msg);
   }
   fixperms($dir);
 }
