@@ -921,7 +921,8 @@ function HandleEdit($pagename) {
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
-  $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
+  $FmtV['$EditText'] = 
+    str_replace('$','&#036;',htmlspecialchars($new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
   SDV($HandleEditFmt,array(&$PageStartFmt,
     &$PageEditFmt,&$PagePreviewFmt,&$PageEndFmt));
