@@ -275,6 +275,8 @@ function PZZ($x,$y='') { return ''; }
 function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
   { return preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $x); }
+function PQA($x)
+  { return preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/', "$1'$2'", $x); }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
