@@ -16,13 +16,15 @@
     characters are "letters" and which are punctuation.
 */
 
-global $HTTPHeaders, $U8;
+global $HTTPHeaders, $Newline, $KeepToken, $pagename,
+  $GroupPattern, $NamePattern, $MakePageNameFunction, $WikiWordPattern;
+
 $HTTPHeaders[] = 'Content-type: text/html; charset=utf-8';
 
-$Newline = "\262\262\262";
+$Newline = "\xc0\x8a";
 $KeepToken = "\263\263\263";
-$LinkToken = "\376\376\376";
-$pagename = $_GET['pagename'];
+$pagename = $_REQUEST['p'];
+if (!$pagename) $pagename = $_REQUEST['pagename'];
 
 if (!$pagename &&
       preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
@@ -35,6 +37,17 @@ $NamePattern = '[\\w\\x80-\\xff]+(?:-[[\\w\\x80-\\xff]+)*';
 $MakePageNameFunction = 'MakeUTF8PageName';
 $WikiWordPattern = 
   '[A-Z][A-Za-z0-9]*(?:[A-Z][a-z0-9]|[a-z0-9][A-Z])[A-Za-z0-9]*';
+
+if (!isset($Author)) {
+  if (isset($_POST['author'])) {
+    $Author = htmlspecialchars(stripmagic($_POST['author']),ENT_QUOTES);
+    setcookie('author',$Author,$AuthorCookieExpires,$AuthorCookieDir);
+  } else {
+    $Author = htmlspecialchars(stripmagic(@$_COOKIE['author']),ENT_QUOTES);
+  }
+  $Author = preg_replace('/(^[^[:alpha:]\\x80-\\xff]+)|[^-\\w\\x80-\\xff ]/',
+    '', $Author);
+}
 
 ## MakeUTF8PageName is used to convert a UTF-8 string into a valid pagename.
 ## It assumes that PHP has been compiled with mbstring support.
@@ -60,6 +73,5 @@ function MakeUTF8PageName($basepage,$x) {
   $group=preg_replace('/[\\/.].*$/','',$basepage);
   return "$group.$name";
 }
-
 
 ?>
