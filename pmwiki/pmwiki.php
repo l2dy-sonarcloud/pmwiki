@@ -43,12 +43,13 @@ $PageEditFmt = "<form method='post' action='\$PageUrl?action=edit'>
 $EditFields = array('text');
 $EditFunctions = array('PostPage');
 $DefaultPageTextFmt = 'Describe [[$PageName]] here.';
-$ScriptUrl = '/beta/pmwiki.php';
+$ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $RedirectDelay = 0;
 $DiffFunction = 'Diff';
 $SysDiffCmd = '/usr/bin/diff';
 $DiffKeepDays = 0;
 $HTMLVSpace = "<p class='vspace'></p>";
+$BlockCS = array();
 umask(0);
 
 ## PSS is a helper function to strip the slashes inserted by /e in preg_replace.
@@ -56,6 +57,7 @@ function stripmagic($x)
   { return get_magic_quotes_gpc() ? stripslashes($x) : $x; }
 function PSS($x) 
   { return str_replace('\\\"','\"',$x); }
+function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.
@@ -151,6 +153,7 @@ function ReadPage($pagename,$defaulttext=NULL) {
   return $page;
 }
 
+
 function PageExists($pagename) {
   global $WikiLibDirs;
   foreach((array)$WikiLibDirs as $dir)
@@ -238,9 +241,10 @@ $BlockMarkups = array(
 );
 
 function Block($b) {
-  global $BlockMarkups,$HTMLVSpace;
-  static $cs,$vspaces;
-  if (!$cs) $cs=array();
+  global $BlockMarkups,$HTMLVSpace,$BlockCS;
+  static $vspaces;
+  SDV($BlockCS[0],array());
+  $cs = &$BlockCS[0];
   $out = '';
   if (!$b) $b='p,1';
   @list($code,$depth) = explode(',',$b);
@@ -289,8 +293,9 @@ function FormatTableRow($x) {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupPatterns,$K0,$K1;
+  global $MarkupPatterns,$BlockCS,$K0,$K1;
 
+  array_unshift($BlockCS,array());
   ksort($MarkupPatterns);
   foreach($MarkupPatterns as $n=>$a)
     foreach($a as $p=>$r) $markpats[$p]=$r;
@@ -306,6 +311,7 @@ function MarkupToHTML($pagename,$text) {
   }
   $x = Block('block');
   if ($x>'') $out[] = "$x\n";
+  array_shift($BlockCS);
   return implode('',(array)$out);
 }
 
