@@ -491,8 +491,9 @@ class PageStore {
           { array_push($dirlist,"$dir/$pagefile"); continue; }
         if (@$seen[$pagefile]++) continue;
         foreach($pats as $p) {
-          if (substr($p,0,1)=='!' && preg_match($p,$pagefile)) continue 2;
-          if (!preg_match($p,$pagefile)) continue 2;
+          if (substr($p,0,1)=='!') {
+           if (preg_match($p,$pagefile)) continue 2;
+          } else if (!preg_match($p,$pagefile)) continue 2;
         }
         $out[] = $pagefile;
       }
