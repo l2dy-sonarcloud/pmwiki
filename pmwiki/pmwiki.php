@@ -203,9 +203,10 @@ foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
   { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
-if (strpos(@$_SERVER['QUERY_STRING'],'?')!==false) {
+$q = preg_replace('/(\\?|%3f)([-\\w]+=)/', '&$2', @$_SERVER['QUERY_STRING']);
+if ($q != @$_SERVER['QUERY_STRING']) {
   unset($_GET);
-  parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
+  parse_str($q, $_GET);
   $_REQUEST = array_merge($_REQUEST, $_GET, $_POST);
 }
 
@@ -238,14 +239,18 @@ if (IsEnabled($EnableLocalConfig,1)) {
 SDV($CurrentTime,strftime($TimeFmt,$Now));
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 SDV($UrlPage,'{$UrlPage}');
-if ($pagename
-        && !preg_match("/^$GroupPattern([\/.])$NamePattern$/i", $pagename)) {
-  $UrlPage = $pagename;
-  $p = MakePageName($DefaultPage,$pagename);
-  if (PageExists($p)) { Redirect($p); exit(); }
-  SDV($PageNotFound,"$DefaultGroup.PageNotFound");
+$p = MakePageName($DefaultPage, $pagename);
+if (!$pagename) $pagename = $DefaultPage;
+else if (preg_match("/^$GroupPattern([\\/.])$NamePattern$/i", $pagename)) 
+  { $pagename = $p; }
+else if ($p && (PageExists($p) || preg_match('/[\\/.]/', $pagename)))
+  { Redirect($p); exit(); }
+else {
+  $UrlPage = preg_replace('/^.*[\\/.]/', '', $p);
+  SDV($PageNotFound, "$DefaultGroup.PageNotFound");
   $pagename = $PageNotFound;
-} else $pagename=MakePageName($DefaultPage,$pagename);
+  SDV($MetaRobots, "noindex,nofollow");
+}
 
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
