@@ -13,7 +13,7 @@
     generated only once per browse request, and then only when needed.
 */
 
-SDV($VarPagesFmt,array('PmWiki.Variables'));
+SDV($VarPagesFmt,array('$[PmWiki.Variables]'));
 Markup('varlink','<wikilink',"/\\$($WikiWordPattern)\\b/e",
   "Keep(VarLink(\$pagename,'$1','$$1'))");
 Markup('vardef','<links',"/^:\\$($WikiWordPattern):/",
@@ -40,7 +40,8 @@ function VarIndexLoad($pagename) {
   global $VarPagesFmt,$VarIndex,$WikiWordPattern;
   static $loaded;
   if ($loaded) return;
-  foreach($VarPagesFmt as $v) {
+  foreach($VarPagesFmt as $vf) {
+    $v = FmtPageName($vf, $pagename);
     if (@$loaded[$v]) continue;
     $vlist = array($v);
     $t = ReadTrail($pagename,$v);
