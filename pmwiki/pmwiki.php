@@ -75,7 +75,7 @@ $DefaultPageTextFmt = 'Describe [[$Group/$Name]] here.';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
-$HTMLLineBreak = '';
+$HTMLPNewline = '';
 $MarkupFrame=array();
 $MarkupFrameBase=array('cs'=>array(),'vs'=>'',
   'posteval'=>array('block'=>"return Block('block');"));
@@ -626,11 +626,11 @@ function IncludeText($pagename,$inclspec) {
 }
 
 function Block($b) {
-  global $BlockMarkups,$HTMLVSpace,$HTMLLineBreak,$MarkupFrame;
+  global $BlockMarkups,$HTMLVSpace,$HTMLPNewline,$MarkupFrame;
   $cs = &$MarkupFrame[0]['cs'];  $vspaces = &$MarkupFrame[0]['vs'];
   if (!$b) $b='p,1';
   @list($code,$depth) = explode(',',$b);
-  $out = ($code=='p' && @$cs[0]=='p') ? $HTMLLineBreak : '';
+  $out = ($code=='p' && @$cs[0]=='p') ? $HTMLPNewline : '';
   if ($code=='vspace') { 
     $vspaces.="\n"; 
     if (@$cs[0]!='p') return; 
