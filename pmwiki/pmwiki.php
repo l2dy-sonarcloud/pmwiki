@@ -22,7 +22,8 @@
 error_reporting(E_ALL);
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { unset(${$k}); }
-$UnsafeGlobals = array_keys($GLOBALS); $GCount=0;
+$StopWatch['PmWiki'] = microtime();
+$UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
@@ -94,13 +95,12 @@ $PageAttributes = array(
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
 setlocale(LC_CTYPE,'en_US');
-$FmtV = array(
-  '$PageUrl' => '$ScriptUrl/$Group/$Name',
-  '$PageName' => '$Group.$Name');
 $FmtVP = array(
-  '/\\$Group/e' => '$match[1]',
-  '/\\$Name/e' => '$match[2]');
-  
+  '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
+  '/\\$PageName/' => '$Group.$Name',
+  '/\\$Group/e' => '@$match[1]',
+  '/\\$Name/e' => '@$match[2]');
+
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
@@ -321,25 +321,25 @@ function FmtPageName($fmt,$pagename) {
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
-  $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
-  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match))
-    $fmt = preg_replace(array_keys($FmtVP),array_values($FmtVP),$fmt);
+  preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match);
+  $fmt = preg_replace(array_keys($FmtVP),array_values($FmtVP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
     $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
       "'\$ScriptUrl?pagename='.str_replace('/','.','$1')",$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
-  if ($GCount != count($GLOBALS)) {
+  if ($GCount != count($GLOBALS)+count($FmtV)) {
     $g = array();
     foreach($GLOBALS as $n=>$v) {
       if (is_array($v) || is_object($v) ||
-          in_array($n,$UnsafeGlobals)) continue;
+         isset($FmtV["\$$n"]) || in_array($n,$UnsafeGlobals)) continue;
       $g["\$$n"] = $v;
     }
-    $GCount = count($GLOBALS);
+    $GCount = count($GLOBALS)+count($FmtV);
     krsort($g); reset($g);
   }
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
+  $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
   return $fmt;
 }
 
@@ -756,8 +756,9 @@ function BuildMarkupRules() {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
+  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine,$StopWatch;
 
+  $StopWatch['MarkupToHTML'] = microtime();
   array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
@@ -776,6 +777,7 @@ function MarkupToHTML($pagename,$text) {
   $x = Block('block');
   if ($x>'') $out[] = "$x\n";
   array_shift($BlockCS); array_shift($BlockVS);
+  $StopWatch['MarkupToHTMLEnd'] = microtime();
   return implode('',(array)$out);
 }
    
