@@ -670,8 +670,8 @@ function HandleBrowse($pagename) {
 }
 
 
-function RestorePage($pagename,&$page,&$new) {
-  $restore = @$_REQUEST['restore'];
+function RestorePage($pagename,&$page,&$new,$restore=NULL) {
+  if (is_null($restore)) $restore=@$_REQUEST['restore'];
   if (!$restore) return;
   $t = $page['text'];
   $nl = (substr($t,-1)=="\n");
@@ -703,12 +703,12 @@ function RestorePage($pagename,&$page,&$new) {
 }
 
 function Diff($oldtext,$newtext) {
-  global $TempDir,$SysDiffCmd;
+  global $WorkDir,$SysDiffCmd;
   SDV($SysDiffCmd,"/usr/bin/diff");
   if (!$SysDiffCmd) return '';
-  $tempold = tempnam($TempDir,'old');
+  $tempold = tempnam($WorkDir,'old');
   if ($oldfp=fopen($tempold,'w')) { fputs($oldfp,$oldtext); fclose($oldfp); }
-  $tempnew = tempnam($TempDir,'new');
+  $tempnew = tempnam($WorkDir,'new');
   if ($newfp=fopen($tempnew,'w')) { fputs($newfp,$newtext); fclose($newfp); }
   $diff = '';
   $diff_handle = popen("$SysDiffCmd $tempold $tempnew",'r');
@@ -778,7 +778,7 @@ function PreviewPage($pagename,&$page,&$new) {
 }
   
 function HandleEdit($pagename) {
-  global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,
+  global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,$Now,
     $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PagePreviewFmt,$PageEndFmt;
   $IsPagePosted = false;
   Lock(2);
@@ -790,7 +790,7 @@ function HandleEdit($pagename) {
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
-  $FmtV['$EditBaseTime'] = $page['time'];
+  $FmtV['$EditBaseTime'] = $Now;
   SDV($HandleEditFmt,array(&$PageStartFmt,
     &$PageEditFmt,&$PagePreviewFmt,&$PageEndFmt));
   PrintFmt($pagename,$HandleEditFmt);
