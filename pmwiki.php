@@ -646,11 +646,13 @@ function FormatTableRow($x) {
   $td = explode('||',$x); $y='';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
+    $attr = $TableCellAttr;
     if (preg_match('/^\\s+$/',$td[$i])) $td[$i]='&nbsp;';
-    if (preg_match('/^!(.*)$/',$td[$i],$match)) 
+    if (preg_match('/^!(.*?)!$/',$td[$i],$match))
+      { $td[$i]=$match[1]; $t='caption'; $attr=''; }
+    elseif (preg_match('/^!(.*)$/',$td[$i],$match)) 
       { $td[$i]=$match[1]; $t='th'; }
     else $t='td';
-    $attr = $TableCellAttr;
     if (preg_match('/^\\s.*\\s$/',$td[$i])) { $attr .= " align='center'"; }
     elseif (preg_match('/^\\s/',$td[$i])) { $attr .= " align='right'"; }
     elseif (preg_match('/\\s$/',$td[$i])) { $attr .= " align='left'"; }
@@ -659,6 +661,7 @@ function FormatTableRow($x) {
     if ($colspan>1) { $attr .= " colspan='$colspan'"; }
     $y .= "<$t $attr>".$td[$i]."</$t>";
   }
+  if ($t=='caption') return "<:table,1>$y";
   return "<:table,1><tr>$y</tr>";
 }
 
