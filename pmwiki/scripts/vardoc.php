@@ -18,8 +18,9 @@ Markup('varlink','<wikilink',"/\\$($WikiWordPattern)\\b/e",
   "Keep(VarLink(\$pagename,'$1','$$1'))");
 Markup('vardef','<links',"/^:\\$($WikiWordPattern):/",
   ':[[#$1]]$$1:');
-Markup('varindex','directives','/\\(:varindex:\\)/e',
-  "Keep(VarIndexList())");
+Markup('varindex', 'directives',
+  '/\\(:varindex:\\)/ei',
+  "Keep(VarIndexList(\$pagename))");
 
 $HTMLStylesFmt[] = "a.varlink { text-decoration:none; }\n";
 
@@ -61,9 +62,9 @@ function VarIndexLoad($pagename) {
 }
 
 # VarIndexList() generates a table of all indexed variables.
-function VarIndexList() {
+function VarIndexList($pagename) {
   global $VarIndex;
-  if (!isset($VarIndex)) VarIndexLoad();
+  if (!isset($VarIndex)) VarIndexLoad($pagename);
   ksort($VarIndex);
   $out = "<table><tr><th>Variable</th><th>Documented in</th></tr>\n";
   foreach($VarIndex as $v=>$a) 
