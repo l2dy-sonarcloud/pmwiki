@@ -78,7 +78,11 @@ foreach(array('pagename','action','text','restore','preview') as $v) {
 }
 if ($action=='') $action='browse';
 
-if (!$pagename) $pagename=substr($_SERVER['PATH_INFO'],1);
+
+if (!$pagename && 
+    preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
+      $_SERVER['REQUEST_URI'],$match))
+  $pagename = $match[1];
 
 @include_once('local/config.php');
 
