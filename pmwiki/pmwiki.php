@@ -32,6 +32,7 @@ $WikiLibDirs = array($WikiDir,new PageStore('wikilib.d/$Group.$Name'));
 $KeepToken = "\377\377";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
+$TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
 $PageEditFmt = "<form method='post' action='\$PageUrl?action=edit'>
   <input type='hidden' name='pagename' value='\$PageName' />
@@ -41,7 +42,14 @@ $PageEditFmt = "<form method='post' action='\$PageUrl?action=edit'>
   <input type='submit' name='preview' value=' Preview ' />
   </form>";
 $EditFields = array('text');
-$EditFunctions = array('PostPage');
+$EditFunctions = array('PostPage','RecentChanges');
+$RCDelimPattern = ' \\. ';
+$RecentChangesFmt = array(
+  'Main.AllRecentChanges' => 
+    '* [[$Group.$Name]] . . . $CurrentTime by $AuthorLink',
+  '$Group.RecentChanges' =>
+    '* [[$Group/$Name]] . . . $CurrentTime by $AuthorLink');
+
 $DefaultPageTextFmt = 'Describe [[$PageName]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $RedirectDelay = 0;
@@ -143,6 +151,8 @@ SDVA($BlockMarkups,array(
      array("<div class='indent'>","</div><div class='indent'>",'</div>'),
   'pre' => array('<pre> ',' ','</pre>'),
   'table' => array("<table width='100%'>",'','</table>')));
+
+$CurrentTime = strftime($TimeFmt,$Now);
 
 if (!function_exists($HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
@@ -254,6 +264,10 @@ function ReadPage($pagename,$defaulttext=NULL) {
   return $page;
 }
 
+function WritePage($pagename,$page) {
+  global $WikiDir;
+  $WikiDir->write($pagename,$page);
+}
 
 function PageExists($pagename) {
   global $WikiLibDirs;
@@ -442,13 +456,33 @@ function PostPage($pagename,&$page,&$new) {
     foreach($keys as $k)
       if (preg_match("/^\\w+:(\\d+)/",$k,$match) && $match[1]<$keepgmt)
         unset($new[$k]);
-    $WikiDir->write($pagename,$new);
+    WritePage($pagename,$new);
     $IsPagePosted=true;
   }
 }
 
+function RecentChanges($pagename,&$page,&$new) {
+  global $IsPagePosted,$RecentChangesFmt,$RCDelimPattern;
+  if (!$IsPagePosted) return;
+  foreach($RecentChangesFmt as $rcfmt=>$pgfmt) {
+    $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
+    $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
+    if (@$seen[$rcname]++) continue;
+    $rcpage = ReadPage($rcname,'');
+    $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
+    $rcpage['text'] = preg_replace("/[^\n]*$rcelim.*\n/","",$rcpage['text']);
+    if (!preg_match("/$RCDelimPattern/",$rcpage['text'])) 
+      $rcpage['text'] .= "$pgtext\n";
+    else
+      $rcpage['text'] = preg_replace("/([^\n]*$RCDelimPattern.*\n)/",
+        "$pgtext\n$1",$rcpage['text'],1);
+    WritePage($rcname,$rcpage);
+  }
+}
+    
 function HandleEdit($pagename) {
   global $PageEditFmt,$EditText,$EditFields,$EditFunctions,$IsPagePosted;
+  $IsPagePosted = false;
   $page = ReadPage($pagename);
   $new = $page;
   foreach((array)$EditFields as $k) 
