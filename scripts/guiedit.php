@@ -15,36 +15,39 @@
       - the text of the button, either (a) HTML markup or (b) the 
         url of a gif/jpg/png image to be used for the button 
         (along with optional "title" text in quotes).
+
+    The buttons specified in this file are the default buttons
+    for the standard markups.  Some buttons (e.g., the attach/upload
+    button) are specified in their respective cookbook module.
 */
 
 $HTMLHeaderFmt[] = "<script language='javascript' 
   src='\$FarmPubDirUrl/guiedit/guiedit.js'></script>\n";
 
 array_push($EditFunctions, 'GUIEdit');
+SDV($GUIButtonDirUrlFmt,'$FarmPubDirUrl/guiedit');
 
 SDVA($GUIButtons, array(
   'em'       => array(100, "''", "''", '$[Emphasized]',
-                  '$FarmPubDirUrl/guiedit/em.gif"$[Emphasized (italic)]"'),
+                  '$GUIButtonDirUrlFmt/em.gif"$[Emphasized (italic)]"'),
   'strong'   => array(110, "'''", "'''", '$[Strong]',
-                  '$FarmPubDirUrl/guiedit/strong.gif"$[Strong (bold)]"'),
+                  '$GUIButtonDirUrlFmt/strong.gif"$[Strong (bold)]"'),
   'pagelink' => array(200, '[[', ']]', '$[Page link]', 
-               '$FarmPubDirUrl/guiedit/pagelink.gif"$[Link to internal page]"'),
+                  '$GUIButtonDirUrlFmt/pagelink.gif"$[Link to internal page]"'),
   'extlink'  => array(210, '[[', ']]', 'http:// | $[link text]',
-               '$FarmPubDirUrl/guiedit/extlink.gif"$[Link to external page]"'),
-  'attach'   => array(220, 'Attach:', '', '$[file.ext]',
-                  '$FarmPubDirUrl/guiedit/attach.gif"$[Attach file]"'),
+                  '$GUIButtonDirUrlFmt/extlink.gif"$[Link to external page]"'),
   'big'      => array(300, "'+", "+'", '$[Big text]',
-                  '$FarmPubDirUrl/guiedit/big.gif"$[Big text]"'),
+                  '$GUIButtonDirUrlFmt/big.gif"$[Big text]"'),
   'small'    => array(310, "'-", "-'", '$[Small text]',
-                  '$FarmPubDirUrl/guiedit/small.gif"$[Small text]"'),
+                  '$GUIButtonDirUrlFmt/small.gif"$[Small text]"'),
   'sup'      => array(320, "'^", "^'", '$[Superscript]',
-                  '$FarmPubDirUrl/guiedit/sup.gif"$[Superscript]"'),
+                  '$GUIButtonDirUrlFmt/sup.gif"$[Superscript]"'),
   'sub'      => array(330, "'_", "_'", '$[Subscript]',
-                  '$FarmPubDirUrl/guiedit/sub.gif"$[Subscript]"'),
-  'h3'       => array(400, '\\n!!! ', '\\n', '$[Heading 3]',
-                  '$FarmPubDirUrl/guiedit/h3.gif"$[Heading 3]"'),
+                  '$GUIButtonDirUrlFmt/sub.gif"$[Subscript]"'),
+  'h2'       => array(400, '\\n!! ', '\\n', '$[Heading]',
+                  '$GUIButtonDirUrlFmt/h.gif"$[Heading]"'),
   'center'   => array(410, '%25center%25', '', '',
-                  '$FarmPubDirUrl/guiedit/center.gif"$[Center]"')));
+                  '$GUIButtonDirUrlFmt/center.gif"$[Center]"')));
 
 function GUIEdit($pagename, &$page, &$new) {
   global $GUIButtons, $EditMessageFmt;
