@@ -164,50 +164,54 @@ $MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
   "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
 $MarkupPatterns[300]["/(\\\\*)\\\\\n/e"] =
   "Keep(' '.str_repeat('<br />',strlen('$1')))";
-$MarkupPatterns[2000]["\n"] = 
+$MarkupPatterns[1000]["\n"] = 
   '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
-$MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
+$MarkupPatterns[1100]["/\{\$(Group|Name)}/e"] =
+  "FmtPageName('$1',\$pagename)";
+$MarkupPatterns[1200]["/\{\$(Version|Author)}/e" =
+  "\$GLOBALS['$1']";
+$MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
-$MarkupPatterns[4100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
+$MarkupPatterns[3100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
-$MarkupPatterns[4200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
+$MarkupPatterns[3200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
-$MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
+$MarkupPatterns[3300]['/\\bmailto:(\\S+)/e'] =
   "Keep(MakeLink(\$pagename,'$0','$1'))";
-$MarkupPatterns[4350]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
+$MarkupPatterns[3400]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
   "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
     \$GLOBALS['ImgTagFmt']))";
-$MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
+$MarkupPatterns[3500]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
   "Keep(MakeLink(\$pagename,'$0','$0'))";
-$MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
+$MarkupPatterns[3600]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
   "Keep(MakeLink(\$pagename,'$0'))";
 $MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
   "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
 $MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
-$MarkupPatterns[5200]['/^(#+)/'] = '<:ol,$1>';
-$MarkupPatterns[5300]['/^(-+)&gt;/'] = '<:indent,$1>';
-$MarkupPatterns[5400]['/^\\s*$/'] = '<:vspace>';
-$MarkupPatterns[5500]['/^(\\s)/'] = '<:pre,1>';
-$MarkupPatterns[5550]['/^\\|\\|.*\\|\\|.*$/e'] =
-  "FormatTableRow(PSS('$0'))";
-$MarkupPatterns[5555]['/^\\|\\|(.*)$/e'] =
-  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
-$MarkupPatterns[5600]['/^(:+)([^:]+):/'] =
+$MarkupPatterns[5150]['/^(#+)/'] = '<:ol,$1>';
+$MarkupPatterns[5200]['/^(-+)&gt;/'] = '<:indent,$1>';
+$MarkupPatterns[5250]['/^(:+)([^:]+):/'] =
   '<:dl,$1><dt>$2</dt><dd>';
-$MarkupPatterns[5700]['/^----+/'] = 
+$MarkupPatterns[5300]['/^\\s*$/'] = '<:vspace>';
+$MarkupPatterns[5350]['/^(\\s)/'] = '<:pre,1>';
+$MarkupPatterns[5400]['/^\\|\\|.*\\|\\|.*$/e'] =
+  "FormatTableRow(PSS('$0'))";
+$MarkupPatterns[5450]['/^\\|\\|(.*)$/e'] =
+  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
+$MarkupPatterns[5500]['/^----+/'] = 
   '<:block><hr />';
 $MarkupPatterns[5900]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
 $MarkupPatterns[7000]["/'''''(.*?)'''''/"] =
   '<strong><em>$1</em></strong>';
-$MarkupPatterns[7010]["/'''(.*?)'''/"] =
+$MarkupPatterns[7100]["/'''(.*?)'''/"] =
   '<strong>$1</strong>';
-$MarkupPatterns[7020]["/''(.*?)''/"] =
+$MarkupPatterns[7200]["/''(.*?)''/"] =
   '<em>$1</em>';
-$MarkupPatterns[7030]["/@@(.*?)@@/"] =
+$MarkupPatterns[7300]["/@@(.*?)@@/"] =
   '<code>$1</code>';
-$MarkupPatterns[7040]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
+$MarkupPatterns[7400]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
   "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
-$MarkupPatterns[8000]["/$KeepToken(\\d+?)$KeepToken/e"] =
+$MarkupPatterns[9000]["/$KeepToken(\\d+?)$KeepToken/e"] =
   '$GLOBALS[\'KPV\'][\'$1\']';
 
 SDVA($BlockMarkups,array(
