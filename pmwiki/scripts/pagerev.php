@@ -133,9 +133,11 @@ function PrintDiff($pagename) {
 }
 
 function HandleDiff($pagename) {
-  global $HandleDiffFmt,$PageStartFmt,$PageDiffFmt,$PageEndFmt;
+  global $DiffAccessLevel, $HandleDiffFmt, $PageStartFmt,
+    $PageDiffFmt, $PageEndFmt;
   Lock(1);
-  $page = ReadPage($pagename,'');
+  SDV($DiffAccessLevel, 'read');
+  $page = RetrieveAuthPage($pagename, $DiffAccessLevel);
   if (!$page) { Abort("?cannot diff $pagename"); }
   SDV($HandleDiffFmt,array(&$PageStartFmt,
     &$PageDiffFmt,'function:PrintDiff',
