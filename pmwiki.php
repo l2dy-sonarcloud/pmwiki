@@ -270,14 +270,15 @@ function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals,$FmtV;
   if (strpos($fmt,'$')===false) return $fmt;                  
-  if (!is_null($pagename) && !preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match)) return '';
-  $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
-  $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
-  static $qk = array('$PageUrl','$ScriptUrl','$Group','$Name');
-  $qv = array('$ScriptUrl/$Group/$Name',$GLOBALS['ScriptUrl'],$match[1],
-    $match[2]);
-  $fmt = str_replace('$PageName','$Group.$Name',$fmt);
-  $fmt = str_replace($qk,$qv,$fmt);
+  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match)) {
+    $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
+    $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
+    static $qk = array('$PageUrl','$ScriptUrl','$Group','$Name');
+    $qv = array('$ScriptUrl/$Group/$Name',$GLOBALS['ScriptUrl'],$match[1],
+      $match[2]);
+    $fmt = str_replace('$PageName','$Group.$Name',$fmt);
+    $fmt = str_replace($qk,$qv,$fmt);
+  }
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
   if ($GCount != count($GLOBALS)+count($FmtV)) {
@@ -360,8 +361,9 @@ class PageStore {
   }
   function ls($pats=NULL) {
     global $GroupPattern,$NamePattern;
-    $pags=array_merge("/^$GroupPattern\.$NamePattern$/",array($pats));
-    $dirlist = array(preg_replace('!/[^/]*\$.*$!','',$this->dirfmt));
+    $pats=array_merge("/^$GroupPattern\.$NamePattern$/",(array)$pats);
+    $dir = FmtPageName($this->dirfmt,'');
+    $dirlist = array(preg_replace('!/?[^/]*\$.*$!','',$dir));
     $out = array();
     while (count($dirlist)>0) {
       $dir = array_shift($dirlist);
