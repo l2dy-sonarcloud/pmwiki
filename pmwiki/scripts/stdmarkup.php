@@ -119,7 +119,7 @@ Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 ## [[free links]]
-Markup('[[','links',"/\\[\\[(.+?)\\]\\]($SuffixPattern)/e",
+Markup('[[','links',"/\\[\\[\\s*?(\\S.*?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'L')");
 
 ## [[target | text]]
@@ -156,7 +156,7 @@ Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
   "Keep(WikiLink(\$pagename,'$0'),'L')");
 
 ## escaped `WikiWords
-Markup('`wikiword','<wikilink',"/`($WikiWordPattern)/e","Keep('$1')");
+Markup('`wikiword','<wikilink',"/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e","Keep('$1')");
 
 #### Block markups ####
 ## process any <:...> markup
