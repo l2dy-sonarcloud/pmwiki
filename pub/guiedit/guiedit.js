@@ -25,16 +25,20 @@ function insMarkup(mopen, mclose, mtext) {
     var p1 = tarea.selectionEnd;
     var top = tarea.scrollTop;
     var str = mtext;
-    var cur = 0;
-    while (p1 > p0 && tarea.value.substring(p1-1, p1) == ' ') { p1--; cur++; }
-    if (p1 > p0) str = tarea.value.substring(p0, p1);
+    var cur0 = p0 + mopen.length;
+    var cur1 = p0 + mopen.length + str.length;
+    while (p1 > p0 && tarea.value.substring(p1-1, p1) == ' ') p1--; 
+    if (p1 > p0) {
+      str = tarea.value.substring(p0, p1);
+      cur0 = p0 + mopen.length + str.length + mclose.length;
+      cur1 = cur0;
+    }
     tarea.value = tarea.value.substring(0,p0)
       + mopen + str + mclose
       + tarea.value.substring(p1);
-    cur += p0 + mopen.length + str.length + mclose.length;
     tarea.focus();
-    tarea.selectionStart = cur;
-    tarea.selectionEnd = cur;
+    tarea.selectionStart = cur0;
+    tarea.selectionEnd = cur1;
     tarea.scrollTop = top;
   } else if (document.selection) {
     var str = document.selection.createRange().text;
