@@ -149,7 +149,7 @@ Markup('[[#','<[[','/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e',
 ## [[target |#]] reference links
 Markup('[[|#', '<[[|',
   "/\\[\\[([^|\\]]+)\\|#\\]\\]/e",  
-  "Keep(MakeLink(\$pagename,PSS('$1'),'['.@++\$MarkupFrame[0]['ref'].']'),'L')");
+  "Keep(MakeLink(\$pagename,PSS('$1'),'['.++\$MarkupFrame[0]['ref'].']'),'L')");
 
 ## bare urllinks 
 Markup('urllink','>[[',
