@@ -51,13 +51,13 @@ function LoadPageTemplate($pagename,$tfilefmt) {
   $sect = preg_split('#[[<]!--(/?Page[A-Za-z]+Fmt|PageText|HeaderText)--[]>]#',
     $k,0,PREG_SPLIT_DELIM_CAPTURE);
   $PageStartFmt = array_merge(array('headers:'),
-    preg_split('/[[<]!--((?:wiki|file|function):.*?)--[]>]/',array_shift($sect),
-      0,PREG_SPLIT_DELIM_CAPTURE));
+    preg_split('/[[<]!--((?:wiki|file|function|markup):.*?)--[]>]/s',
+      array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE));
   $PageEndFmt = array();
   $ps = 'PageStartFmt';
   while (count($sect)>0) {
     $k = array_shift($sect);
-    $v = preg_split('/[[<]!--((?:wiki|file|function):.*?)--[]>]/',
+    $v = preg_split('/[[<]!--((?:wiki|file|function|markup):.*?)--[]>]/',
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE);
     if (substr($k,0,1)=='/') {
       $GLOBALS[$ps][] = "<!--$k-->";
