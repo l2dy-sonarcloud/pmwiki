@@ -16,24 +16,25 @@
     <a href='$ScriptUrl/$[Main/SearchWiki]'>$[SearchWiki]</a>:
     <input class='searchbox' type='text' name='q' value='' />
     <input class='searchbutton' type='submit' value='$[Go]' /></form></div>
+  <table id='wikimid' width='100%' cellspacing='0' cellpadding='0'><tr>
 <!--PageLeftFmt-->
-  <table id='wikimid' width='100%' cellspacing='0' cellpadding='0'>
-    <tr><td id='wikileft' valign='top'>
+      <td id='wikileft' valign='top'>
         <!--wiki:$Group.SideBar Main.SideBar--></td>
+<!--/PageLeftFmt-->
       <td id='wikibody' valign='top'>
 <!--PageTitleFmt-->
-       <table width='100%' cellspacing='0' cellpadding='0' border='0'><tr>
-       <td id='wikititle'>
-         <div class='pagegroup'><a href='$ScriptUrl/$Group'>$Group</a> /</div>
-         <div class='pagetitle'><a href='$PageUrl'>$Title</a></div></td>
-       <td id='wikicmds'>
-         <a href='$ScriptUrl/$[$Group/RecentChanges]'>$[Recent Changes]</a>
-         <a href='$PageUrl?action=print' target='_blank'>$[Printable View]</a>
-         <a href='$PageUrl?action=diff'>$[Page History]</a>
-         <a href='$PageUrl?action=edit'>$[Edit Page]</a></td></tr></table>
+        <table width='100%' cellspacing='0' cellpadding='0' border='0'><tr>
+        <td id='wikititle'>
+          <div class='pagegroup'><a href='$ScriptUrl/$Group'>$Group</a> /</div>
+          <div class='pagetitle'><a href='$PageUrl'>$Title</a></div></td>
+        <td id='wikicmds'>
+          <a href='$ScriptUrl/$[$Group/RecentChanges]'>$[Recent Changes]</a>
+          <a href='$PageUrl?action=print' target='_blank'>$[Printable View]</a>
+          <a href='$PageUrl?action=diff'>$[Page History]</a>
+          <a href='$PageUrl?action=edit'>$[Edit Page]</a></td></tr></table>
 <!--PageText-->
-<!--PageRightFmt-->
-       </td></tr></table>
+      </td>
+    </tr></table>
 <!--PageFooterFmt-->
   <div id='wikifoot'>
     <div class='footnav'>
