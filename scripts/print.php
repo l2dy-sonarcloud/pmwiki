@@ -17,6 +17,7 @@
 if ($action!='print') return;
 
 SDV($PageSkinFmt,'pmwiki');
+SDV($PrintSkinFmt,$PageSkinFmt);
 $k = FmtPageName("pub/skins/$PageSkinFmt/print.tmpl",$pagename);
 if (file_exists($k)) {
   SDV($PrintTemplateFmt,$k);
