@@ -216,7 +216,7 @@ foreach((array)$InterMapFiles as $f) {
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
 
-if (!function_exists($HandleActions[$action])) $action='browse';
+if (!function_exists(@$HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
 Lock(0);
 exit;
@@ -527,6 +527,8 @@ function PrintFmt($pagename,$fmt) {
   if (is_array($fmt)) 
     { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
   $x = FmtPageName($fmt,$pagename);
+  if (preg_match("/^markup:(.*)$/",$x,$match))
+    { print MarkupToHTML($pagename,$match[1]); return; }
   if (preg_match("/^headers:/",$x)) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
@@ -860,12 +862,13 @@ function Diff($oldtext,$newtext) {
 
 function PostPage($pagename,&$page,&$new) {
   global $DiffKeepDays,$DiffFunction,$DeleteKeyPattern,
-    $Now,$WikiDir,$IsPagePosted;
+    $Now,$Author,$WikiDir,$IsPagePosted;
   SDV($DiffKeepDays,3650);
   SDV($DiffFunction,'Diff');
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   if (@$_REQUEST['post']) {
     if ($new['text']==$page['text']) { Redirect($pagename); return; }
+    $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
     $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
     $diffclass = preg_replace('/\\W/','',@$_POST['diffclass']);
