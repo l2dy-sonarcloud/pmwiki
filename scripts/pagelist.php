@@ -32,7 +32,8 @@ Markup('searchresults','directives','/\\(:searchresults\\s*(.*?):\\)/e',
 Markup('pagelist','directives','/\\(:pagelist\\s*(.*):\\)/e',
   "Keep(FmtPageList('\$MatchList',\$pagename,array('q'=>PSS('$1 '))))");
 
-SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple'));
+SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple',
+  'group'=>'FPLGroup'));
 
 function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
@@ -81,6 +82,9 @@ function FmtPageList($fmt,$pagename,$opt) {
   $FmtV['$MatchCount'] = count($matches);
   $FmtV['$MatchSearched'] = count($pagelist);
   $FmtV['$Needle'] = $opt['q'];
+  $GLOBALS['SearchIncl'] = $incl;
+  $GLOBALS['SearchExcl'] = $excl;
+  $GLOBALS['SearchGroup'] = $opt['group'];
   $fmtfn = @$FPLFunctions[$opt['fmt']];
   if (!function_exists($fmtfn)) $fmtfn='FPLByGroup';
   $FmtV['$MatchList'] = $fmtfn($pagename,$matches,$opt);
@@ -115,6 +119,21 @@ function FPLSimple($pagename,&$pagelist,$opt) {
     $out[] = FmtPageName($FPLSimpleIFmt,$item['pagename']);
   return FmtPageName($FPLSimpleStartFmt,$pagename).implode('',$out).
     FmtPageName($FPLSimpleEndFmt,$pagename);
+}
+
+## FPLSimple provides a simple bullet list of groups
+function FPLGroup($pagename,&$pagelist,$opt) {
+  global $FPLGroupStartFmt,$FPLGroupIFmt,$FPLGroupEndFmt;
+  SDV($FPLGroupStartFmt,"<ul class='fplgroup'>");
+  SDV($FPLGroupEndFmt,"</ul>");
+  SDV($FPLGroupIFmt,"<li><a href='\$ScriptUrl\$Group'>\$Group</a></li>");
+  $out = array();
+  foreach($pagelist as $item) {
+    $pgroup = FmtPageName($FPLGroupIFmt,$item['pagename']);
+    if (@!$seen[$pgroup]++) $out[] = $pgroup;
+  }
+  return FmtPageName($FPLGroupStartFmt,$pagename).implode('',$out).
+    FmtPageName($FPLGroupEndFmt,$pagename);
 }
 
 ?>
