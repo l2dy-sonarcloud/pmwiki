@@ -358,6 +358,28 @@ class PageStore {
     $pagefile = FmtPageName($this->dirfmt,$pagename);
     @rename($pagefile,"$pagefile,$Now");
   }
+  function ls($pats=NULL) {
+    global $GroupPattern,$NamePattern;
+    $pags=array_merge("/^$GroupPattern\.$NamePattern$/",array($pats));
+    $dirlist = array(preg_replace('!/[^/]*\$.*$!','',$this->dirfmt));
+    $out = array();
+    while (count($dirlist)>0) {
+      $dir = array_shift($dirlist);
+      $dfp = opendir($dir); if (!$dfp) continue;
+      while (($pagefile=readdir($dfp))!=false) {
+        if (substr($pagefile,0,1)=='.') continue;
+        if (is_dir("$dir/$pagefile"))
+          { array_push($dirlist,"$dir/$pagefile"); continue; }
+        if (@$seen[$pagefile]++) continue;
+        foreach($pats as $p) {
+          if (substr($p,0,1)=='!' && preg_match($p,$pagefile)) continue 2;
+          if (!preg_match($p,$pagefile)) continue 2;
+        }
+        $out[] = $pagefile;
+      }
+    }
+    return $out;
+  }
 }
 
 function ReadPage($pagename,$defaulttext=NULL) {
@@ -385,6 +407,13 @@ function PageExists($pagename) {
   foreach((array)$WikiLibDirs as $dir)
     if ($dir->exists($pagename)) return true;
   return false;
+}
+
+function ListPages($pat=NULL) {
+  global $WikiLibDirs;
+  foreach((array)$WikiLibDirs as $dir) 
+    $out = array_unique(array_merge($dir->ls($pat),(array)@$out));
+  return $out;
 }
 
 function RetrieveAuthPage($pagename,$level,$authprompt=true,$dtext=NULL) {
