@@ -28,6 +28,7 @@ define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
+$MakePageName = 'MakePageName';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$PageName');
 $WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
@@ -69,8 +70,9 @@ $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
 $BlockCS = array(); $BlockVS = array();
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
+$QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
-$LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl'>\$LinkText</a>";
+$LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageCreateFmt = 
   "\$LinkText<a class='createlink' href='\$PageUrl?action=edit'>?</a>";
 $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
@@ -246,6 +248,21 @@ function Lock($t) { return; }
 ## mkgiddir creates a directory, ensuring appropriate permissions
 function mkgiddir($dir) { if (!file_exists($dir)) mkdir($dir); }
 
+## MakePageName is used to convert a string into a valid pagename.
+## If no group is supplied, then it uses the group of the pagename
+## passed as an argument.
+function MakePageName($pagename,$x) {
+  global $PageNameChars;
+  SDV($PageNameChars,'-[:alnum:]');
+  if (!preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$x,$m)) return '';
+  if (!$m[1]) $group=preg_replace('/[\\/.].*$/','',$pagename);
+  else $group =
+    str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
+  $name = 
+    str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
+  return "$group.$name";
+}
+  
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals,$FmtV;
@@ -443,18 +460,16 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 }
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $LinkPageExistsFmt,$LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
-  $PageNameChars = '-[:alnum:]';
-  preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$path,$m);
-  if (!$m[1]) $group=FmtPageName('$Group',$pagename);
-  else $group=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
-  $name = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
-  $tgtname = "$group.$name";
+  global $QueryFragPattern,$MakePageName,$LinkPageExistsFmt,
+    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
+  preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match);
+  $tgtname = $MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
     if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
+  $FmtV['$LinkUrl'] = FmtPageName("\$PageUrl$qf",$tgtname);
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($fmt,$tgtname);
 }
