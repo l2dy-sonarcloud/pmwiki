@@ -5,11 +5,16 @@
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.  See pmwiki.php for full details.
 
-    This script provides a URL-approval capability.  The URL prefixes
-    to be allowed are stored as patterns in $WhiteUrlPatterns.  This
-    array can be loaded from config.php, or from the wiki pages given
-    by the $ApprovedUrlPagesFmt[] array.  Any URL that isn't in
-    WhiteUrlPatterns is rendered using $UnapprovedLinkFmt.
+    This script provides a URL-approval capability.  To enable this
+    script, add the following line to a configuration file:
+
+        include_once('scripts/urlapprove.php');
+
+    The URL prefixes to be allowed are stored as patterns in 
+    $WhiteUrlPatterns.  This array can be loaded from config.php, or 
+    from the wiki pages given by the $ApprovedUrlPagesFmt[] array.  
+    Any http: or https: URL that isn't in $WhiteUrlPatterns is rendered 
+    using $UnapprovedLinkFmt.
 
     The script also provides ?action=approveurls and ?action=approvesites, 
     which scan the current page for any new URLs to be automatically added
