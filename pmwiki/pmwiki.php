@@ -80,9 +80,11 @@ $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
 $HTMLPNewline = '';
-$MarkupFrame=array();
-$MarkupFrameBase=array('cs'=>array(),'vs'=>'',
+$MarkupFrame = array();
+$MarkupFrameBase = array('cs'=>array(), 'vs'=>'',
   'posteval'=>array('block'=>"return Block('block');"));
+$WikiWordCountMax = 1000000;
+$WikiWordCount['PmWiki'] = 1;
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
@@ -738,12 +740,16 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
-function WikiLink($pagename,$word) {
-  global $LinkWikiWords,$SpaceWikiWords,$AsSpacedFunction;
+function WikiLink($pagename, $word) {
+  global $LinkWikiWords, $SpaceWikiWords, $AsSpacedFunction, 
+    $MarkupFrame, $WikiWordCountMax;
   $text = ($SpaceWikiWords) ? $AsSpacedFunction($word) : $word;
   if (!$LinkWikiWords) return $text;
-  $text = preg_replace('!.*/!','',$text);
-  return MakeLink($pagename,$word,$text);
+  $text = preg_replace('!.*/!', '', $text);
+  if (!isset($MarkupFrame[0]['wwcount'][$word]))
+    $MarkupFrame[0]['wwcount'][$word] = $WikiWordCountMax;
+  if ($MarkupFrame[0]['wwcount'][$word]-- < 1) return $text;
+  return MakeLink($pagename, $word, $text);
 }
   
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
@@ -835,10 +841,12 @@ function BuildMarkupRules() {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupRules,$MarkupFrame,$MarkupFrameBase,$K0,$K1,$RedoMarkupLine;
+  global $MarkupRules, $MarkupFrame, $MarkupFrameBase, $WikiWordCount,
+    $K0, $K1, $RedoMarkupLine;
 
   StopWatch('MarkupToHTML begin');
   array_unshift($MarkupFrame,$MarkupFrameBase);
+  $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   $out = array();
