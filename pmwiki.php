@@ -34,7 +34,7 @@ $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower
 $WikiDir = new PageStore('wiki.d/$PageName');
 $WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
-$KeepToken = "\377\377";  
+$KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
