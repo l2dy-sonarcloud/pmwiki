@@ -129,7 +129,7 @@ Markup('[[!','<[[','/\\[\\[!(.*?)\\]\\]/e',
   "Keep(MakeLink(\$pagename,PSS('$CategoryGroup/$1'),NULL,'',\$GLOBALS['LinkCategoryFmt']),'L')");
 
 ## [[target | text]]
-Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|(.*?)\\s*\\]\\]($SuffixPattern)/e",
+Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|\\s*(.*?)\\s*\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'L')");
 
 ## [[text -> target ]]
