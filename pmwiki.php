@@ -573,7 +573,8 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
-  if (IsEnabled($EnableRedirect,1)) {
+  if (IsEnabled($EnableRedirect,1) && 
+      (!isset($_REQUEST['redirect']) || $_REQUEST['redirect'])) {
     header("Location: $pageurl");
     header("Content-type: text/html");
     echo "<html><head>
