@@ -29,7 +29,7 @@ if (!IsEnabled($EnableStdConfig,1)) return;
 ## If-Modified-Since request header, we can return 304 Not Modified.
 SDV($LastModFile,"$WorkDir/.lastmod");
 $v = @filemtime($LastModFile);
-if ($v && in_array($action,(array)$CachedActions)) {
+if ($v && in_array($action,(array)$CacheActions)) {
   $HTTPLastMod=gmstrftime('%a, %d %b %Y %H:%M:%S GMT',$v);
   $HTTPHeaders[] = "Cache-Control: no-cache";
   $HTTPHeaders[] = "Last-Modified: $HTTPLastMod";

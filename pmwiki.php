@@ -100,7 +100,7 @@ $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
   "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=iso-8859-1;");
-$CachedActions = array('browse','diff','print');
+$CacheActions = array('browse','diff','print');
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
