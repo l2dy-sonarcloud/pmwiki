@@ -246,7 +246,15 @@ function Lock($op) {
 function mkdirp($dir) {
   if (file_exists($dir)) return;
   if (!file_exists(dirname($dir))) mkdirp(dirname($dir));
-  if (!mkdir($dir)) Abort("Unable to create $dir");
+  if (!mkdir($dir)) {
+    $parent = realpath(dirname($dir)); 
+    $perms=decoct(fileperms($parent) & 03777);
+    Abort("PmWiki wants permission to create the <tt>$dir</tt> directory
+      in <tt>$parent</tt>.  Try executing <pre>    chmod 2777 $parent</pre>
+      or <pre>    chmod 777 $parent</pre> on your server and reloading this
+      page.  Afterwards, you can restore the permissions to their current
+      setting by executing <pre>    chmod $perms $parent</pre>");
+  }
   fixperms($dir);
 }
 
@@ -256,7 +264,7 @@ function fixperms($fname) {
   clearstatcache();
   if (!file_exists($fname)) Abort('no such file');
   $bp = 0;
-  if (fileowner($name)!=fileowner('.') $bp = (is_dir($fname)) ? 007 : 006;
+  if (fileowner($fname)!=fileowner('.')) $bp = (is_dir($fname)) ? 007 : 006;
   if (filegroup($fname)==filegroup('.')) $bp <<= 3;
   if ($bp && (fileperms($fname) & $bp) != $bp)
     @chmod($fname,fileperms($fname)|$bp);
