@@ -85,8 +85,8 @@ $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$WikiHeaderFmt = '[:includenl $Group.GroupHeader:]';
-$WikiFooterFmt = '[:includenl $Group.GroupFooter:]';
+$WikiHeaderFmt = '[:INCLUDE $Group.GroupHeader:][:nl:]';
+$WikiFooterFmt = '[:nl:][:INCLUDE $Group.GroupFooter:]';
 $PagePathFmt = array('$Group.$1','$1.$1');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
@@ -186,11 +186,13 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[500]["/\\[:include\\s+(.+?):\\]/e"] = 
     "IncludeText(\$pagename,'$0')";
 #### 1000: conditional markups
-  $MarkupPatterns[1500]["/(.?)\\[:includenl\\s+(.+?):\\](.?)/e"] =
+  $MarkupPatterns[1500]["/\\[:INCLUDE\\s+(.+?):\\]/e"] =
     "IncludeText(\$pagename,'$0')";
 #### 2000: line breaks
   $MarkupPatterns[2200]["/(\\\\*)\\\\\n/e"] =
     "Keep(' '.str_repeat('<br />',strlen('$1')))";
+  $MarkupPatterns[2220]["/(?<!\n)\\[:nl:\\](?!\n)/"] = "\n";
+  $MarkupPatterns[2225]["/\\[:nl:\\]/"] = '';
   $MarkupPatterns[2800]["\n"] = 
     '$RedoMarkupLine=1; return explode("\n",$x);';
 #### 3000: directives
@@ -518,17 +520,13 @@ function IncludeText($pagename,$inclspec) {
   SDV($MaxIncludes,10);
   SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
-  if (preg_match("/(.?)\\[:include(nl)?\\s+([^#]+?)\\](.?)/",
-      $inclspec,$match)) {
-    @list($inclrepl,$x0,$nl,$inclname,$x1) = $match;
+  if (preg_match("/\\[:(include|INCLUDE)\\s+([^#]+?)\\]/",$inclspec,$match)) {
+    @list($inclrepl,$incltype,$inclname) = $match;
     $inclname = MakePageName($pagename,$inclname);
-    if ($inclname==$pagename) return $x0.$x1;
+    if ($inclname==$pagename) return '';
     $inclpage=RetrieveAuthPage($inclname,'read',false,'');
-    $incltext = htmlentities($inclpage['text'],ENT_NOQUOTES);
-    if ($nl && $x0 && $x0!="\n") $incltext = "\n".$incltext;
-    if ($nl && $x1 && $x1!="\n") $incltext .= "\n";
     $RedoMarkupLine++;
-    return $x0.$incltext.$x1;
+    return htmlentities($inclpage['text'],ENT_QUOTES);
   }
   return Keep($inclspec);
 }
