@@ -22,7 +22,7 @@
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 if ($pagename=='') $pagename=$DefaultPage;
 
-for($p=$pagename;$p;$p=preg_replace('/\\.[^.]*$/','',$p)) {
+for($p=$pagename;$p;$p=preg_replace('/\\.*[^.]*$/','',$p)) {
   if (file_exists("local/$p.php")) {
     include_once("local/$p.php");
     return;
