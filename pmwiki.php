@@ -78,6 +78,7 @@ function FmtPageName($fmt,$pagename) {
     $match[2]);
   $fmt = str_replace($qk,$qv,$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
+  static $g;
   if (count($GLOBALS)!=$GCount) {
     foreach($GLOBALS as $n=>$v) {
       if (is_array($v) || is_object($v)) { continue; }
@@ -199,6 +200,12 @@ $MarkupPatterns[2000]["\n"] =
   '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
 $MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
+$MarkupPatterns[4100]['/\\[\\[([^|]+)\\|(.*?)\\]\\]/e'] =
+  "Keep(MakeLink(\$pagename,'$1',PSS('$2')))";
+$MarkupPatterns[4200]['/\\[\\[(.*?)\\]\\]/e'] =
+  "Keep(MakeLink(\$pagename,'$1'))";
+$MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
+  "Keep(MakeLink(\$pagename,'$0','$1'))";
 $MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
   "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
 $MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
@@ -290,6 +297,29 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
+foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
+  as $m) { $LinkFunctions[$m] = 'IMapLink';  $IMap[$m]="$m$1"; }
+
+function IMapLink($pagename,$match,$txt) {
+  global $IMap;
+  @list($tgt,$imap,$path,$q,$title) = $match;
+  $path = str_replace(' ','%20',$path);
+  $url = str_replace('$1',$path,$IMap[$imap]);
+  return "<a class='urllink' href='$url'>$txt</a>";
+}
+
+function MakeLink($pagename,$tgt,$txt=NULL,$ext=NULL) {
+  global $LinkPattern,$LinkFunctions;
+  if (is_null($txt)) $txt=preg_replace('/\\([^)]*\\)/','',$tgt);
+  $txt .= $ext;
+  if (!isset($LinkPattern)) 
+    $LinkPattern = implode('|',array_keys($LinkFunctions));
+  $tgt = preg_replace('/[()]/','',trim($tgt));
+  if (!preg_match("/^($LinkPattern)([^\"]+)(\"(.*)\")?$/",$tgt,$match))
+    return "nomatch: tgt=$tgt, txt=$txt";
+  $out = $LinkFunctions[$match[1]]($pagename,$match,$txt);
+  return $out;
+}
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
@@ -379,9 +409,9 @@ function HandleSource($pagename) {
 }
 
 $action = @$_REQUEST['action'];
-if ($action=='edit') HandleEdit('PmWiki.TextFormattingRules');
-elseif ($action=='source') HandleSource('PmWiki.TextFormattingRules');
+if ($action=='edit') HandleEdit('PmWiki.WikiSandbox');
+elseif ($action=='source') HandleSource('PmWiki.WikiSandbox');
 elseif ($action=='test') include_once('tests/00test.php');
-else HandleBrowse('PmWiki.TextFormattingRules'); 
+else HandleBrowse('PmWiki.WikiSandbox'); 
 
 ?> 
