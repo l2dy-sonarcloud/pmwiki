@@ -230,7 +230,7 @@ if (IsEnabled($EnableLocalConfig,1)) {
 
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 SDV($UrlPage,'{$UrlPage}');
-if ($pagename&&!preg_match("/^$GroupPattern([\/.])$NamePattern$/",$pagename)) {
+if ($pagename&&!preg_match("/^$GroupPattern([\/.])$NamePattern$/i",$pagename)) {
   $UrlPage=$pagename;
   $p = MakePageName($DefaultPage,$pagename);
   if (PageExists($p)) { Redirect($p); exit(); }
