@@ -40,9 +40,9 @@ function Merge($newtext,$oldtext,$pagetext) {
 function MergeSimulEdits($pagename,&$page,&$new) {
   global $EditMessageFmt,$WorkDir,$SysMergeCmd;
   SDV($SysMergeCmd,"/usr/bin/diff3 -L '' -L '' -L '' -m -E");
-  if (@!$_REQUEST['basetime'] || !PageExists($pagename) ||
-    $_REQUEST['basetime']>=$page['time']) return;
-  unset($_REQUEST['post']);
+  if (@!$_POST['basetime'] || !PageExists($pagename) ||
+    $_POST['basetime']>=$page['time']) return;
+  unset($_POST['post']);
   $EditMessageFmt .= "<p class='editconflict'>The page you are 
     editing has been modified since you started editing it.  
     The modifications have been merged into the text below,
@@ -52,6 +52,6 @@ function MergeSimulEdits($pagename,&$page,&$new) {
     &gt;&gt;&gt;&gt;&gt;&gt;&gt;.  (<a target='_blank' 
     href='\$PageUrl?action=diff'>View changes</a>)</p>\n";
   $old = array();
-  RestorePage($pagename,$page,$old,"diff:{$_REQUEST['basetime']}");
+  RestorePage($pagename,$page,$old,"diff:{$_POST['basetime']}");
   $new['text'] = Merge($new['text'],$old['text'],$page['text']);
 }
