@@ -29,6 +29,8 @@ if (IsEnabled($EnableStdMarkup,1))
   include_once("$FarmD/scripts/stdmarkup.php");
 if (IsEnabled($EnableAuthorTracking,1)) 
   include_once("$FarmD/scripts/author.php");
+if (IsEnabled($EnableSimulEdit,1))
+  include_once("$FarmD/scripts/simuledit.php");
 if (IsEnabled($EnableTemplateLayout,1))
   include_once("$FarmD/scripts/tlayout.php");
 if ($action=='diff' && @!$HandleActions['diff'])
