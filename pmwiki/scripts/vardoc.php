@@ -14,10 +14,13 @@
 */
 
 SDV($VarPagesFmt,array('PmWiki.Variables'));
-$MarkupPatterns[4490]["/\\$($WikiWordPattern)\\b/e"] =
-  "Keep(VarLink(\$pagename,'$1','$$1'))";
-$MarkupPatterns[3800]["/^:\\$($WikiWordPattern):/"] = 
-  ':[[#$1]]$$1:';
+Markup('$WikiWord','<wikilink',"/\\$($WikiWordPattern)\\b/e",
+  "Keep(VarLink(\$pagename,'$1','$$1'))");
+Markup('^:$WikiWord','<links',"/^:\\$($WikiWordPattern):/",
+  ':[[#$1]]$$1:');
+Markup('varindex','directives','/\\[:varindex:\\]/e',
+  "Keep(VarIndexList())");
+
 $HTMLStylesFmt[] = "a.varlink { text-decoration:none; }\n";
 
 function VarLink($pagename,$tgt,$txt) {
@@ -54,6 +57,20 @@ function VarIndexLoad($pagename) {
       }
     }
   }
+}
+
+# VarIndexList() generates a table of all indexed variables.
+function VarIndexList() {
+  global $VarIndex;
+  if (!isset($VarIndex)) VarIndexLoad();
+  ksort($VarIndex);
+  $out = "<table><tr><th>Variable</th><th>Documented in</th></tr>\n";
+  foreach($VarIndex as $v=>$a) 
+    $out .= FmtPageName("<tr><td><a class='varlink' 
+      href='{$a['url']}'><code>&#036;$v</code></a></td><td><a 
+      href='\$PageUrl'>\$Name</a></td></tr>\n",$a['pagename']);
+  $out .= "</table>";
+  return $out;
 }
 
 ?>

@@ -96,7 +96,7 @@ Markup('urllink','>[[',
 
 ## mailto: links 
 Markup('mailto','<urllink','/\\bmailto:(\\S+)/e',
-    "Keep(MakeLink(\$pagename,'$0','$1'),'L')");
+  "Keep(MakeLink(\$pagename,'$0','$1'),'L')");
 
 ## inline images
 Markup('img','<urllink',
@@ -136,7 +136,7 @@ Markup('^||','>^||||','/^\\|\\|(.*)$/e',
   "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1'>))");
 
 ## headers
-Markup('^!','block','/(!{1,6})(.*)$/e',
+Markup('^!','block','/^(!{1,6})(.*)$/e',
   "'<:block><h'.strlen('$1').PSS('>$2</h').strlen('$1').'>'");
 
 ## horiz rule
@@ -159,5 +159,9 @@ Markup('@@','inline','/@@(.*?)@@/','<code>$1</code>');
 Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
   "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
     PSS('$3</span>')");
+
+#### wikistyles ####
+## %style%
+Markup('%%','style','%',"return ApplyStyles(\$x);");
 
 ?>
