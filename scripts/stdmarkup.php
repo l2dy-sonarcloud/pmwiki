@@ -82,11 +82,12 @@ Markup('[[','links',"/\\[\\[(.*?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'L')");
 
 ## [[target | text]]
-Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e",
+Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|(.*?)\\s*\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'L')");
 
 ## [[text -> target ]]
-Markup('[[->','>[[|',"/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e",
+Markup('[[->',
+  '>[[|',"/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'L')");
 
 ## [[#anchor]]
