@@ -92,9 +92,11 @@ $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageSelfFmt = "<a class='selflink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
-$LinkPageCreateFmt = "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
-  class='createlink' href='\$PageUrl?action=edit'>?</a>";
-$UrlLinkFmt = "<a class='urllink' href='\$LinkUrl'>\$LinkText</a>";
+$LinkPageCreateFmt = 
+  "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
+    class='createlink' href='\$PageUrl?action=edit'>?</a>";
+$UrlLinkFmt = 
+  "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
