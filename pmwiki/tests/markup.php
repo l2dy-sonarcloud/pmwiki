@@ -1,24 +1,32 @@
 <?php
 
-$mdp = opendir("$testdir/markup");
-$tests=0; $passes=0;
-TestNote(basename(__FILE__),0);
-while (($mfile=readdir($mdp))!==false) {
-  if (substr($mfile,0,1)=='.') continue;
-  $markup = implode('',file("$testdir/markup/$mfile"));
-  preg_match_all("/=test\\s+(\\S+)\\s+\\[=\n(.*?)\n=\\]\\s*=result\\s+\\[=\n(.*?)=\\]/s",$markup,$match);
-  for($i=0;$i<count($match[1]);$i++) {
-    $out = MarkupToHTML("Test.Markup",$match[2][$i]);
-    $p = ($out==$match[3][$i]);
-    $passes += $p; $tests++;
-    TestNote("$mfile/{$match[1][$i]}: ".(($p) ? 'Pass' : 'Fail'));
-    if (!$p) {
-      TestNote("<pre>out:\n".htmlspecialchars($out)."\nkey:\n".
-        htmlspecialchars($match[3][$i]),2);
-    }
-  }
-}
-closedir($mdp);
-TestResult(__FILE__,$passes,$tests);
+session_start();
+if (@$_REQUEST['details']) 
+  $_SESSION['details'] = ($_REQUEST['details']!='n');
 
-0;
+echo "<style type='text/css'><!--
+  .pass { background-color:#ddffdd; }
+  .fail { background-color:#ffdddd; }
+  --></style>\n";
+
+$MarkupPatterns[3000]["/^=test\\s+(\\S+)\\s+$KeepToken(\\d+)$KeepToken/e"] =
+  "PZZ(\$tname='$1',\$tkeep1=$2)";
+$MarkupPatterns[3001]["/=result\\s+(\\S+\\s*)?$KeepToken(\\d+)$KeepToken/e"] =
+  "Keep(TestResult(\$pagename,\$tname,\$GLOBALS['KPV'][\$tkeep1],
+    str_replace(array('&amp;','&lt;','&gt;'),array('&','<','>'),
+      \$GLOBALS['KPV'][$2])))";
+
+function TestResult($pagename,$testname,$testmarkup,$testresult) {
+  $testmarkup = trim($testmarkup);
+  $testresult = trim($testresult)."\n";
+  $out = MarkupToHTML($pagename,$testmarkup);
+  $pass = ($out==$testresult) ? 'pass' : 'fail';
+  $x = "<table width='100%' border='1' cellspacing='0'>
+    <tr><td colspan='2' class='$pass'><b>$pagename</b> - $testname: $pass</td></tr>";
+  if (!$pass || @$_SESSION['details'])
+    $x .= "<tr><td width='50%'><pre>".htmlspecialchars($out)."</pre></td>
+      <td><pre>".htmlspecialchars($testresult)."</pre></td></tr>";
+  return "$x</table>";
+}
+
+?>
