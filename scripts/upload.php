@@ -56,7 +56,7 @@ SDV($UploadDir,'uploads');
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
 SDV($UploadUrlFmt,preg_replace('#/[^/]*$#',"/$UploadDir",$ScriptUrl,1));
-SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText</a><a class='createlink' href='\$LinkUrl'>&nbsp;&Delta;</a>");
+SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUpload'>\$LinkText</a><a class='createlink' href='\$LinkUpload'>&nbsp;&Delta;</a>");
 
 SDV($PageUploadFmt,array("
   <h2 class='wikiaction'>$[Attachments for] \$FullName</h2>
@@ -89,8 +89,13 @@ SDV($DefaultPasswords['upload'],'*');
 
 Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
   "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
+Markup('Attach:', '>img', 
+  "/\\bAttach:([^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars])/e",
+  "Keep(MakeLink(\$pagename, '$0', '$1'), 'L')");
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
 SDV($IMap['Attach:'], '$1');
+SDV($IMapLinkFmt['Attach:'], 
+  "<a class='urllink' href='\$LinkUrl'>Attach:\$LinkText</a>");
 SDV($HandleActions['upload'], 'HandleUpload');
 SDV($HandleActions['postupload'], 'HandlePostUpload');
 SDV($ActionTitleFmt['upload'], '| $[Uploads]');
@@ -107,12 +112,11 @@ function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
     $UploadPrefixFmt;
   $upname = MakeUploadName($pagename, $path);
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
-  if (!file_exists($filepath)) {
-    $FmtV['$LinkUrl'] = 
-      FmtPageName("\$PageUrl?action=upload&amp;upname=$upname", $pagename);
-    $FmtV['$LinkText'] = $txt;
+  $FmtV['$LinkUpload'] = 
+    FmtPageName("\$PageUrl?action=upload&amp;upname=$upname", $pagename);
+  $FmtV['$LinkText'] = $txt;
+  if (!file_exists($filepath)) 
     return FmtPageName($LinkUploadCreateFmt, $pagename);
-  }
   $path = FmtPageName("$UploadUrlFmt$UploadPrefixFmt/$upname", $pagename);
   return LinkIMap($pagename, $imap, $path, $title, $txt, $fmt);
 }
