@@ -183,6 +183,11 @@ Markup('`wikiword','<wikilink',"/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e
 ## process any <:...> markup
 Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
 
+# unblocked lines w/block markup become anonymous <:block>
+Markup('^!<:', '<^<:',
+  '/^(?!<:)(?=.*<(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr)\\b)/',
+  '<:block>');
+
 ## bullet lists
 Markup('^*','block','/^(\\*+)/','<:ul,$1>');
 
