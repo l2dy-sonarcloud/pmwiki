@@ -31,8 +31,8 @@ define('PmWiki',1);
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
-$WikiDir = new PageStore('wiki.d/$PageName');
-$WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
+$WikiDir = new PageStore('wiki.d/$FullName');
+$WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$FullName'));
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
@@ -41,10 +41,10 @@ $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
 $PageEditFmt = "<div id='wikiedit'>
   <a id='top' name='top'></a>
-  <h1 class='wikiaction'>$[Editing \$PageName]</h1>
+  <h1 class='wikiaction'>$[Editing \$FullName]</h1>
   <form method='post' action='\$PageUrl?action=edit'>
   <input type='hidden' name='action' value='edit' />
-  <input type='hidden' name='pagename' value='\$PageName' />
+  <input type='hidden' name='pagename' value='\$FullName' />
   <input type='hidden' name='basetime' value='\$EditBaseTime' />
   \$EditMessageFmt
   <textarea name='text' rows='25' cols='60'
@@ -56,7 +56,7 @@ $PageEditFmt = "<div id='wikiedit'>
   <input type='submit' name='post' value=' $[Save] ' />
   <input type='submit' name='preview' value=' $[Preview] ' />
   <input type='reset' value=' $[Reset] ' /></form></div>";
-$PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$PageName]</h2>
+$PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$FullName]</h2>
   <p><b>$[Page is unsaved]</b></p>
   \$PreviewText
   <hr /><p><b>$[End of preview -- remember to save]</b><br />
@@ -104,7 +104,8 @@ $XLLangs = array('en');
 if (setlocale(LC_ALL,NULL)=='C') setlocale(LC_ALL,'en_US');
 $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
-  '/\\$PageName/' => '$Group.$Name',
+  '/\\$FullName/' => '$Group.$Name',
+  '/\\$PageName/' => '$Group.$Name',       # deprecated, 2.0.devel14
   '/\\$Title/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : (($GLOBALS["SpaceWikiWords"]) ? \'$Namespaced\' : \'$Name\')',
   '/\\$Groupspaced/e' => '$AsSpacedFunction(@$match[1])',
   '/\\$Group/e' => '@$match[1]',
@@ -127,7 +128,8 @@ $HTMLDoctypeFmt =
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
-$HTMLTitleFmt = "  <title>\$WikiTitle - \$Title</title>\n";
+$HTMLTitleFmt = 
+  "  <title>\$WikiTitle | \$Group / \$Title \$Action</title>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code { white-space: nowrap; }
@@ -151,6 +153,9 @@ $HandleActions = array(
   'browse' => 'HandleBrowse',
   'edit' => 'HandleEdit', 'source' => 'HandleSource', 
   'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
+$ActionTitleFmt = array(
+  'edit' => '| $[Edit]',
+  'attr' => '| $[Attributes]');
 $DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
 
 $Conditions['false'] = 'false';
@@ -241,6 +246,7 @@ foreach((array)$InterMapFiles as $f) {
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
 
+$Action = FmtPageName(@$ActionTitleFmt[$action],$pagename);
 if (!function_exists(@$HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
 Lock(0);
@@ -427,7 +433,7 @@ function XLPage($lang,$p) {
 ## filesystem.
 class PageStore {
   var $dirfmt;
-  function PageStore($d='$WorkDir/$PageName') { $this->dirfmt=$d; }
+  function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
   function read($pagename) {
     $newline = "\262";
     $pagefile = FmtPageName($this->dirfmt,$pagename);
@@ -619,7 +625,7 @@ function CondText($pagename,$condspec,$condtext) {
 function IncludeText($pagename,$inclspec) {
   global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV;
   SDV($MaxIncludes,10);
-  SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
+  SDV($IncludeBadAnchorFmt,"include:\$FullName - #\$BadAnchor \$[not found]\n");
   $npat = '[[:alpha:]][-\\w]*';
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
   if (preg_match("/^include\\s+([^#\\s]+)(.*)$/",$inclspec,$match)) {
@@ -841,7 +847,7 @@ function HandleBrowse($pagename) {
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
-    <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
+    <a href='\$PageUrl?action=edit'>\$FullName</a>)</i></p>\$HTMLVSpace\n");
   if (isset($page['text'])) $text=$page['text'];
   else $text = FmtPageName($DefaultPageTextFmt,$pagename);
   if (@!$_GET['from']) {
@@ -1038,7 +1044,7 @@ function PrintAttrForm($pagename) {
   global $PageAttributes;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
     <input type='hidden' name='action' value='postattr' />
-    <input type='hidden' name='pagename' value='\$PageName' />
+    <input type='hidden' name='pagename' value='\$FullName' />
     <table>",$pagename);
   foreach($PageAttributes as $attr=>$p) {
     $value = (substr($attr,0,6)=='passwd') ? '' : $page[$k];
@@ -1054,7 +1060,7 @@ function HandleAttr($pagename) {
   $page = RetrieveAuthPage($pagename,'attr');
   if (!$page) { Abort("?unable to read $pagename"); }
   PCache($pagename,$page);
-  SDV($PageAttrFmt,"<h1 class='wikiaction'>$[\$PageName Attributes]</h1>
+  SDV($PageAttrFmt,"<h1 class='wikiaction'>$[\$FullName Attributes]</h1>
     <p>Enter new attributes for this page below.  Leaving a field blank
     will leave the attribute unchanged.  To clear an attribute, enter
     'clear'.</p>");

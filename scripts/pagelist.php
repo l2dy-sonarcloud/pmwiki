@@ -109,7 +109,7 @@ function FPLSimple($pagename,&$pagelist,$opt) {
   global $FPLSimpleStartFmt,$FPLSimpleIFmt,$FPLSimpleEndFmt;
   SDV($FPLSimpleStartFmt,"<ul class='fplsimple'>");
   SDV($FPLSimpleEndFmt,"</ul>");
-  SDV($FPLSimpleIFmt,"<li><a href='\$PageUrl'>\$PageName</a></li>");
+  SDV($FPLSimpleIFmt,"<li><a href='\$PageUrl'>\$FullName</a></li>");
   $out = array();
   foreach($pagelist as $item) 
     $out[] = FmtPageName($FPLSimpleIFmt,$item['pagename']);

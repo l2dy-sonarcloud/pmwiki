@@ -9,7 +9,8 @@
     to set up site-wide passwords in the installation.
 */
 
-$HandleActions['crypt'] = 'HandleCrypt';
+SDV($HandleActions['crypt'],'HandleCrypt');
+SDV($ActionTitleFmt['crypt'],'| $[Password encryption]');
 
 function HandleCrypt($pagename) {
   global $ScriptUrl,$HTMLStartFmt,$HTMLEndFmt;
