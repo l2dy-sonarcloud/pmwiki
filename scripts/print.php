@@ -26,8 +26,8 @@ if (file_exists($k)) {
   SDV($PrintTemplateFmt,"$FarmD/$k");
   SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/$PageSkinFmt",$pagename));
 } else {
-  SDV($PrintTemplateFmt,"$FarmD/pub/skins/pmwiki/print.tmpl");
-  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/pmwiki",$pagename));
+  SDV($PrintTemplateFmt,"$FarmD/pub/skins/print/print.tmpl");
+  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/print",$pagename));
 }
 
 $PageTemplateFmt = $PrintTemplateFmt;
