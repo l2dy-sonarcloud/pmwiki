@@ -263,7 +263,7 @@ foreach((array)$InterMapFiles as $f) {
     list($imap,$url) = preg_split('/\\s+/',$mapline);
     if (strpos($url,'$1')===false) $url.='$1';
     $LinkFunctions["$imap:"] = 'LinkIMap';
-    $IMap["$imap:"] = $url;
+    $IMap["$imap:"] = FmtPageName($url, $pagename);
   }
 }
 
@@ -844,7 +844,8 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   }
   if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
     return '';
-  $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
+  $tgtname = MakePageName($pagename,$match[1]); 
+  $qf = str_replace('&amp;', '&', @$match[2]);
   @$LinkTargets[$tgtname]++;
   if (!$fmt) {
     if (PageExists($tgtname)) 
