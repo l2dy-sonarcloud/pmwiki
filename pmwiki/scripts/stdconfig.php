@@ -37,6 +37,8 @@ if (IsEnabled($EnableMailPosts,0))
   include_once("$FarmD/scripts/mailposts.php");
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
+if (IsEnabled($EnableVarMarkup,1))
+  include_once("$FarmD/scripts/vardoc.php");
 
 SDV($MetaRobots,
   ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
