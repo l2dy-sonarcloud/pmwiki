@@ -18,7 +18,9 @@ SDV($Skin, 'pmwiki');
 SDV($ActionSkin['print'], 'print');
 SDV($FarmPubDirUrl, $PubDirUrl);
 SDV($PageLogoUrl, "$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
+SDVA($SkinDisplay, array('PageEditFmt' => 0));
 
+# $PageTemplateFmt is deprecated
 if (isset($PageTemplateFmt)) LoadPageTemplate($pagename,$PageTemplateFmt);
 else {
   $x = array_merge((array)@$ActionSkin[$action], (array)$Skin);
@@ -34,6 +36,8 @@ foreach((array)$PageCSSListFmt as $k=>$v)
   if (file_exists(FmtPageName($k,$pagename))) 
     $HTMLHeaderFmt[] = "<link rel='stylesheet' type='text/css' href='$v' />\n";
 
+# SetSkin changes the current skin to the first available skin from 
+# the $skin array.
 function SetSkin($pagename, $skin) {
   global $Skin, $SkinDir, $SkinDirUrl, $IsTemplateLoaded, $PubDirUrl,
     $FarmPubDirUrl, $FarmD;
@@ -72,40 +76,58 @@ function SetSkin($pagename, $skin) {
 }
 
 
+# LoadPageTemplate loads a template into $TmplFmt
 function LoadPageTemplate($pagename,$tfilefmt) {
-  global $PageStartFmt,$PageEndFmt,$BasicLayoutVars,$HTMLHeaderFmt,
-    $IsTemplateLoaded;
-  SDV($BasicLayoutVars,array('HeaderText','PageHeaderFmt','PageLeftFmt',
-    'PageTitleFmt','PageText','PageRightFmt','PageFooterFmt'));
+  global $PageStartFmt, $PageEndFmt, $HTMLHeaderFmt,
+    $IsTemplateLoaded, $TmplFmt, $SkinDisplay;
 
+  # $BasicLayoutVars is deprecated
+  global $BasicLayoutVars;
+  if (isset($BasicLayoutVars)) 
+    foreach($BasicLayoutVars as $sw) $SkinDisplay[$sw] = 1;
+
+  $sddef = array('PageEditFmt' => 0);
   $k = implode('',file(FmtPageName($tfilefmt,$pagename)));
-  $sect = preg_split('#[[<]!--(/?Page[A-Za-z]+Fmt|PageText|HeaderText)--[]>]#',
+  $sect = preg_split('#[[<]!--(/?(?:Page[A-Za-z]+Fmt|PageText|HeaderText)\\s?.*?)--[]>]#',
     $k,0,PREG_SPLIT_DELIM_CAPTURE);
-  $PageStartFmt = array_merge(array('headers:'),
+  $TmplFmt['Start'] = array_merge(array('headers:'),
     preg_split('/[[<]!--((?:wiki|file|function|markup):.*?)--[]>]/s',
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE));
-  $PageEndFmt = array();
-  $ps = 'PageStartFmt';
+  $TmplFmt['End'] = array("</div>\n");
+  $ps = 'Start';
   while (count($sect)>0) {
     $k = array_shift($sect);
     $v = preg_split('/[[<]!--((?:wiki|file|function|markup):.*?)--[]>]/',
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE);
-    if (substr($k,0,1)=='/') {
-      $GLOBALS[$ps][] = "<!--$k-->";
-      $GLOBALS[$ps][] = (count($v)>1) ? $v : $v[0];
-      continue;
-    } 
-    $GLOBALS[$k] = (count($v)>1) ? $v : $v[0];
-    if (in_array($k,$BasicLayoutVars)) {
-      $GLOBALS[$ps][] = "<!--$k-->";
-      if ($k=='PageText') $ps = 'PageEndFmt'; 
-      if ($k=='HeaderText') $GLOBALS[$ps][] = &$HTMLHeaderFmt;
-      $GLOBALS[$ps][] =& $GLOBALS[$k];
-    }
+    $TmplFmt[$ps][] = "<!--$k-->";
+    if ($k{0} == '/') 
+      { $TmplFmt[$ps][] = (count($v) > 1) ? $v : $v[0]; continue; }
+    @list($var, $sd) = explode(' ', $k, 2);
+    $GLOBALS[$var] = (count($v) > 1) ? $v : $v[0];
+    if ($sd > '') $sddef[$var] = $sd;
+    if ($var == 'PageText') { $ps = 'End'; }
+    if ($var == 'HeaderText') { $TmplFmt[$ps][] = &$HTMLHeaderFmt; }
+    $TmplFmt[$ps][$var] =& $GLOBALS[$var];
   }
-  array_push($PageStartFmt,"\n<div id='wikitext'>\n");
-  array_unshift($PageEndFmt,'</div>');
+  array_push($TmplFmt['Start'],"\n<div id='wikitext'>\n");
+  $PageStartFmt = 'function:PrintSkin Start';
+  $PageEndFmt = 'function:PrintSkin End';
   $IsTemplateLoaded = 1;
+  SDVA($SkinDisplay, $sddef);
 }
+
+# This function is called to print a portion of the skin template
+# according to the settings in $SkinDisplay.
+function PrintSkin($pagename, $arg) {
+  global $TmplFmt, $SkinDisplay;
+  foreach ($TmplFmt[$arg] as $k => $v) 
+    if (!isset($SkinDisplay[$k]) || $SkinDisplay[$k])
+      PrintFmt($pagename, $v);
+}
+
+# This is a short helper function that makes it easy to turn off
+# various skin components (e.g., callable from markup)
+function SkinDisplay($var, $val) 
+  { $GLOBALS['SkinDisplay'][$var] = $val; }
 
 ?>
