@@ -300,8 +300,9 @@ function ParseArgs($x) {
     $x, $terms, PREG_SET_ORDER);
   foreach($terms as $t) {
     $v = preg_replace('/^([\'"])?(.*)\\1$/', '$2', $t[3]);
-    if ($t[2]) $z[$t[2]] = $v;
-    else $z[$t[1]][] = $v;
+    if ($t[2]) { $z['#'][] = $t[2]; $z[$t[2]] = $v; }
+    else { $z['#'][] = $t[1]; $z[$t[1]][] = $v; }
+    $z['#'][] = $v;
   }
   return $z;
 }
