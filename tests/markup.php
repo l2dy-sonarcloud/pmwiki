@@ -4,10 +4,11 @@ session_start();
 if (@$_REQUEST['details']) 
   $_SESSION['details'] = ($_REQUEST['details']!='n');
 
-echo "<style type='text/css'><!--
-  .pass { background-color:#ddffdd; }
-  .fail { background-color:#ffdddd; }
-  --></style>\n";
+if ($action=='browse') 
+  echo "<style type='text/css'><!--
+    .pass { background-color:#ddffdd; }
+    .fail { background-color:#ffdddd; }
+    --></style>\n";
 
 $MarkupPatterns[3000]["/^=test\\s+(\\S+)\\s+$KeepToken(\\d+)$KeepToken/e"] =
   "PZZ(\$tname='$1',\$tkeep1=$2)";
