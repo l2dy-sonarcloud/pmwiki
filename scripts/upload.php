@@ -46,6 +46,12 @@ SDV($UploadExts,array(
   'tex' => 'application/x-tex', 'dvi' => 'application/x-dvi',
   '' => 'text/plain'));
 
+SDV($UploadMaxSize,50000);
+SDV($UploadPrefixQuota,0);
+SDV($UploadDirQuota,0);
+foreach($UploadExts as $k=>$v) 
+  if (!isset($UploadExtSize[$k])) $UploadExtSize[$k]=$UploadMaxSize;
+
 SDV($UploadDir,'uploads');
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
@@ -66,11 +72,24 @@ SDV($PageUploadFmt,array("
         <input type='submit' value=' $[Upload] ' /><br />
         </td></tr></table></form>",
   'wiki:$[PmWiki.UploadQuickReference]'));
+XLSDV('en',array(
+  'ULsuccess' => 'successfully uploaded',
+  'ULbadname' => 'invalid attachment name',
+  'ULbadtype' => '\'$upext\' is not an allowed file extension',
+  'ULtoobig' => 'file is larger than maximum allowed by webserver',
+  'ULtoobigext' => 'file is larger than allowed maximum of $upmax
+     bytes for \'$upext\' files',
+  'ULpartial' => 'incomplete file received',
+  'ULnofile' => 'no file uploaded',
+  'ULexists' => 'file with that name already exists',
+  'ULpquota' => 'group quota exceeded',
+  'ULtquota' => 'upload quota exceeded'));
 
 SDV($LinkFunctions['Attach:'],'LinkUpload');
 SDV($IMap['Attach:'],'$1');
 SDV($HandleActions['upload'],'HandleUpload');
 SDV($HandleActions['postupload'],'HandlePostUpload');
+SDV($UploadVerifyFunction,'UploadVerifyBasic');
 
 function MakeUploadName($pagename,$x) {
   $x = preg_replace('/[^-\\w. ]/','',$x);
@@ -94,13 +113,17 @@ function LinkUpload($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 }
 
 function HandleUpload($pagename) {
-  global $FmtV,$HandleUploadFmt,$PageStartFmt,$PageEndFmt,$PageUploadFmt;
+  global $FmtV,$UploadExtMax,
+    $HandleUploadFmt,$PageStartFmt,$PageEndFmt,$PageUploadFmt;
   $page = RetrieveAuthPage($pagename,'upload');
   if (!$page) Abort("?cannot upload to $pagename");
   SetPage($pagename,$page);
   $FmtV['$UploadName'] = MakeUploadName($pagename,$_REQUEST['upname']);
-  $FmtV['$UploadResult'] = (@$_REQUEST['upresult']) ?
-    FmtPageName("<i>$UploadName</i>: $[UL$upresult]",$pagename) : '';
+  $upresult = @$_REQUEST['upresult'];
+  $FmtV['$upext'] = @$_REQUEST['upext'];
+  $FmtV['$upmax'] = @$_REQUEST['upmax'];
+  $FmtV['$UploadResult'] = ($upresult) ?
+    FmtPageName("<i>\$UploadName</i>: $[UL$upresult]",$pagename) : '';
   SDV($HandleUploadFmt,array(&$PageStartFmt,&$PageUploadFmt,&$PageEndFmt));
   PrintFmt($pagename,$HandleUploadFmt);
 }
@@ -113,19 +136,45 @@ function HandlePostUpload($pagename) {
   $upname = $_REQUEST['upname'];
   if ($upname=='') $upname=$uploadfile['name'];
   $upname = MakeUploadName($pagename,$upname);
-#  if (!function_exists($UploadVerifyFunction))
-#    Abort('?no UploadVerifyFunction available');
+  if (!function_exists($UploadVerifyFunction))
+    Abort('?no UploadVerifyFunction available');
   $filepath = FmtPageName("$UploadFileFmt/$upname",$pagename);
-  $result = '';
-#  $result = $UploadVerifyFunction($pagename,$uploadfile,$filepath);
+  $result = $UploadVerifyFunction($pagename,$uploadfile,$filepath);
   if ($result=='') {
-    $filedir = preg_replace('/[^\\/]*$/','',$filepath);
+    $filedir = preg_replace('#/[^/]*$#','',$filepath);
     mkgiddir($filedir);
     if (!move_uploaded_file($uploadfile['tmp_name'],$filepath))
       { Abort("?cannot move uploaded file to $filepath"); return; }
     $result = "upresult=success";
   }
-  Redirect($pagename,'$PageUrl?action=upload&upname=$upname&$result');
+  Redirect($pagename,"\$PageUrl?action=upload&upname=$upname&$result");
+}
+
+function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
+  global $EnableUploadOverwrite,$UploadExtSize,$UploadPrefixQuota,
+    $UploadDirQuota;
+  if (!$EnableUploadOverwrite && file_exists($filepath)) 
+    return 'upresult=exists';
+  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=@$match[1];
+  $maxsize = $UploadExtSize[$ext];
+  if ($maxsize<=0) return "upresult=badtype&upext=$ext";
+  if ($uploadfile['size']>$maxsize) 
+    return "upresult=toobigext&upext=$ext&upmax=$maxsize";
+  if (!is_uploaded_file($uploadfile['tmp_name'])) return 'upresult=nofile';
+  switch ($uploadfile['error']) {
+    case 1: return 'upresult=toobig';
+    case 2: return 'upresult=toobig';
+    case 3: return 'upresult=partial';
+    case 4: return 'upresult=nofile';
+  }
+  $filedir = preg_replace('#/[^/]*$#','',$filepath);
+  if ($UploadPrefixQuota && 
+      @(dirsize($filedir)-filesize($filepath)+$uploadfile['size']) >
+        $UploadPrefixQuota) return 'upresult=pquota';
+  if ($UploadDirQuota && 
+      @(dirsize($UploadDir)-filesize($filepath)+$uploadfile['size']) >
+        $UploadDirQuota) return 'upresult=tquota';
+  return '';
 }
 
 ?>
