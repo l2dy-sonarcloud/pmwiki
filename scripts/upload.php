@@ -21,7 +21,7 @@ SDV($EnableUploadOverwrite,1);
 
 ## $UploadExts contains the list of file extensions we're willing to
 ## accept, along with the Content-Type: value appropriate for each.
-SDV($UploadExts,array(
+SDVA($UploadExts,array(
   'gif' => 'image/gif', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
   'png' => 'image/png', 'bmp' => 'image/bmp', 'ico' => 'image/x-icon',
   'wbmp' => 'image/vnd.wap.wbmp',
