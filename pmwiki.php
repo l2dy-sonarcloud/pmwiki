@@ -125,7 +125,7 @@ foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:')
   as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
-if (strpos($_SERVER['QUERY_STRING'],'?')===true) {
+if (strpos(@$_SERVER['QUERY_STRING'],'?')===true) {
   unset($_GET);
   parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
 }
