@@ -13,9 +13,13 @@ $WikiTitle = 'PmWiki';
 # $ScriptUrl = 'http://www.mydomain.com/path/to/pmwiki.php';
 # $PubDirUrl = 'http://www.mydomain.com/path/to/pub';
 
-##  If your system is able to display the home page but gives
-##  "404 Not Found" errors for all others, try setting the following:
-# $EnablePathInfo = 0;
+##  If you want to use URLs of the form .../pmwiki.php/Group/PageName
+##  instead of .../pmwiki.php?p=Group.PageName, try setting
+##  $EnablePathInfo below.  Note that this doesn't work in all environments,
+##  it depends on your webserver and PHP configuration.  You might also 
+##  want to check http://www.pmwiki.org/wiki/Cookbook/CleanUrls more
+##  details about this setting and other ways to create nicer-looking urls.
+# $EnablePathInfo = 1;
 
 ## $PageLogoUrl is the URL for a logo image -- you can change this
 ## to your own logo if you wish.
