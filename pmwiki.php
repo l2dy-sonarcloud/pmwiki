@@ -478,7 +478,9 @@ class PageStore {
     unset($page['version']); unset($page['newline']);
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
-    mkdirp(dirname($pagefile));
+    $dir = dirname($pagefile); mkdirp($dir);
+    if (!file_exists("$dir/.htaccess") && $fp = @fopen("$dir/.htaccess", "w")) 
+      { fwrite($fp, "Order Deny,Allow\nDeny from all\n"); fclose($fp); }
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
       $s = true && fputs($fp,"version=$Version\nnewline=$Newline\n");
       foreach($page as $k=>$v) 
