@@ -179,9 +179,10 @@ if ($action=='') $action='browse';
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
-  $pagename = MakePageName('',urldecode($match[1]));
+  $pagename = urldecode($match[1]);
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
+$pagename = MakePageName('',$pagename);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -339,6 +340,25 @@ function XL($key) {
 function XLSDV($lang,$a) {
   global $XL;
   foreach($a as $k=>$v) { if (!isset($XL[$lang][$k])) $XL[$lang][$k]=$v; }
+}
+function XLPage($lang,$p) {
+  global $TimeFmt,$XLLangs,$FarmD;
+  $page = ReadPage($p);
+  if (!$page) return;
+  $text = preg_replace("/=>\\s*\n/",'=> ',$page['text']);
+  foreach(explode("\n",$text) as $l)
+    if (preg_match('/^\\s*[\'"](.+?)[\'"]\\s*=>\\s*[\'"](.+)[\'"]/',$l,$match))
+      $xl[stripslashes($match[1])] = stripslashes($match[2]);
+  if ($xl) {
+    if (@$xl['xlpage-i18n']) {
+      $i18n = preg_replace('/[^-\\w]/','',$xl['xlpage-i18n']);
+      include_once("$FarmD/scripts/xlpage-$i18n.php");
+    }
+    if ($xl['Locale']) setlocale(LC_ALL,$xl['Locale']);
+    if ($xl['TimeFmt']) $TimeFmt=$xl['TimeFmt'];
+    array_unshift($XLLangs,$lang);
+    XLSDV($lang,$xl);
+  }
 }
 
 ## class PageStore holds objects that store pages via the native
