@@ -7,9 +7,9 @@
 
 */
 
-SDV($SearchResultsFmt,"\$[SearchFor]
+SDV($SearchResultsFmt,"<div class='wikisearch'>\$[SearchFor]
   $HTMLVSpace\$MatchList
-  $HTMLVSpace\$[SearchFound]$HTMLVSpace");
+  $HTMLVSpace\$[SearchFound]$HTMLVSpace</div>");
 SDVA($SearchPatterns['all'],array());
 $SearchPatterns['normal'][] = '!\.(All)?Recent(Changes|Uploads)$!';
 $SearchPatterns['normal'][] = '!\.Group(Print)?(Header|Footer|Attributes)$!';
