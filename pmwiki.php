@@ -252,7 +252,7 @@ if (IsEnabled($EnableStdConfig,1))
 foreach((array)$InterMapFiles as $f) {
   if (@!($mapfd=fopen($f,"r"))) continue;
   while ($mapline=fgets($mapfd,1024)) {
-    if (preg_match('/^\\s*$/',$mapline)) continue;
+    if (preg_match('/^\\s*(#|$)/',$mapline)) continue;
     list($imap,$url) = preg_split('/\\s+/',$mapline);
     if (strpos($url,'$1')===false) $url.='$1';
     $LinkFunctions["$imap:"] = 'LinkIMap';
