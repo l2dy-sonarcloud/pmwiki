@@ -62,7 +62,7 @@ $PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$PageName]</h2>
   <a href='#top'>$[Top]</a></p>";
 $EditMessageFmt = '';
 $EditFields = array('text');
-$EditFunctions = array('RestorePage','PostPage',
+$EditFunctions = array('RestorePage','ReplaceOnSave','PostPage',
   'PostRecentChanges','PreviewPage');
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
@@ -704,6 +704,16 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
   if ($nl) $t[]='';
   $new['text']=implode("\n",$t);
   return $new['text'];
+}
+
+## ReplaceOnSave performs any text replacements (held in $ROSPatterns)
+## on the new text prior to saving the page.
+function ReplaceOnSave($pagename,&$page,&$new) {
+  global $ROSPatterns;
+  if (!@$_POST['post']) return;
+  foreach((array)$ROSPatterns as $pat=>$repfmt) 
+    $new['text'] = 
+      preg_replace($pat,FmtPageName($repfmt,$pagename),$new['text']);
 }
 
 function Diff($oldtext,$newtext) {
