@@ -129,6 +129,17 @@ $HandleActions = array(
 
 $Conditions['false'] = 'false';
 
+$MarkupTable['_beg']['pos'] = 'B';
+$MarkupTable['_end']['pos'] = 'E';
+Markup('fulltext','>_begin');
+Markup('split','>fulltext',"\n",
+  '$RedoMarkupLine=1; return explode("\n",$x);');
+Markup('directives','>split');
+Markup('links','>directives');
+Markup('block','>links');
+Markup('inline','>block');
+Markup('style','>inline');
+
 $BlockMarkups = array(
   'block' => array('','',''),
   'ul' => array('<ul><li>','</li><li>','</li></ul>'),
@@ -740,14 +751,43 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   return $out;
 }
 
+function MP($id,$cmd,$pat=NULL,$rep=NULL) {
+  global $MarkupTable,$MarkupPatterns;
+  unset($MarkupPatterns);
+  if (preg_match('/^([<>])?(.+)$/',$cmd,$m)) {
+    $MarkupTable[$m[2]]['dep']=array($id=>$m[1]);
+    if (!$m[1]) $m[1]='=';
+    if ($MarkupTable[$m[2]]['pos']) {
+      $MarkupTable[$id]['pos'] = $MarkupTable[$m[2]]['pos'].$m[1];
+      foreach((array)$MarkupTable[$id]['dep'] as $i=>$m)
+        MP($i,"$m$id");
+      unset($MarkupTable[$id]['dep']);
+    }
+  }
+  if ($pat && !isset($MarkupTable[$id]['pat'])) {
+    $MarkupTable[$id]['pat']=$pat;
+    $MarkupTable[$id]['rep']=$rep;
+  }
+}
+
+function mpcmp($a,$b) { return strcmp($a['pos'].'=',$b['pos'].'='); }
+function BuildMarkupPatterns() {
+  global $MarkupTable,$MarkupPatterns;
+  if (!$MarkupPatterns) {
+    uasort($MarkupTable,'mpcmp');
+    foreach($MarkupTable as $id=>$m) 
+      if ($m['pat']) $MarkupPatterns[$m['pat']]=$m['rep'];
+  }
+  return $MarkupPatterns;
+}
+
+
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
   global $MarkupPatterns,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
 
   array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
-  ksort($MarkupPatterns);
-  foreach($MarkupPatterns as $n=>$a)
-    foreach($a as $p=>$r) $markpats[$p]=$r;
+  $markpats = BuildMarkupPatterns();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   while (count($lines)>0) {
     $x = array_shift($lines);
