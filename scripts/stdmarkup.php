@@ -76,8 +76,8 @@ Markup('comment','directives','/\\[:comment .*?:\\]/','');
 Markup('spacewikiwords','directives','/\\[:(no)?spacewikiwords:\\]/e',
   "PZZ(\$GLOBALS['SpaceWikiWords']=('$1'!='no'))");
 
-## [:wikiwords:]
-Markup('wikiwords','directives','/\\[:(no)?wikiwords:\\]/e',
+## [:linkwikiwords:]
+Markup('linkwikiwords','directives','/\\[:(no)?linkwikiwords:\\]/e',
   "PZZ(\$GLOBALS['LinkWikiWords']=('$1'!='no'))");
 
 #### inline markups ####
