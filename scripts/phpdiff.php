@@ -21,7 +21,7 @@
 
 ## PHPDiff returns the differences between $old and $new, formatted
 ## in the standard diff(1) output format.
-function PHPDiff(&$old,&$new) 
+function PHPDiff($old,$new) 
 {
    # split the source text into arrays of lines
    $t1 = explode("\n",$old);
