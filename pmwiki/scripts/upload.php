@@ -69,8 +69,8 @@ SDV($PageUploadFmt,array("
     <tr><td align='right'>$[File to upload:]</td><td><input
       name='uploadfile' type='file' /></td></tr>
     <tr><td align='right'>$[Name attachment as:]</td>
-      <td><input type='text' name='upname' value='\$UploadName' />
-        <input type='submit' value=' $[Upload] ' /><br />
+      <td><input type='text' name='upname' value='\$UploadName' /><input 
+        type='submit' value=' $[Upload] ' /><br />
         </td></tr></table></form></div>",
   'wiki:$[PmWiki.UploadQuickReference]'));
 XLSDV('en',array(
