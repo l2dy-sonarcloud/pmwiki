@@ -103,7 +103,7 @@ Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
 
 ## {+ins+}, {-del-}
 Markup('{+','inline','/\\{\\+(.*?)\\+\\}/','<ins>$1</ins>');
-Markup('{-','inline','/\\{-(.*?)-\\]/','<del>$1</del>');
+Markup('{-','inline','/\\{-(.*?)-\\}/','<del>$1</del>');
 
 ## [[<<]] (break)
 Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
