@@ -36,4 +36,16 @@ function HandleRuleset($pagename) {
   print Ruleset();
 }
 
+function Elapsed($a,$b=NULL) {
+  if (!$b) $b = microtime();
+  list($au,$as) = explode(' ',$a);
+  list($bu,$bs) = explode(' ',$b);
+  return round($bs + $bu - $as - $au,2);
+}
+
+$FmtVP['/\\$ElapsedPmWiki/e'] = 
+  "Elapsed(\$GLOBALS['StopWatch']['PmWiki'])";
+$FmtVP['/\\$ElapsedMarkup/e'] =
+  "Elapsed(\$GLOBALS['StopWatch']['MarkupToHTML'],
+    \$GLOBALS['StopWatch']['MarkupToHTMLEnd'])";
 ?>
