@@ -16,6 +16,7 @@
 
 if ($action!='print') return;
 
+# $PrintTemplateFmt is deprecated, use $PrintSkinFmt
 SDV($PrintSkinFmt,@$PrintTemplateFmt);
 $PageSkinFmt = (@$PrintSkinFmt) ? $PrintSkinFmt : 'print';
 $SkinTmplFmt = 'print.tmpl';

@@ -39,7 +39,9 @@
 
 */
 
+
 SDV($FarmPubDirUrl,$PubDirUrl);
+# $PageTemplateFmt is deprecated.  Use $PageSkinFmt instead.
 SDV($PageSkinFmt, (@$PageTemplateFmt) ? $PageTemplateFmt : 'pmwiki');
 SDV($PageLogoUrl,"$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 SDV($PageLogoFmt,"<div id='wikilogo'><a href='$ScriptUrl'><img 
