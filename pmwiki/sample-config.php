@@ -30,10 +30,17 @@ $WikiTitle = 'PmWiki';
 ## See PmWiki.LayoutBasics and Cookbook.Skins.
 # $Skin = 'pmwiki';
 
+## You'll probably want to set an administrative password that you
+## can use to get into password-protected pages.  Also, by default 
+## the "attr" passwords for the PmWiki and Main groups are locked, so
+## an admin password is a good way to unlock those.  See PmWiki.Passwords
+## and PmWiki.PasswordsAdmin.
+# $DefaultPasswords['admin'] = crypt('secret');
+
 ##  If you want uploads enabled on your system, set $EnableUpload=1.
 ##  You'll also need to set a default upload password, or else set
 ##  passwords on individual groups and pages.  For more information
-##  see PmWiki.UploadsAdmin and PmWiki.PasswordsAdmin.
+##  see PmWiki.UploadsAdmin.
 # $EnableUpload = 1;                       
 # $DefaultPasswords['upload'] = crypt('secret');
 
