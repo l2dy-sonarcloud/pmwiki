@@ -56,13 +56,13 @@ SDV($UploadDir,'uploads');
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
 SDV($UploadUrlFmt,preg_replace('#/[^/]*$#',"/$UploadDir",$ScriptUrl,1));
-SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText</a><a class='createlink' href='\$LinkUrl'>&nbsp;&#8657;</a>");
+SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText</a><a class='createlink' href='\$LinkUrl'>&nbsp;&Delta;</a>");
 
 SDV($PageUploadFmt,array("
   <h2 class='wikiaction'>$[Attachments for] \$FullName</h2>
   <h3>\$UploadResult</h3>
   <form enctype='multipart/form-data' action='\$ScriptUrl' method='post'>
-  <input type='hidden' name='pagename' value='\$FullName' />
+  <input type='hidden' name='p' value='\$FullName' />
   <input type='hidden' name='action' value='postupload' />
   <table border='0'>
     <tr><td align='right'>$[File to upload:]</td><td><input
