@@ -19,7 +19,7 @@ SDV($ActionSkin['print'], 'print');
 SDV($FarmPubDirUrl, $PubDirUrl);
 SDV($PageLogoUrl, "$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 
-if (isset($PageTemplateFmt)) LoadPageTemplate($PageTemplateFmt);
+if (isset($PageTemplateFmt)) LoadPageTemplate($pagename,$PageTemplateFmt);
 else {
   $Skin = array_merge((array)@$ActionSkin[$action], (array)$Skin);
   SetSkin($pagename, $Skin);
