@@ -24,6 +24,7 @@ if (ini_get('register_globals'))
   foreach($_REQUEST as $k=>$v) { unset(${$k}); }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
+SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
@@ -31,7 +32,6 @@ $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$PageName');
 $WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
-SDV($WorkDir,'wiki.d');
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
 $KeepToken = "\377\377";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
@@ -228,10 +228,12 @@ function IsEnabled(&$var,$f=0)
 function Lock($op) { 
   global $WorkDir,$LockFile;
   SDV($LockFile,"$WorkDir/.flock");
+  mkdirp(dirname($LockFile));
   static $lockfp,$curop;
     if (!$lockfp) {
     $lockfp=fopen($LockFile,"w") or
       Abort("Cannot acquire lockfile","Lockfile");
+    fixperms($LockFile);
   }
   if ($op<0) { flock($lockfp,LOCK_UN); fclose($lockfp); $lockfp=0; $curop=0; }
   elseif ($op==0) { flock($lockfp,LOCK_UN); $curop=0; }
@@ -239,8 +241,26 @@ function Lock($op) {
   elseif ($op==2 && $curop<2) { flock($lockfp,LOCK_EX); $curop=2; }
 }
 
-## mkgiddir creates a directory, ensuring appropriate permissions
-function mkgiddir($dir) { if (!file_exists($dir)) mkdir($dir); }
+## mkdirp creates a directory and its parents as needed, and sets
+## permissions accordingly.
+function mkdirp($dir) {
+  if (file_exists($dir)) return;
+  if (!file_exists(dirname($dir))) mkdirp(dirname($dir));
+  if (!mkdir($dir)) Abort("Unable to create $dir");
+  fixperms($dir);
+}
+
+## fixperms attempts to correct permissions on a file or directory
+## so that both PmWiki and the account (current dir) owner can manipulate it
+function fixperms($fname) {
+  clearstatcache();
+  if (!file_exists($fname)) Abort('no such file');
+  $bp = 0;
+  if (fileowner($name)!=fileowner('.') $bp = (is_dir($fname)) ? 007 : 006;
+  if (filegroup($fname)==filegroup('.')) $bp <<= 3;
+  if ($bp && (fileperms($fname) & $bp) != $bp)
+    @chmod($fname,fileperms($fname)|$bp);
+}
 
 ## MakePageName is used to convert a string into a valid pagename.
 ## If no group is supplied, then it uses $PagePathFmt to look
@@ -338,7 +358,7 @@ class PageStore {
     $page['rev'] = @$page['rev']+1;
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
-    mkgiddir(dirname($pagefile));
+    mkdirp(dirname($pagefile));
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
       $s = true && fputs($fp,"version=$Version\nnewline=$Newline\n");
       foreach($page as $k=>$v) 
@@ -347,6 +367,7 @@ class PageStore {
       if (file_exists($pagefile)) $s = $s && unlink($pagefile);
       $s = $s && rename("$pagefile,new",$pagefile);
     }
+    $s && fixperms($pagefile);
     if (!$s)
       Abort("Cannot write page to $pagename ($pagefile)...changes not saved");
   }
