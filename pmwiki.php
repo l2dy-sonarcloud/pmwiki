@@ -124,7 +124,7 @@ include_once('local/config.php');
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($ImgExtPattern,"\\.(?:gif|jpg|jpeg|png)");
-SDV($ImgTagFmt,"<img src='\$LinkUrl' alt='\$LinkAlt' />");
+SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
 
 $MarkupPatterns[50]["/\\r/"] = '';
 $MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
