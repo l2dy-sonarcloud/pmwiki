@@ -885,7 +885,7 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
   unset($MarkupRules);
   if (preg_match('/^([<>])?(.+)$/',$cmd,$m)) {
     $MarkupTable[$id]['cmd']=$cmd;
-    $MarkupTable[$m[2]]['dep']=array($id=>$m[1]);
+    $MarkupTable[$m[2]]['dep'][$id] = $m[1];
     if (!$m[1]) $m[1]='=';
     if (@$MarkupTable[$m[2]]['seq']) {
       $MarkupTable[$id]['seq'] = $MarkupTable[$m[2]]['seq'].$m[1];
