@@ -37,6 +37,10 @@ $WikiTitle = 'PmWiki';
 ## and PmWiki.PasswordsAdmin.
 # $DefaultPasswords['admin'] = crypt('secret');
 
+##  PmWiki comes with graphical user interface buttons for editing;
+##  to enable these buttons, set $EnableGUIButtons to 1.
+# $EnableGUIButtons = 1;
+
 ##  If you want uploads enabled on your system, set $EnableUpload=1.
 ##  You'll also need to set a default upload password, or else set
 ##  passwords on individual groups and pages.  For more information
@@ -92,11 +96,11 @@ $WikiTitle = 'PmWiki';
 
 ##  The refcount.php script enables ?action=refcount, which helps to
 ##  find missing and orphaned pages.  See PmWiki.RefCount.
-# include_once('scripts/refcount.php');
+# if ($action == 'refcount') include_once('scripts/refcount.php');
 
 ##  The rss.php script enables ?action=rss and ?action=rdf, which
 ##  provides RSS feeds for a site based on WikiTrails.  See PmWiki.RSS.
-# include_once('scripts/rss.php');
+# if ($action == 'rss' || $action == 'rdf') include_once('scripts/rss.php');
 
 ##  PmWiki allows a great deal of flexibility for creating custom markup.
 ##  To add support for '*bold*' and '~italic~' markup (the single quotes
@@ -104,5 +108,9 @@ $WikiTitle = 'PmWiki';
 ##  (See PmWiki.CustomMarkup and the Cookbook for details and examples.)
 # Markup("'~", "inline", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
 # Markup("'*", "inline", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
+
+##  If you want to have to approve links to external sites before they
+##  are turned into links, uncomment the line below.  See PmWiki.UrlApprovals.
+# include_once('scripts/urlapprove.php');
 
 ?>
