@@ -786,7 +786,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
-  $FmtV['$LinkUrl'] = Keep(FmtPageName("\$PageUrl$qf",$tgtname));
+  $FmtV['$LinkUrl'] = Keep(PUE(FmtPageName("\$PageUrl$qf",$tgtname)));
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($fmt,$tgtname);
 }
