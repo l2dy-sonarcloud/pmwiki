@@ -123,7 +123,7 @@ function FPLSimple($pagename,&$pagelist,$opt) {
     FmtPageName($FPLSimpleEndFmt,$pagename);
 }
 
-## FPLSimple provides a simple bullet list of groups
+## FPLGroup provides a simple bullet list of groups
 function FPLGroup($pagename,&$pagelist,$opt) {
   global $FPLGroupStartFmt,$FPLGroupIFmt,$FPLGroupEndFmt;
   SDV($FPLGroupStartFmt,"<ul class='fplgroup'>");
