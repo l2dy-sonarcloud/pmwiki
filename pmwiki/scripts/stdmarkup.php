@@ -27,7 +27,7 @@ Markup('\\r','<[=','/\\r/','');
 
 # {$var} substitutions
 Markup('{$fmt}','>[=',
-  '/{\\$((Group|Name)(spaced)?|LastModified(By|Host)?)}/e',
+  '/{\\$((Group|Name|Title)(spaced)?|LastModified(By|Host)?)}/e',
   "FmtPageName('$$1',\$pagename)");
 Markup('{$var}','>{$fmt}',
   '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
