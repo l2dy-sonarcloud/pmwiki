@@ -139,7 +139,7 @@ function HandleDiff($pagename) {
   if (!$page) { Abort("?cannot diff $pagename"); }
   PCache($pagename, $page);
   SDV($HandleDiffFmt,array(&$PageStartFmt,
-    &$PageDiffFmt,'function:PrintDiff',
+    &$PageDiffFmt,"<div id='wikidiff'>", 'function:PrintDiff', '</div>',
     &$PageEndFmt));
   PrintFmt($pagename,$HandleDiffFmt);
 }
