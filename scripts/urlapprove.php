@@ -34,7 +34,7 @@ function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   $p = str_replace(' ','%20',$path);
   $url = str_replace('$1',$p,$IMap[$imap]);
   foreach((array)$WhiteUrlPatterns as $pat) 
-    if (preg_match("!^$pat!",$url))
+    if (preg_match("!^$pat(/|$)!",$url))
       return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($UnapprovedLinkFmt,$pagename);
@@ -63,7 +63,7 @@ function HandleApprove($pagename) {
   $addpat = array();
   foreach($match[0] as $a) {
     foreach((array)$WhiteUrlPatterns as $pat) 
-      if (preg_match("!^$pat!",$a)) continue 2;
+      if (preg_match("!^$pat(/|$)!",$a)) continue 2;
     if ($action=='approvesites') 
       $a=preg_replace("!^([^:]+://[^/]+).*$!",'$1',$a);
     $addpat[] = $a;
