@@ -14,7 +14,6 @@
     $id is a unique name for the rule, $where is the position of the rule
     relative to another rule, $pat is the pattern to look for, and
     $rep is the string to replace it with.
-    
 */
 
 ## first we preserve text in [=...=] and [@...@]
@@ -89,10 +88,22 @@ Markup("'''''","<'''","/'''''(.*?)'''''/",'<strong><em>$1</em></strong>');
 ## @@code@@
 Markup('@@','inline','/@@(.*?)@@/','<code>$1</code>');
 
+## '+big+', '-small-'
+Markup("'+",'inline',"/'\\+(.*?)\\+'/",'<big>$1</big>');
+Markup("'-",'inline',"/'\\-(.*?)\\-'/",'<small>$1</small>');
+
+## '^superscript^', '_subscript_'
+Markup("'^",'inline',"/'\\^(.*?)\\^'/",'<sup>$1</sup>');
+Markup("'_",'inline',"/'_(.*?)_'/",'<sub>$1</sub>');
+
 ## [+big+], [-small-]
 Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
   "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
     PSS('$3</span>')");
+
+## {+ins+}, {-del-}
+Markup('{+','inline','/\\{\\+(.*?)\\+\\}/','<ins>$1</ins>');
+Markup('{-','inline','/\\{-(.*?)-\\]/','<del>$1</del>');
 
 ## [[<<]] (break)
 Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
@@ -135,6 +146,9 @@ Markup('img','<urllink',
 Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
   "Keep(MakeLink(\$pagename,'$0'),'L')");
 
+## escaped `WikiWords
+Markup('`wikiword','<wikilink',"/`($WikiWordPattern)/e","Keep('$1')");
+
 #### Block markups ####
 ## process any <:...> markup
 Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
@@ -145,8 +159,9 @@ Markup('^*','block','/^(\\*+)/','<:ul,$1>');
 ## numbered lists
 Markup('^#','block','/^(#+)/','<:ol,$1>');
 
-## indented text
+## indented (->) /hanging indent (-<) text
 Markup('^->','block','/^(-+)&gt;/','<:indent,$1>');
+Markup('^-<','block','/^(-+)&lt;/','<:outdent,$1>');
 
 ## definition lists
 Markup('^::','block','/^(:+)([^:]+):/','<:dl,$1><dt>$2</dt><dd>');
@@ -201,7 +216,7 @@ Markup('^table','<block','/^\\[:(table|cell|cellnr|tableend)(\\s.*?)?:\\]/e',
 Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
   "'\n'.Keep('<div class=\"markup\" <pre>'.wordwrap(PSS('$1'),60).
     '</pre>').PSS('\n$1\n<:block,0></div>\n')");
-$HTMLStylesFmt[] = "
+$HTMLStylesFmt['markup'] = "
   div.markup { border:2px dotted #ccf; 
     margin-left:30px; margin-right:30px; 
     padding-left:10px; padding-right:10px; }
