@@ -446,7 +446,7 @@ class PageStore {
   }
   function ls($pats=NULL) {
     global $GroupPattern,$NamePattern;
-    $pats=array_merge("/^$GroupPattern\.$NamePattern$/",(array)$pats);
+    $pats=(array)$pats; array_unshift($pats,"/^$GroupPattern\.$NamePattern$/");
     $dir = FmtPageName($this->dirfmt,'');
     $dirlist = array(preg_replace('!/?[^/]*\$.*$!','',$dir));
     $out = array();
@@ -708,7 +708,8 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
     if (PageExists($tgtname)) 
-      $fmt = ($tgtname==$pagename) ? $LinkPageSelfFmt : $LinkPageExistsFmt;
+      $fmt = ($tgtname==$pagename && $qf=='') ?  $LinkPageSelfFmt 
+        : $LinkPageExistsFmt;
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
