@@ -386,7 +386,9 @@ function FmtPageName($fmt,$pagename) {
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
-  preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match);
+  $match = array('','$Group','$Name');
+  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$m))
+    $match = $m;
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
     $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
