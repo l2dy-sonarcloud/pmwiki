@@ -23,6 +23,8 @@ if ($pagename=='') $pagename=$DefaultPage;
 
 if (!IsEnabled($EnableStdConfig,1)) return;
 
+if (IsEnabled($EnableAuthorTracking,1)) 
+  include_once("$FarmD/scripts/author.php");
 if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableTemplateLayout,1))
