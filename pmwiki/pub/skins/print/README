@@ -7,13 +7,14 @@ next time you upgrade PmWiki!
 
 Instead, copy the files to another directory in pub/skins/ and edit
 them there.  You can then configure PmWiki to use your modified layout
-files by setting $PrintSkinFmt to the name of the directory you created 
-in pub/skins.  For example, if you copy your custom print skin to 
-pub/skins/custom, then you would set
-   $PrintSkinFmt = 'custom';
+files by setting $ActionSkin['print'] to the name of your new skin.
+For example, if you copy your custom print skin to pub/skins/custom, 
+then you would set
+   $ActionSkin['print'] = 'custom';
 in local/config.php.
 
 The files in this directory:
     print.tmpl    -- the default template for ?action=print
     print.css     -- the print template's css
-
+    print.php     -- loaded when the skin is loaded, it redefines the link
+                     formats to a form better suited for printing
