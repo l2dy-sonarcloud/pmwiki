@@ -85,8 +85,8 @@ $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$GroupHeaderFmt = '$Group.GroupHeader';
-$GroupFooterFmt = '$Group.GroupFooter';
+$WikiHeaderFmt = '[:includenl $Group.GroupHeader:]';
+$WikiFooterFmt = '[:includenl $Group.GroupFooter:]';
 $PagePathFmt = array('$Group.$1','$1.$1');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
@@ -174,74 +174,87 @@ $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($ImgExtPattern,"\\.(?:gif|jpg|jpeg|png)");
 SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
 
-$MarkupPatterns[50]["/\\r/"] = '';
-$MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
-  "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
-$MarkupPatterns[300]["/(\\\\*)\\\\\n/e"] =
-  "Keep(' '.str_repeat('<br />',strlen('$1')))";
-$MarkupPatterns[1000]["\n"] = 
-  '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
-$MarkupPatterns[1050]["/\{\\$(Group|Name)}/e"] =
-  "FmtPageName('$$1',\$pagename)";
-$MarkupPatterns[1100]["/\{\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost)}/e"] =
-  "\$GLOBALS['$1']";
-$MarkupPatterns[1500]['/\\[:title\\s(.*?):\\]/e'] =
-  "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))";
-$MarkupPatterns[1505]['/\\[:keywords\\s(.*?):\\]/e'] =
-  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='keywords' content='\".
-    str_replace(\"'\",'&#039;',PSS('$1')).\"' />\")";
-$MarkupPatterns[1600]['[:noheader:]'] = 
+###### MarkupPatterns controls conversion of wiki markup to XHTML ######
+#### 0000: keeps, variables, includes
+  $MarkupPatterns[200]["/\\r/"] = '';
+  $MarkupPatterns[300]["/\\[([=@])(.*?)\\1\\]/se"] =
+    "Keep(\$K0['$1'].PSS('$2').\$K1['$1'])";
+  $MarkupPatterns[400]["/\{\\$(Group|Name)}/e"] =
+    "FmtPageName('$$1',\$pagename)";
+  $MarkupPatterns[420]["/\{\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost)}/e"] =
+    "\$GLOBALS['$1']";
+  $MarkupPatterns[500]["/\\[:include\\s+(.+?):\\]/e"] = 
+    "IncludeText(\$pagename,'$0')";
+#### 1000: conditional markups
+  $MarkupPatterns[1500]["/(.?)\\[:includenl\\s+(.+?):\\](.?)/e"] =
+    "IncludeText(\$pagename,'$0')";
+#### 2000: line breaks
+  $MarkupPatterns[2200]["/(\\\\*)\\\\\n/e"] =
+    "Keep(' '.str_repeat('<br />',strlen('$1')))";
+  $MarkupPatterns[2800]["\n"] = 
+    '$RedoMarkupLine=1; return explode("\n",$x);';
+#### 3000: directives
+  $MarkupPatterns[3200]['[:noheader:]'] = 
   "\$GLOBALS['PageHeaderFmt']='';";
-$MarkupPatterns[1605]['[:nofooter:]'] =
+  $MarkupPatterns[3220]['[:nofooter:]'] =
   "\$GLOBALS['PageFooterFmt']='';";
-$MarkupPatterns[1610]['[:notitle:]'] =
+  $MarkupPatterns[3240]['[:notitle:]'] =
   "\$GLOBALS['PageTitleFmt']='';";
-$MarkupPatterns[1615]['/\\[:nogroup(header|footer):\\]/'] = '';
-$MarkupPatterns[1620]['/\\[:comments .*?:\\]/'] = '';
-$MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
-  "Keep(\"<a name='$1' id='$1'></a>\")";
-$MarkupPatterns[3100]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
-  "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
-$MarkupPatterns[3100]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'))";
-$MarkupPatterns[3200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
-  "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
-$MarkupPatterns[3300]['/\\bmailto:(\\S+)/e'] =
-  "Keep(MakeLink(\$pagename,'$0','$1'))";
-$MarkupPatterns[3400]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
-  "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
-    \$GLOBALS['ImgTagFmt']))";
-$MarkupPatterns[3500]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
-  "Keep(MakeLink(\$pagename,'$0','$0'))";
-$MarkupPatterns[3600]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
-  "Keep(MakeLink(\$pagename,'$0'))";
-$MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
-  "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
-$MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
-$MarkupPatterns[5150]['/^(#+)/'] = '<:ol,$1>';
-$MarkupPatterns[5200]['/^(-+)&gt;/'] = '<:indent,$1>';
-$MarkupPatterns[5250]['/^(:+)([^:]+):/'] =
+  $MarkupPatterns[3300]['/\\[:title\\s(.*?):\\]/e'] =
+    "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))";
+  $MarkupPatterns[3320]['/\\[:keywords\\s(.*?):\\]/e'] =
+    "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='keywords' content='\".
+    str_replace(\"'\",'&#039;',PSS('$1')).\"' />\")";
+  $MarkupPatterns[3340]['/\\[:comments .*?:\\]/'] = '';
+#### 4000: links
+  $MarkupPatterns[4200]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
+    "Keep(\"<a name='$1' id='$1'></a>\")";
+  $MarkupPatterns[4300]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
+    "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
+  $MarkupPatterns[4320]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'))";
+  $MarkupPatterns[4340]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
+    "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
+  $MarkupPatterns[4400]['/\\bmailto:(\\S+)/e'] =
+    "Keep(MakeLink(\$pagename,'$0','$1'))";
+  $MarkupPatterns[4420]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
+    "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
+      \$GLOBALS['ImgTagFmt']))";
+  $MarkupPatterns[4440]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
+    "Keep(MakeLink(\$pagename,'$0','$0'))";
+  $MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
+    "Keep(MakeLink(\$pagename,'$0'))";
+#### 5000: block markups
+  $MarkupPatterns[5200]['/^(\\*+)/'] = '<:ul,$1>';
+  $MarkupPatterns[5220]['/^(#+)/'] = '<:ol,$1>';
+  $MarkupPatterns[5240]['/^(-+)&gt;/'] = '<:indent,$1>';
+  $MarkupPatterns[5260]['/^(:+)([^:]+):/'] =
   '<:dl,$1><dt>$2</dt><dd>';
-$MarkupPatterns[5300]['/^\\s*$/'] = '<:vspace>';
-$MarkupPatterns[5350]['/^(\\s)/'] = '<:pre,1>';
-$MarkupPatterns[5400]['/^\\|\\|.*\\|\\|.*$/e'] =
-  "FormatTableRow(PSS('$0'))";
-$MarkupPatterns[5450]['/^\\|\\|(.*)$/e'] =
-  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
-$MarkupPatterns[5500]['/^----+/'] = 
-  '<:block><hr />';
-$MarkupPatterns[5900]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
-$MarkupPatterns[7000]["/'''''(.*?)'''''/"] =
-  '<strong><em>$1</em></strong>';
-$MarkupPatterns[7100]["/'''(.*?)'''/"] =
-  '<strong>$1</strong>';
-$MarkupPatterns[7200]["/''(.*?)''/"] =
-  '<em>$1</em>';
-$MarkupPatterns[7300]["/@@(.*?)@@/"] =
-  '<code>$1</code>';
-$MarkupPatterns[7400]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
-  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
-$MarkupPatterns[9000]["/$KeepToken(\\d+?)$KeepToken/e"] =
-  '$GLOBALS[\'KPV\'][\'$1\']';
+  $MarkupPatterns[5300]['/^\\s*$/'] = '<:vspace>';
+  $MarkupPatterns[5320]['/^(\\s)/'] = '<:pre,1>';
+  $MarkupPatterns[5400]['/^\\|\\|.*\\|\\|.*$/e'] =
+    "FormatTableRow(PSS('$0'))";
+  $MarkupPatterns[5420]['/^\\|\\|(.*)$/e'] =
+    "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))";
+  $MarkupPatterns[5500]['/^(!{1,6})(.*)$/e'] =
+    "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
+  $MarkupPatterns[5520]['/^----+/'] = 
+    '<:block><hr />';
+  $MarkupPatterns[5800]['/^(<:([^>]+)>)?/e'] = "Block('$2');";
+#### 6000: inline markups
+  $MarkupPatterns[6200]["/'''''(.*?)'''''/"] =
+    '<strong><em>$1</em></strong>';
+  $MarkupPatterns[6220]["/'''(.*?)'''/"] =
+    '<strong>$1</strong>';
+  $MarkupPatterns[6240]["/''(.*?)''/"] =
+    '<em>$1</em>';
+  $MarkupPatterns[6260]["/@@(.*?)@@/"] =
+    '<code>$1</code>';
+  $MarkupPatterns[6300]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
+    "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
+#### 7000: wikistyles
+#### 8000: restore keeps
+  $MarkupPatterns[8500]["/$KeepToken(\\d+?)$KeepToken/e"] =
+    '$GLOBALS[\'KPV\'][\'$1\']';
 
 SDVA($BlockMarkups,array(
   'block' => array('','',''),
@@ -424,11 +437,11 @@ function PageExists($pagename) {
   return false;
 }
 
-function RetrieveAuthPage($pagename,$level,$authprompt=true) {
+function RetrieveAuthPage($pagename,$level,$authprompt=true,$dtext=NULL) {
   global $AuthFunction;
   SDV($AuthFunction,'BasicAuth');
-  if (!function_exists($AuthFunction)) return ReadPage($pagename);
-  return $AuthFunction($pagename,$level,$authprompt);
+  if (!function_exists($AuthFunction)) return ReadPage($pagename,$dtext);
+  return $AuthFunction($pagename,$level,$authprompt,$dtext);
 }
 
 function SetPage($pagename,$page) {
@@ -487,62 +500,38 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
     if (PageExists($p)) {
       $page = RetrieveAuthPage($p,'read',false);
       if ($page['text']) 
-        echo MarkupToHTML($pagename,ProcessIncludes($pagename,$page['text']));
+        echo MarkupToHTML($pagename,$page['text']);
       return;
     }
   }
 }
 
-function Keep($x) {
+function Keep($x,$level='') {
   # Keep preserves a string from being processed by wiki markups
   global $KeepToken,$KPV,$KPCount;
-  $KPCount++; $KPV[$KPCount]=$x;
-  return $KeepToken.$KPCount.$KeepToken;
+  $KPCount++; $KPV[$KPCount.$level]=$x;
+  return $KeepToken.$KPCount.$level.$KeepToken;
 }
 
-function ProcessIncludes($pagename,$text) {
-  global $MaxIncludes,$FmtV,$K0,$K1,$IncludeBadAnchorFmt;
+function IncludeText($pagename,$inclspec) {
+  global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV,$RedoMarkupLine;
   SDV($MaxIncludes,10);
   SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
-  for($i=0;$i<$MaxIncludes;$i++) {
-    $text = preg_replace("/\\[([=@])(.*?)\\1\\]/se",
-      "Keep(\$K0['$1'].htmlentities(PSS('$2'),ENT_NOQUOTES).\$K1['$1'])",$text);
-    if (!preg_match("/\\[:include\\s+([^#]+?)(#(\\w[-.:\\w]*)?(#(\\w[-.:\\w]*)?)?)?:\\]/",$text,$match)) break;
-    @list($inclrepl,$inclname,$a,$aa,$b,$bb) = $match;
-    $inclpage  =RetrieveAuthPage(MakePageName($pagename,$inclname),'read',false);
-    $incltext = $inclpage['text'];
-    $FmtV['$BadAnchor'] = '';
-    if ($bb && !ctype_digit($bb) && strpos($incltext,"[[#$bb]]")===false)
-      $FmtV['$BadAnchor']=$bb;
-    if ($aa && !ctype_digit($aa) && strpos($incltext,"[[#$aa]]")===false)
-      $FmtV['$BadAnchor']=$aa;
-    if ($FmtV['$BadAnchor'])
-      $incltext=FmtPageName($IncludeBadAnchorFmt,$inclname);
-    if (ctype_digit($bb))
-      $incltext=preg_replace("/^(([^\\n]*\\n)\{0,$bb}).*$/s",'$1',$incltext,1);
-    elseif ($bb)
-      $incltext=preg_replace("/[^\\n]*\\[\\[#$bb\\]\\].*$/s",'',$incltext,1);
-    if (ctype_digit($aa)) {
-      $aa--; $incltext=preg_replace("/^([^\\n]*\\n)\{0,$aa}/s",'',$incltext,1);
-      if (!$b) $incltext=preg_replace("/\\n.*$/s",'',$incltext,1);
-    } elseif ($aa && $b)
-      $incltext=preg_replace("/^.*?([^\\n]*\\[\\[#$aa\\]\\])/s",'$1',$incltext,1);
-    elseif ($aa)      
-      $incltext=preg_replace("/^.*?([^\\n]*\\[\\[#$aa\\]\\]( *\\n)?[^\\n]*).*/s",'$1',$incltext,1);
-    $text = str_replace($inclrepl,$incltext,$text);
+  if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
+  if (preg_match("/(.?)\\[:include(nl)?\\s+([^#]+?)\\](.?)/",
+      $inclspec,$match)) {
+    @list($inclrepl,$x0,$nl,$inclname,$x1) = $match;
+    $inclname = MakePageName($pagename,$inclname);
+    if ($inclname==$pagename) return $x0.$x1;
+    $inclpage=RetrieveAuthPage($inclname,'read',false,'');
+    $incltext = htmlentities($inclpage['text'],ENT_NOQUOTES);
+    if ($nl && $x0 && $x0!="\n") $incltext = "\n".$incltext;
+    if ($nl && $x1 && $x1!="\n") $incltext .= "\n";
+    $RedoMarkupLine++;
+    return $x0.$incltext.$x1;
   }
-  while (preg_match("/(.?)\\[:HF (\\S+) (\\S+):\\](.?)/",$text,$match)) {
-    if (strpos($text,"[:{$match[2]}:]")===false && $pagename!=$match[3]) {
-      $inclpage = ReadPage($match[3],'');
-      $incltext = $inclpage['text'];
-      if ($match[1] && $match[1]!="\n") $incltext = "\n".$incltext;
-      if ($match[4] && $match[4]!="\n") $incltext .= "\n";
-    } else $incltext='';
-    $text = str_replace($match[0],$match[1].$incltext.$match[4],$text);
-  }
-  return $text;
+  return Keep($inclspec);
 }
-
 
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$BlockCS,$BlockVS;
@@ -643,7 +632,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupPatterns,$BlockCS,$BlockVS,$K0,$K1;
+  global $MarkupPatterns,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
 
   array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
   ksort($MarkupPatterns);
@@ -652,10 +641,11 @@ function MarkupToHTML($pagename,$text) {
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   while (count($lines)>0) {
     $x = array_shift($lines);
+    $RedoMarkupLine=0;
     foreach($markpats as $p=>$r) {
       if (substr($p,0,1)=='/') $x=preg_replace($p,$r,$x); 
       elseif ($p=='' || strstr($x,$p)!==false) $x=eval($r);
-      if (is_null($x)) continue 2;
+      if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
     }
     if ($x>'') $out[] = "$x\n";
   }
@@ -667,26 +657,24 @@ function MarkupToHTML($pagename,$text) {
    
 function HandleBrowse($pagename) {
   # handle display of a page
-  global $FmtV,$GroupHeaderFmt,$GroupFooterFmt,
+  global $FmtV,$WikiHeaderFmt,$WikiFooterFmt,
     $HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
   Lock(1);
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort('?cannot read $pagename');
   SetPage($pagename,$page);
-  $hdname = FmtPageName($GroupHeaderFmt,$pagename);
-  $ftname = FmtPageName($GroupFooterFmt,$pagename);
-  $text = ProcessIncludes($pagename,
-    "[:HF nogroupheader $hdname:]".$page['text'].
-    "[:HF nogroupfooter $ftname:]");
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
     <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
   if (@!$_GET['from']) {
     $PageRedirectFmt = '';
+    $text = $page['text'];
     if (preg_match('/\\[:redirect\\s+(.+?):\\]/',$text,$match)) {
       $rname = MakePageName($pagename,$match[1]);
       if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
     }
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
+  $text = FmtPageName($WikiHeaderFmt,$pagename).$text.
+    FmtPageName($WikiFooterFmt,$pagename);
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
@@ -800,13 +788,10 @@ function PostRecentChanges($pagename,&$page,&$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved,$GroupHeaderFmt,$GroupFooterFmt,$FmtV,$PagePreviewFmt;
+  global $IsPageSaved,$WikiHeaderFmt,$WikiFooterFmt,$FmtV,$PagePreviewFmt;
   if (!$IsPageSaved && @$_REQUEST['preview']) {
-    $hdname = FmtPageName($GroupHeaderFmt,$pagename);
-    $ftname = FmtPageName($GroupFooterFmt,$pagename);
-    $text = ProcessIncludes($pagename,
-      "[:HF nogroupheader $hdname:]".$new['text'].
-      "[:HF nogroupfooter $ftname:]");
+    $text = FmtPageName($WikiHeaderFmt,$pagename).$new['text'].
+      FmtPageName($WikiFooterFmt,$pagename);
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
   } else $PagePreviewFmt = '';
 }
@@ -841,14 +826,14 @@ function HandleSource($pagename) {
 
 ## BasicAuth provides password-protection of pages using HTTP Basic
 ## Authentication.  It is normally called from RetrieveAuthPage.
-function BasicAuth($pagename,$level,$authprompt=true) {
+function BasicAuth($pagename,$level,$authprompt=true,$dtext=NULL) {
   global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
     $AllowPassword,$GroupAttributesFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
   SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
   SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
-  $page = ReadPage($pagename);
+  $page = ReadPage($pagename,$dtext);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
   if ($passwd=="") { 
