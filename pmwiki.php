@@ -254,7 +254,7 @@ SDVA($BlockMarkups,array(
 
 $CurrentTime = strftime($TimeFmt,$Now);
 
-if (!function_exists(@$HandleActions[$action])) $action='browse';
+if (!function_exists($HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
 Lock(0);
 exit;
