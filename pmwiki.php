@@ -1102,7 +1102,8 @@ function BasicAuth($pagename,$level,$authprompt=true) {
     if ($passwd=='') $passwd = @$DefaultPasswords['read'];
   }
   if ($passwd=='') return $page;
-  if (crypt($AllowPassword,$passwd)==$passwd) return $page;
+  foreach((array)$passwd as $p)
+    if (crypt($AllowPassword, $p) == $p) return $page;
   @session_start();
   if (@$_POST['authpw']) @$_SESSION['authpw'][$_POST['authpw']]++;
   $authpw = array_keys((array)@$_SESSION['authpw']);
