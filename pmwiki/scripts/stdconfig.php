@@ -36,4 +36,10 @@ if (IsEnabled($EnableMailPosts,0))
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
 
+SDV($MetaRobots,
+  ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
+    ? 'noindex,nofollow' : 'index,follow');
+if ($MetaRobots)
+  $HTMLHeaderFmt[] = "  <meta name='robots' content='$MetaRobots' />\n";
+
 ?>
