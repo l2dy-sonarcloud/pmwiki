@@ -16,21 +16,10 @@
 
 if ($action!='print') return;
 
-SDV($PageSkinFmt,'pmwiki');
-SDV($PrintSkinFmt,$PageSkinFmt);
-$k = FmtPageName("pub/skins/$PageSkinFmt/print.tmpl",$pagename);
-if (file_exists($k)) {
-  SDV($PrintTemplateFmt,$k);
-  SDV($SkinDirUrl,FmtPageName("\$PubDirUrl/skins/$PageSkinFmt",$pagename));
-} else if (file_exists("$FarmD/$k")) {
-  SDV($PrintTemplateFmt,"$FarmD/$k");
-  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/$PageSkinFmt",$pagename));
-} else {
-  SDV($PrintTemplateFmt,"$FarmD/pub/skins/print/print.tmpl");
-  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/print",$pagename));
-}
+SDV($PrintSkinFmt,@$PrintTemplateFmt);
+$PageSkinFmt = (@$PrintSkinFmt) ? $PrintSkinFmt : 'print';
+$SkinTmplFmt = 'print.tmpl';
 
-$PageTemplateFmt = $PrintTemplateFmt;
 $LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl?action=print\$Fragment'>\$LinkText</a>";
 $UrlLinkTextFmt = "<cite class='urllink'>\$LinkText</cite> [<a class='urllink' href='\$Url'>\$Url</a>]";
 SDV($GroupPrintHeaderFmt,'(:include $Group.GroupPrintHeader:)(:nl:)');
