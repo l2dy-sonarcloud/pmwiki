@@ -83,14 +83,14 @@ function HandleRss($pagename) {
     $RssItemsRDFList,$RssItemsRDFListFmt,$RssItems,$RssItemFmt,
     $HandleRssFmt,$FmtV;
   $t = ReadTrail($pagename,$pagename);
-  $page = RetrieveAuthPage($pagename,'read',false);
+  $page = RetrieveAuthPage($pagename, 'read', false, READPAGE_CURRENT);
   if (!$page) Abort("?cannot read $pagename");
   $cbgmt = $page['time'];
   $r = array();
   for($i=0;$i<count($t) && count($r)<$RssMaxItems;$i++) {
     if (!PageExists($t[$i]['pagename'])) continue;
-    $page = RetrieveAuthPage($t[$i]['pagename'],'read',false); Lock(0);
-    if (!$page) continue;
+    $page = RetrieveAuthPage($t[$i]['pagename'],'read',false,READPAGE_CURRENT); 
+    Lock(0); if (!$page) continue;
     $text = 
       MarkupToHTML($t[$i]['pagename'],substr($page['text'],0,$RssSourceSize));
     $text = entityencode(preg_replace("/<.*?>/s","",$text)); 

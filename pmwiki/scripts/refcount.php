@@ -61,7 +61,7 @@ function PrintRefCount($pagename) {
   if ($submit) {
     foreach($pagelist as $pname) {
       $ref = array();
-      $page = ReadPage($pname); Lock(0);
+      $page = ReadPage($pname, READPAGE_CURRENT); Lock(0);
       if (!$page) continue;
       $tref[$pname]['time'] = $page['time'];
       if (!in_array('all',$flist) &&
