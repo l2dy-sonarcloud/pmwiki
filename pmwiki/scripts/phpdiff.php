@@ -13,7 +13,7 @@
     had used Daniel Unterberger's diff 
     (http://www.holomind.de/phpnet/diff.php) as the basis for his code.
 
-    Pm's revision of Nil's code simply attempts to streamline it 
+    Pm's revision of Nils' code simply attempts to streamline it 
     for speed (eliminate function calls and unnecessary string ops)
     and place everything into a single file.
 
