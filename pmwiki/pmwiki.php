@@ -414,7 +414,7 @@ function FmtPageName($fmt,$pagename) {
     $GCount, $UnsafeGlobals, $FmtV, $FmtP, $PCache, $AsSpacedFunction;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
-  $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
+  $fmt = preg_replace('/\\$\\[(?>([^\\]]+))\\]/e',"XL(PSS('$1'))",$fmt);
   $match = array('','$Group','$Name');
   if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/", $pagename, $m))
     $match = $m;
@@ -573,9 +573,13 @@ function WritePage($pagename,$page) {
 
 function PageExists($pagename) {
   global $WikiLibDirs;
-  foreach((array)$WikiLibDirs as $dir)
-    if ($dir->exists($pagename)) return true;
-  return false;
+  static $pe;
+  if (!isset($pe[$pagename])) {
+    $pe[$pagename] = false;
+    foreach((array)$WikiLibDirs as $dir)
+      if ($dir->exists($pagename)) { $pe[$pagename] = true; break; }
+  }
+  return $pe[$pagename];
 }
 
 function ListPages($pat=NULL) {
