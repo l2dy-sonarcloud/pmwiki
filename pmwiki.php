@@ -419,6 +419,7 @@ function PageExists($pagename) {
 
 function RetrieveAuthPage($pagename,$level,$authprompt=true) {
   global $AuthFunction;
+  SDV($AuthFunction,'BasicAuth');
   if (!function_exists($AuthFunction)) return ReadPage($pagename);
   return $AuthFunction($pagename,$level,$authprompt);
 }
@@ -829,6 +830,35 @@ function HandleSource($pagename) {
   if (!$page) Abort("?cannot source $pagename");
   header("Content-type: text/plain");
   echo $page['text'];
+}
+
+## BasicAuth provides password-protection of pages using HTTP Basic
+## Authentication.  It is normally called from RetrieveAuthPage.
+function BasicAuth($pagename,$level,$authprompt=true) {
+  global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
+    $AllowPassword,$GroupAttributesFmt;
+  $page = ReadPage($pagename);
+  if (!$page) { return false; }
+  $passwd = @$page["passwd$level"];
+  if ($passwd=="") { 
+    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt,$pagename));
+    $passwd = @$grouppg["passwd$level"];
+    if ($passwd=="") $passwd = @$DefaultPasswords[$level];
+    if ($passwd=="") $passwd = @$page["passwdread"];
+    if ($passwd=="") $passwd = @$grouppg["passwdread"];
+    if ($passwd=="") $passwd = @$DefaultPasswords['read'];
+  }
+  if ($passwd=="") return $page;
+  if (crypt($AllowPassword,$passwd)==$passwd) return $page;
+  foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) as $pw)
+    if (@crypt($_SERVER['PHP_AUTH_PW'],$pw)==$pw) return $page;
+  if (!$authprompt) return false;
+  $realm=FmtPageName($AuthRealmFmt,$pagename);
+  header("WWW-Authenticate: Basic realm=\"$realm\"");
+  header("Status: 401 Unauthorized");
+  header("HTTP-Status: 401 Unauthorized");
+  PrintFmt($pagename,$AuthDeniedFmt);
+  exit;
 }
 
 ?> 
