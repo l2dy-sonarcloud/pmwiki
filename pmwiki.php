@@ -63,9 +63,11 @@ $PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$PageName]</h2>
   <a href='#top'>$[Top]</a></p>";
 $EditMessageFmt = '';
 $EditFields = array('text');
-$EditFunctions = array('RestorePage','ReplaceOnSave','PostPage',
-  'PostRecentChanges','PreviewPage');
+$EditFunctions = array('RestorePage','ReplaceOnSave','SaveAttributes',
+  'PostPage','PostRecentChanges','PreviewPage');
 $AsSpacedFunction = 'AsSpaced';
+$SpaceWikiWords = 0;
+$LinkWikiWords = 1;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
@@ -103,8 +105,16 @@ if (setlocale(LC_ALL,NULL)=='C') setlocale(LC_ALL,'en_US');
 $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
   '/\\$PageName/' => '$Group.$Name',
+  '/\\$Title/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : (($GLOBALS["SpaceWikiWords"]) ? \'$Namespaced\' : \'$Name\')',
+  '/\\$Groupspaced/e' => '$AsSpacedFunction(@$match[1])',
   '/\\$Group/e' => '@$match[1]',
-  '/\\$Name/e' => '@$match[2]');
+  '/\\$Namespaced/e' => '$AsSpacedFunction(@$match[2])',
+  '/\\$Name/e' => '@$match[2]',
+  '/\\$LastModifiedBy/e' => '@$PCache[$pagename]["author"]',
+  '/\\$LastModifiedHost/e' => '@$PCache[$pagename]["host"]',
+  '/\\$LastModified/e' => 
+    'strftime($GLOBALS["TimeFmt"],$PCache[$pagename]["time"])',
+  );
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -117,7 +127,7 @@ $HTMLDoctypeFmt =
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
-$HTMLTitleFmt = "  <title>\$WikiTitle - \$PageTitle</title>\n";
+$HTMLTitleFmt = "  <title>\$WikiTitle - \$Title</title>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code { white-space: nowrap; }
@@ -340,13 +350,23 @@ function MakePageName($basepage,$x) {
   $group=preg_replace('/[\\/.].*$/','',$basepage);
   return "$group.$name";
 }
+
+## PCache caches basic information about a page and its attributes--
+## usually everything except page text and page history.  This makes
+## for quicker access to certain values in FmtPageName below.
+function PCache($pagename,$page) {
+  global $PCache;
+  foreach($page as $k=>$v) 
+    if ($k!='text' && strpos($k,':')===false) $PCache[$pagename][$k]=$v;
+}
+
   
 ## FmtPageName handles $[internationalization] and $Variable 
 ## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$EnablePathInfo,
-    $GCount,$UnsafeGlobals,$FmtV,$FmtP;
+    $GCount,$UnsafeGlobals,$FmtV,$FmtP,$PCache,$AsSpacedFunction;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
@@ -431,6 +451,7 @@ class PageStore {
     $page['host'] = $_SERVER['REMOTE_ADDR'];
     $page['agent'] = $_SERVER['HTTP_USER_AGENT'];
     $page['rev'] = @$page['rev']+1;
+    unset($page['version']); unset($page['newline']);
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
     mkdirp(dirname($pagefile));
@@ -519,14 +540,6 @@ function RetrieveAuthPage($pagename,$level,$authprompt=true) {
   return $AuthFunction($pagename,$level,$authprompt);
 }
 
-function SetPage($pagename,$page) {
-  global $PageTitle,$TimeFmt,$LastModified,$LastModifiedBy,$LastModifiedHost;
-  $PageTitle = FmtPageName('$Name',(@$page['name'])?$page['name']:$pagename);
-  $LastModified = strftime($TimeFmt,$page['time']);
-  $LastModifiedBy = @$page['author'];
-  $LastModifiedHost = @$page['host'];
-}
-  
 function Abort($msg) {
   # exit pmwiki with an abort message
   echo "<h3>PmWiki can't process your request</h3>
@@ -697,11 +710,10 @@ function FormatTableRow($x) {
 }
 
 function WikiLink($pagename,$word) {
-  global $WikiWords,$AsSpacedFunction;
-  $text = (preg_match('/(?<![\\w!])spaced?/',$WikiWords)) ? 
-    $AsSpacedFunction($word) : $word;
+  global $LinkWikiWords,$SpaceWikiWords,$AsSpacedFunction;
+  $text = ($SpaceWikiWords) ? $AsSpacedFunction($word) : $word;
   $text = preg_replace('!.*/!','',$text);
-  if (stristr($word,'!link')!==false) return $text;
+  if (!$LinkWikiWords) return $text;
   return MakeLink($pagename,$word,$text);
 }
   
@@ -718,7 +730,7 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $QueryFragPattern,$LinkPageExistsFmt,$LinkPageSelfFmt,
-    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
+    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets;
   if (substr($path,0,1)=='#' && !$fmt) {
     $path = preg_replace('/[^-.:\\w]/','',$path);
     return "<a href='#$path'>$txt</a>";
@@ -726,6 +738,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
     return '';
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
+  @$LinkTargets[$tgtname]++;
   if (!$fmt) {
     if (PageExists($tgtname)) 
       $fmt = ($tgtname==$pagename && $qf=='') ?  $LinkPageSelfFmt 
@@ -825,7 +838,7 @@ function HandleBrowse($pagename) {
   Lock(1);
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort('?cannot read $pagename');
-  SetPage($pagename,$page);
+  PCache($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
     <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
   if (isset($page['text'])) $text=$page['text'];
@@ -885,6 +898,16 @@ function ReplaceOnSave($pagename,&$page,&$new) {
   foreach((array)$ROSPatterns as $pat=>$repfmt) 
     $new['text'] = 
       preg_replace($pat,FmtPageName($repfmt,$pagename),$new['text']);
+}
+
+function SaveAttributes($pagename,&$page,&$new) {
+  global $LinkTargets;
+  if (!@$_REQUEST['post']) return;
+  unset($new['title']);
+  if (preg_match('/\\[:title\\s(.+?):\\]/',$new['text'],$match))
+    $new['title'] = $match[1];
+  MarkupToHTML($pagename,$new['text']);
+  $new['targets'] = implode(',',array_keys((array)$LinkTargets));
 }
 
 function PostPage($pagename,&$page,&$new) {
@@ -948,7 +971,7 @@ function HandleEdit($pagename) {
   Lock(2);
   $page = RetrieveAuthPage($pagename,'edit');
   if (!$page) Abort("?cannot edit $pagename"); 
-  SetPage($pagename,$page);
+  PCache($pagename,$page);
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
@@ -1028,7 +1051,7 @@ function HandleAttr($pagename) {
   global $PageAttrFmt,$PageStartFmt,$PageEndFmt;
   $page = RetrieveAuthPage($pagename,'attr');
   if (!$page) { Abort("?unable to read $pagename"); }
-  SetPage($pagename,$page);
+  PCache($pagename,$page);
   SDV($PageAttrFmt,"<h1 class='wikiaction'>$[\$PageName Attributes]</h1>
     <p>Enter new attributes for this page below.  Leaving a field blank
     will leave the attribute unchanged.  To clear an attribute, enter
