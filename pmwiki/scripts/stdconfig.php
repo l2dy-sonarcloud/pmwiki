@@ -76,6 +76,7 @@ SDV($MetaRobots,
   ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
     ? 'noindex,nofollow' : 'index,follow');
 if ($MetaRobots)
-  $HTMLHeaderFmt[] = "  <meta name='robots' content='$MetaRobots' />\n";
+  $HTMLHeaderFmt['robots'] = 
+    "  <meta name='robots' content='$MetaRobots' />\n";
 
 ?>
