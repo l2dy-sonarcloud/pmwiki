@@ -167,10 +167,12 @@ $MarkupPatterns[300]["/(\\\\*)\\\\\n/e"] =
   "Keep(' '.str_repeat('<br />',strlen('$1')))";
 $MarkupPatterns[1000]["\n"] = 
   '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
-$MarkupPatterns[1100]["/\{\\$(Group|Name)}/e"] =
+$MarkupPatterns[1050]["/\{\\$(Group|Name)}/e"] =
   "FmtPageName('$$1',\$pagename)";
-$MarkupPatterns[1200]["/\{\$(Version|Author)}/e"] =
+$MarkupPatterns[1100]["/\{\$(Version|Author)}/e"] =
   "\$GLOBALS['$1']";
+$MarkupPatterns[1500]['/\\[:title\\s(.*?):\\]/e'] =
+  "PZZ(\$GLOBALS['HTMLTitle']=PSS('$1'))";
 $MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
 $MarkupPatterns[3100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
