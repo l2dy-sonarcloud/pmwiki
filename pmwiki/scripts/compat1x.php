@@ -36,6 +36,9 @@ SDVA($Compat1x,array(
   # [[$Title]]
   "/\\[\\[\\\$Title\\]\\]/" => '{$Name}',
 
+  # [[$pagecount]], from SimplePageCount cookbook script
+  "/\\[\\[\\\$pagecount\\]\\]/" => '{$PageCount}',
+
   # [[$Group]], [[$Version]], etc.
   "/\\[\\[\\$(Group|Version|Author|LastModified|LastModifiedBy|LastModifiedHost)\\]\\]/" => '{$$1}',
 
@@ -55,10 +58,10 @@ SDVA($Compat1x,array(
   "/\\[\\[(\\w[^$UrlExcludeChars\\s]*)\\]\\]/" => '[[$1 |<#>]]',
 
   # [[Group.{{free link}} link text]]
-  "/\\[\\[($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\}\\}([-\\w]*)\\s(.*?)\\]\\]/" => '[[$1$3 |$5]]',
+  "/\\[\\[($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\}\\}([-#\\w]*)\\s(.*?)\\]\\]/" => '[[$1$3$4 |$5]]',
 
   # [[Group.{{free link|s}} link text]]
-  "/\\[\\[($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\|([-\\w\\s]*)\\}\\}([-\\w]*)\\s(.*?)\\]\\]/" => '[[$1$3$4 |$6]]',
+  "/\\[\\[($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\|([-\\w\\s]*)\\}\\}([-#\\w]*)\\s(.*?)\\]\\]/" => '[[$1$3$4$5 |$6]]',
 
   # Group.{{free link}}ext
   "/($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\}\\}([-\\w]*)/" 
