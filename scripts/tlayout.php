@@ -26,8 +26,9 @@
 
 */
 
-SDV($PageTemplateFmt,"pub/skins/pmwiki/pmwiki.tmpl");
-SDV($PageLogoUrl,"$PubDirUrl/skins/pmwiki/pmwiki-32.gif");
+SDV($FarmPubDirUrl,$PubDirUrl);
+SDV($PageTemplateFmt,"$FarmD/pub/skins/pmwiki/pmwiki.tmpl");
+SDV($PageLogoUrl,"$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 SDV($PageLogoFmt,"<div id='wikilogo'><a href='$ScriptUrl'><img 
   src='$PageLogoUrl' alt='$WikiTitle' border='0' /></a></div>");
 SDV($PageCSSListFmt,array(

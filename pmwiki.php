@@ -71,7 +71,7 @@ $RecentChangesFmt = array(
   '$Group.RecentChanges' =>
     '* [[$Group/$Name]]  . . . $CurrentTime by $AuthorLink');
 $DefaultPageTextFmt = 'Describe [[$Name]] here.';
-$ScriptUrl = $_SERVER['SCRIPT_NAME'];
+$ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
 $BlockCS = array(); $BlockVS = array();
