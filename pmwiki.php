@@ -180,17 +180,17 @@ $ImgExtPattern="\\.(?:gif|jpg|jpeg|png)";
 $ImgTagFmt="<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />";
 
 $BlockMarkups = array(
-  'block' => array('','',''),
-  'ul' => array('<ul><li>','</li><li>','</li></ul>'),
-  'dl' => array('<dl>','</dd>','</dd></dl>'),
-  'ol' => array('<ol><li>','</li><li>','</li></ol>'),
-  'p' => array('<p>','','</p>'),
+  'block' => array('','','',0),
+  'ul' => array('<ul><li>','</li><li>','</li></ul>',1),
+  'dl' => array('<dl>','</dd>','</dd></dl>',1),
+  'ol' => array('<ol><li>','</li><li>','</li></ol>',1),
+  'p' => array('<p>','','</p>',0),
   'indent' => 
-     array("<div class='indent'>","</div><div class='indent'>",'</div>'),
+     array("<div class='indent'>","</div><div class='indent'>",'</div>',1),
   'outdent' => 
-     array("<div class='outdent'>","</div><div class='outdent'>",'</div>'),
-  'pre' => array('<pre> ',' ','</pre>'),
-  'table' => array("<table width='100%'>",'','</table>'));
+     array("<div class='outdent'>","</div><div class='outdent'>",'</div>',1),
+  'pre' => array('<pre> ',' ','</pre>',0),
+  'table' => array("<table width='100%'>",'','</table>',0));
 
 $CurrentTime = strftime($TimeFmt,$Now);
 
@@ -680,6 +680,8 @@ function Block($b) {
   while (count($cs)>$depth) 
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
   if ($depth>0 && $depth==count($cs) && $cs[$depth-1]!=$code)
+    { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
+  while (count($cs)>0 && @$BlockMarkups[$cs[count($cs)-1]][3]==0)
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
   if ($vspaces) { 
     $out .= (@$cs[0]=='pre') ? $vspaces : $HTMLVSpace; 
