@@ -94,7 +94,8 @@ function PrintDiff($pagename) {
             echo "<code>",
               str_replace("\n","<br />",htmlspecialchars(join("\n",$in))),
               "</code>";
-          else echo MarkupToHTML($pagename,join("\n",$in));
+          else echo MarkupToHTML($pagename,
+            preg_replace('/\\[:(.*?):\\]/','[@$1@]',join("\n",$in)));
         }
         if ($match[4]=='d' || $match[4]=='c') {
           $txt = str_replace('line',$lines,$DiffAddFmt[$match[4]]);
@@ -104,7 +105,8 @@ function PrintDiff($pagename) {
             echo "<code>",
               str_replace("\n","<br />",htmlspecialchars(join("\n",$out))),
               "</code>";
-          else echo MarkupToHTML($pagename,join("\n",$out));
+          else echo MarkupToHTML($pagename,
+            preg_replace('/(\\[:.*?:\\])/','[@$1@]',join("\n",$out)));
         }
         echo FmtPageName($DiffEndDelAddFmt,$pagename);
       }
