@@ -405,7 +405,7 @@ function HandleBrowse($pagename) {
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
   $PageText = MarkupToHTML($pagename,$page['text']);
-  echo FmtPageName("<p><a href='\$PageUrl?action=edit'>Edit Page</a></p>",
+  echo FmtPageName("<p><a href='\$PageUrl?action=edit'>Edit \$PageName</a></p>",
     $pagename);
   print $PageText;
 }
