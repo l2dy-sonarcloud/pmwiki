@@ -192,8 +192,8 @@ $MarkupPatterns[1610]['[:notitle:]'] =
   "\$GLOBALS['PageTitleFmt']='';";
 $MarkupPatterns[1615]['/\\[:nogroup(header|footer):\\]/'] = '';
 $MarkupPatterns[1620]['/\\[:comments .*?:\\]/'] = '';
-$MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
-  "<a name='$1' id='$1'></a>";
+$MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
+  "Keep(\"<a name='$1' id='$1'></a>\")";
 $MarkupPatterns[3100]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
 $MarkupPatterns[3200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
