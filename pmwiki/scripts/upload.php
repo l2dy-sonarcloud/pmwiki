@@ -61,7 +61,7 @@ SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUrl'>\$LinkText<
 SDV($PageUploadFmt,array("
   <h2 class='wikiaction'>$[Attachments for] \$FullName</h2>
   <h3>\$UploadResult</h3>
-  <form enctype='multipart/form-data' action='\$ScriptUrl' method='post'>
+  <form enctype='multipart/form-data' action='\$PageUrl' method='post'>
   <input type='hidden' name='n' value='\$FullName' />
   <input type='hidden' name='action' value='postupload' />
   <table border='0'>
