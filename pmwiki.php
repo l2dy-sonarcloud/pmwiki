@@ -543,7 +543,7 @@ class PageStore {
     while (count($dirlist)>0) {
       $dir = array_shift($dirlist);
       $dfp = opendir($dir); if (!$dfp) continue;
-      while (($pagefile=readdir($dfp))!=false) {
+      while ( ($pagefile = readdir($dfp)) !== false) {
         if ($pagefile{0} == '.') continue;
         if (is_dir("$dir/$pagefile"))
           { array_push($dirlist,"$dir/$pagefile"); continue; }
