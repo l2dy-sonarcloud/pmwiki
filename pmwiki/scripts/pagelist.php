@@ -15,20 +15,28 @@ XLSDV('en',array(
   'SearchFound' =>
     '$MatchCount pages found out of $MatchSearched pages searched.'));
 
+Markup('searchbox','>links','/\\[:searchbox:\\]/',
+  FmtPageName("<form class='wikisearch' action='\$ScriptUrl' 
+    method='get'><input type='hidden' name='pagename' 
+    value='$[Main/SearchWiki]' /><input class='wikisearchbox' 
+    type='text' name='q' value='' size='40' /><input 
+    class='wikisearchbutton' type='submit' value='$[Search]' /></form>",
+    $pagename));
 Markup('searchresults','directives','/\\[:searchresults\\s*(.*?):\\]/e',
   "Keep(FmtPageList(\$GLOBALS['SearchResultsFmt'],\$pagename,
-    array('text'=>PSS('$1'))))");
+    array('q'=>PSS('$1'))))");
 Markup('pagelist','directives','/\\[:pagelist\\s*(.*):\\]/e',
-  "Keep(FmtPageList('\$MatchList',\$pagename,array('text'=>PSS('$1'))))");
+  "Keep(FmtPageList('\$MatchList',\$pagename,array('q'=>PSS('$1 '))))");
 
 SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple'));
 
 function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
   $opt = array_merge(@$_REQUEST,$opt);
-  if (!$opt['text']) $opt['text']=stripmagic(@$_REQUEST['text']);
+  if (!$opt['q']) $opt['q']=stripmagic(@$_REQUEST['q']);
+  if (!$opt['q']) return;
   $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
-    $opt['text'],-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+    $opt['q'],-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",@$terms[0],$match)) 
   { 
     $opt['group'] = @$match[1]; 
@@ -47,10 +55,10 @@ function FmtPageList($fmt,$pagename,$opt) {
   if (@$opt['group']) array_unshift($pats,"/^({$opt['group']})\./i");
   $pagelist = ListPages($pats);
   $matches = array();
-  $searchtext = count($excl)+count($incl);
+  $searchterms = count($excl)+count($incl);
   foreach($pagelist as $pagefile) {
     $page = ReadPage($pagefile);  Lock(0);  if (!$page) continue;
-    if ($searchtext) {
+    if ($searchterms) {
       $text = $pagefile."\n".$page['text'];
       foreach($excl as $t) if (stristr($text,$t)) continue 2;
       foreach($incl as $t) if (!stristr($text,$t)) continue 2;
@@ -64,7 +72,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   sort($matches);
   $FmtV['$MatchCount'] = count($matches);
   $FmtV['$MatchSearched'] = count($pagelist);
-  $FmtV['$Needle'] = $opt['text'];
+  $FmtV['$Needle'] = $opt['q'];
   $fmtfn = @$FPLFunctions[$opt['fmt']];
   if (!function_exists($fmtfn)) $fmtfn='FPLByGroup';
   $FmtV['$MatchList'] = $fmtfn($pagename,$matches,$opt);
