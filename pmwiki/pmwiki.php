@@ -31,6 +31,7 @@ $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$PageName');
 $WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
+SDV($WorkDir,'wiki.d');
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
 $KeepToken = "\377\377";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
@@ -263,8 +264,8 @@ function XL($x)  { return $x; }
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.  It does not "lock pages" for editing.
 function Lock($op) { 
-  global $LockFile;
-  SDV($LockFile,"wiki.d/.flock");
+  global $WorkDir,$LockFile;
+  SDV($LockFile,"$WorkDir/.flock");
   static $lockfp,$curop;
     if (!$lockfp) {
     $lockfp=fopen($LockFile,"w") or
