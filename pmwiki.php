@@ -129,9 +129,6 @@ $HTMLDoctypeFmt =
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
-# $HTMLTitleFmt deprecated, 2.0.devel14
-$HTMLTitleFmt = 
-  "  <title>\$WikiTitle | \$Group / \$Title \$Action</title>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code { white-space: nowrap; }
@@ -146,7 +143,7 @@ $HTMLHeaderFmt = array(
   "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
 $HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
-  &$HTMLTitleFmt,&$HTMLBodyFmt);
+  &$HTMLBodyFmt);
 $HTMLEndFmt = "\n</body>\n</html>";
 $PageStartFmt = array(&$HTMLStartFmt,"\n<div id='contents'>\n");
 $PageEndFmt = array('</div>',&$HTMLEndFmt);
@@ -1013,7 +1010,8 @@ function HandleEdit($pagename) {
     str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
   SDV($HandleEditFmt,array(&$PageStartFmt,
-    &$PageEditFmt,&$PagePreviewFmt,&$PageEndFmt));
+    &$PageEditFmt,'wiki:PmWiki.EditQuickReference',&$PagePreviewFmt,
+    &$PageEndFmt));
   PrintFmt($pagename,$HandleEditFmt);
 }
 
