@@ -48,7 +48,7 @@ $PageEditFmt = "<div id='wikiedit'>
   <input type='hidden' name='n' value='\$FullName' />
   <input type='hidden' name='basetime' value='\$EditBaseTime' />
   \$EditMessageFmt
-  <textarea name='text' rows='25' cols='60'
+  <textarea id='text' name='text' rows='25' cols='60'
     onkeydown='if (event.keyCode==27) event.returnValue=false;'
     >\$EditText</textarea><br />
   $[Author]: <input type='text' name='author' value='\$Author' />
