@@ -134,7 +134,7 @@ Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|(.*?)\\s*\\]\\]($SuffixPattern)/e",
 
 ## [[text -> target ]]
 Markup('[[->',
-  '>[[|',"/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e",
+  '>[[|',"/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(\\S.+?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'L')");
 
 ## [[#anchor]]
