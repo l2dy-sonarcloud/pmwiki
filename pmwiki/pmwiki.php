@@ -722,7 +722,8 @@ function Block($b) {
 }
 
 function FormatTableRow($x) {
-  global $Block,$TableCellAttr;
+  global $Block, $TableCellAttr, $MarkupFrame, $TableRowIndexMax;
+  static $rowcount;
   $x = preg_replace('/\\|\\|$/','',$x);
   $td = explode('||',$x); $y='';
   for($i=0;$i<count($td);$i++) {
@@ -743,7 +744,10 @@ function FormatTableRow($x) {
     $y .= "<$t $attr>".$td[$i]."</$t>";
   }
   if ($t=='caption') return "<:table,1>$y";
-  return "<:table,1><tr>$y</tr>";
+  if ($MarkupFrame[0]['cs'][0] != 'table') $rowcount = 1; else $rowcount++;
+  $rowindex = ($TableRowIndexMax < 1) ? '' :
+    'wikiti' . (($rowcount - 1) % $TableRowIndexMax + 1);
+  return "<:table,1><tr class='wikitr$rowcount $rowindex'>$y</tr>";
 }
 
 function WikiLink($pagename, $word) {
