@@ -105,7 +105,7 @@ Markup('mailto','<urllink','/\\bmailto:(\\S+)/e',
 ## inline images
 Markup('img','<urllink',
   "/\\b(\\L)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e",
-  "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
+  "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','$1$2',
     \$GLOBALS['ImgTagFmt']),'L')");
 
 ## bare wikilinks
