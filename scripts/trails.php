@@ -41,7 +41,7 @@ function ReadTrail($pagename,$trailname) {
   if (!$trailpage) return false;
   $t = array();
   $n = 0;
-  foreach(explode("\n",$trailpage['text']) as $x) {
+  foreach(explode("\n",@$trailpage['text']) as $x) {
     $x = preg_replace("/^([#*]+)\\s*(($GroupNamePattern([\\.]))?$WikiWordPattern)/",'$1 [[$2]]',$x);
     if (!preg_match("/^([#*]+)\\s*(\\[\\[(.*?)\\]\\]($SuffixPattern))(.*)$/",$x,$match)) continue;
     $tgt = MakeLink($trailname,$match[3],NULL,NULL,'$PageName');

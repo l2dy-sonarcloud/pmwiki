@@ -75,7 +75,9 @@ $DefaultPageTextFmt = 'Describe [[$Name]] here.';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
-$BlockCS = array(); $BlockVS = array();
+$MarkupFrame=array();
+$MarkupFrameBase=array('cs'=>array(),'vs'=>'',
+  'posteval'=>array('block'=>"return Block('block');"));
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
@@ -239,7 +241,7 @@ function SDVA(&$var,$val)
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
 function StopWatch($x) { 
-  if (!function_exists('getrusage')) {
+  if (function_exists('getrusage')) {
     $dat = getrusage();
     $GLOBALS['StopWatch'][] = 
       ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
@@ -368,7 +370,7 @@ function XLPage($lang,$p) {
   global $TimeFmt,$XLLangs,$FarmD;
   $page = ReadPage($p);
   if (!$page) return;
-  $text = preg_replace("/=>\\s*\n/",'=> ',$page['text']);
+  $text = preg_replace("/=>\\s*\n/",'=> ',@$page['text']);
   foreach(explode("\n",$text) as $l)
     if (preg_match('/^\\s*[\'"](.+?)[\'"]\\s*=>\\s*[\'"](.+)[\'"]/',$l,$match))
       $xl[stripslashes($match[1])] = stripslashes($match[2]);
@@ -461,17 +463,14 @@ class PageStore {
   }
 }
 
-function ReadPage($pagename,$defaulttext=NULL) {
+function ReadPage($pagename) {
   # read a page from the appropriate directories given by $WikiReadDirsFmt.
-  global $WikiLibDirs,$DefaultPageTextFmt,$Now;
-  if (is_null($defaulttext)) $defaulttext=$DefaultPageTextFmt;
+  global $WikiLibDirs,$Now;
   Lock(1);
   foreach ($WikiLibDirs as $dir) {
     $page = $dir->read($pagename);
     if ($page) break;
   }
-  if (!isset($page['text'])) 
-    $page['text']=FmtPageName($defaulttext,$pagename);
   if (@!$page['time']) $page['time']=$Now;
   return $page;
 }
@@ -496,11 +495,11 @@ function ListPages($pat=NULL) {
   return $out;
 }
 
-function RetrieveAuthPage($pagename,$level,$authprompt=true,$dtext=NULL) {
+function RetrieveAuthPage($pagename,$level,$authprompt=true) {
   global $AuthFunction;
   SDV($AuthFunction,'BasicAuth');
-  if (!function_exists($AuthFunction)) return ReadPage($pagename,$dtext);
-  return $AuthFunction($pagename,$level,$authprompt,$dtext);
+  if (!function_exists($AuthFunction)) return ReadPage($pagename);
+  return $AuthFunction($pagename,$level,$authprompt);
 }
 
 function SetPage($pagename,$page) {
@@ -596,8 +595,8 @@ function IncludeText($pagename,$inclspec) {
     @list($inclstr,$inclname,$opts) = $match;
     $inclname = MakePageName($pagename,$inclname);
     if ($inclname==$pagename) return '';
-    $inclpage=RetrieveAuthPage($inclname,'read',false,'');
-    $itext=$inclpage['text'];
+    $inclpage=RetrieveAuthPage($inclname,'read',false);
+    $itext=@$inclpage['text'];
     foreach(preg_split('/\\s+/',$opts) as $o) {
       if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/",$o,$match)) {
         @list($x,$aa,$dots,$b,$bb)=$match;
@@ -626,8 +625,8 @@ function IncludeText($pagename,$inclspec) {
 }
 
 function Block($b) {
-  global $BlockMarkups,$HTMLVSpace,$BlockCS,$BlockVS;
-  $cs = &$BlockCS[0];  $vspaces = &$BlockVS[0];
+  global $BlockMarkups,$HTMLVSpace,$MarkupFrame;
+  $cs = &$MarkupFrame[0]['cs'];  $vspaces = &$MarkupFrame[0]['vs'];
   $out = '';
   if (!$b) $b='p,1';
   @list($code,$depth) = explode(',',$b);
@@ -766,10 +765,10 @@ function BuildMarkupRules() {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
+  global $MarkupRules,$MarkupFrame,$MarkupFrameBase,$K0,$K1,$RedoMarkupLine;
 
   StopWatch('MarkupToHTML begin');
-  array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
+  array_unshift($MarkupFrame,$MarkupFrameBase);
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   $out = array();
@@ -784,9 +783,9 @@ function MarkupToHTML($pagename,$text) {
     }
     if ($x>'') $out[] = "$x\n";
   }
-  $x = Block('block');
-  if ($x>'') $out[] = "$x\n";
-  array_shift($BlockCS); array_shift($BlockVS);
+  foreach((array)($MarkupFrame[0]['posteval']) as $v) 
+    { $x = eval($v); if ($x>'') $out[] = "$x\n"; }
+  array_shift($MarkupFrame);
   StopWatch('MarkupToHTML end');
   return implode('',(array)$out);
 }
@@ -911,9 +910,9 @@ function PostRecentChanges($pagename,&$page,&$new) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
-    $rcpage = ReadPage($rcname,'');
+    $rcpage = ReadPage($rcname);
     $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
-    $rcpage['text'] = preg_replace("/[^\n]*$rcelim.*\n/","",$rcpage['text']);
+    $rcpage['text'] = preg_replace("/[^\n]*$rcelim.*\n/","",@$rcpage['text']);
     if (!preg_match("/$RCDelimPattern/",$rcpage['text'])) 
       $rcpage['text'] .= "$pgtext\n";
     else
@@ -945,7 +944,7 @@ function HandleEdit($pagename) {
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$EditText'] = 
-    str_replace('$','&#036;',htmlspecialchars($new['text'],ENT_NOQUOTES));
+    str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
   SDV($HandleEditFmt,array(&$PageStartFmt,
     &$PageEditFmt,&$PagePreviewFmt,&$PageEndFmt));
@@ -962,14 +961,14 @@ function HandleSource($pagename) {
 
 ## BasicAuth provides password-protection of pages using HTTP Basic
 ## Authentication.  It is normally called from RetrieveAuthPage.
-function BasicAuth($pagename,$level,$authprompt=true,$dtext=NULL) {
+function BasicAuth($pagename,$level,$authprompt=true) {
   global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
     $AllowPassword,$GroupAttributesFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
   SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
   SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
-  $page = ReadPage($pagename,$dtext);
+  $page = ReadPage($pagename);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
   if ($passwd=="") { 
