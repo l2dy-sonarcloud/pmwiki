@@ -97,7 +97,7 @@ $LinkPageCreateFmt =
     class='createlink' href='\$PageUrl?action=edit'>?</a>";
 $UrlLinkFmt = 
   "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
-umask(0);
+umask(002);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
 $GroupHeaderFmt = '(:include $Group.GroupHeader:)(:nl:)';
