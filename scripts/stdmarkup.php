@@ -228,7 +228,7 @@ function Cells($name,$attr) {
   $tattr = @$MarkupFrame[0]['tattr'];
   if ($name == 'cell' || $name == 'cellnr') {
     if (!@$MarkupFrame[0]['posteval']['cells']) {
-      $MarkupFrame[0]['posteval']['cells'] = "return Cells('','');";
+      $MarkupFrame[0]['posteval']['cells'] = "\$out .= '</td></tr></table>';";
       return "<:block><table $tattr><tr><td $attr>";
     } else if ($name == 'cellnr') return "<:block></td></tr><tr><td $attr>";
     return "<:block></td><td $attr>";
