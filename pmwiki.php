@@ -193,8 +193,6 @@ $BlockMarkups = array(
   'pre' => array('<pre> ',' ','</pre>',0),
   'table' => array("<table width='100%'>",'','</table>',0));
 
-$CurrentTime = strftime($TimeFmt,$Now);
-
 foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
     'file:') as $m) 
   { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
@@ -229,6 +227,7 @@ if (IsEnabled($EnableLocalConfig,1)) {
     include_once('config.php');
 }
 
+SDV($CurrentTime,strftime($TimeFmt,$Now));
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 SDV($UrlPage,'{$UrlPage}');
 if ($pagename&&!preg_match("/^$GroupPattern([\/.])$NamePattern$/i",$pagename)) {
