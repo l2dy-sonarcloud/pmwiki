@@ -47,7 +47,7 @@ function MakeUTF8PageName($basepage,$x) {
     "mb_strtoupper('$1','UTF-8')", $name);
   $name = str_replace(' ', '', $name);
   if ($m[1]) {
-    $group = preg_replace("/[^$PageNameChars]+/", ' ', $m[2]);
+    $group = preg_replace("/[^$PageNameChars]+/", ' ', $m[1]);
     $group = preg_replace('/(?<=^| )(.)/eu', 
       "mb_strtoupper('$1','UTF-8')", $group);
     $group = str_replace(' ', '', $group);
