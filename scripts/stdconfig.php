@@ -49,6 +49,8 @@ if (IsEnabled($EnableDiag,0))
   include_once("$FarmD/scripts/diag.php");
 if (IsEnabled($EnableVarMarkup,1))
   include_once("$FarmD/scripts/vardoc.php");
+if ($action=='crypt')
+  include_once("$FarmD/scripts/crypt.php");
 
 SDV($MetaRobots,
   ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
