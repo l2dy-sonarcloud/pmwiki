@@ -18,6 +18,12 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   ## display, margin, padding, and border css properties
   $WikiStyleCSS[] = 
     'display|(margin|padding|border)(-(left|right|top|bottom))?';
+  ## list-styles
+  $WikiStyleCSS[] = 'list-style';
+  foreach(array('decimal'=>'decimal', 'roman'=>'lower-roman',
+    'ROMAN'=>'upper-roman', 'alpha'=>'lower-alpha', 'ALPHA'=>'upper-alpha')
+    as $k=>$v) 
+      SDV($WikiStyle[$k],array('apply'=>'list','list-style'=>$v));
   ## apply ranges
   SDVA($WikiStyleApply,array(
     'item' => 'li|dt',
