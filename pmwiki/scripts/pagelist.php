@@ -27,10 +27,11 @@ Markup('searchbox','>links','/\\(:searchbox:\\)/',
     class='wikisearchbutton' type='submit' value='$[Search]' /></form>",
     $pagename));
 Markup('searchresults','directives','/\\(:searchresults\\s*(.*?):\\)/e',
-  "Keep(FmtPageList(\$GLOBALS['SearchResultsFmt'],\$pagename,
-    array('o'=>PSS('$1'),'req'=>1)))");
+  "'<div>'.Keep(FmtPageList(\$GLOBALS['SearchResultsFmt'], \$pagename,
+    array('o' => PSS('$1'), 'req' => 1))).'</div>'");
 Markup('pagelist','directives','/\\(:pagelist\\s*(.*):\\)/e',
-  "Keep(FmtPageList('\$MatchList',\$pagename,array('o'=>PSS('$1 '))))");
+  "'<div>'.Keep(FmtPageList('\$MatchList', \$pagename,
+    array('o' => PSS('$1 ')))).'</div>'");
 
 SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple',
   'group'=>'FPLGroup'));
