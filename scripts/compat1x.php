@@ -38,6 +38,7 @@ SDVA($Compat1x,array(
 
   # [[$Title]]
   "/\\[\\[\\\$Title\\]\\]/" => '{$Name}',
+  "/\\[\\[\\\$Titlespaced\\]\\]/" => '{$Namespaced}',
 
   # [[$pagecount]], from SimplePageCount cookbook script
   "/\\[\\[\\\$pagecount\\]\\]/" => '{$PageCount}',
