@@ -127,7 +127,7 @@ function FPLGroup($pagename,&$pagelist,$opt) {
   global $FPLGroupStartFmt,$FPLGroupIFmt,$FPLGroupEndFmt;
   SDV($FPLGroupStartFmt,"<ul class='fplgroup'>");
   SDV($FPLGroupEndFmt,"</ul>");
-  SDV($FPLGroupIFmt,"<li><a href='\$ScriptUrl\$Group'>\$Group</a></li>");
+  SDV($FPLGroupIFmt,"<li><a href='\$ScriptUrl/\$Group'>\$Group</a></li>");
   $out = array();
   foreach($pagelist as $item) {
     $pgroup = FmtPageName($FPLGroupIFmt,$item['pagename']);
