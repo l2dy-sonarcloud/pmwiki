@@ -246,7 +246,7 @@ function Lock($op) {
 function mkdirp($dir) {
   if (file_exists($dir)) return;
   if (!file_exists(dirname($dir))) mkdirp(dirname($dir));
-  if (!mkdir($dir)) {
+  if (!mkdir($dir,0777)) {
     $parent = realpath(dirname($dir)); 
     $perms=decoct(fileperms($parent) & 03777);
     Abort("PmWiki wants permission to create the <tt>$dir</tt> directory
