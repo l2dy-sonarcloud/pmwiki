@@ -27,15 +27,17 @@
     markups and the original suggestion for WikiTrails.
 */
 
-Markup('<<|','<links','/&lt;&lt;\\|([^|]+)\\|&gt;&gt;/e',
+Markup('<<|','<links','/&lt;&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;&gt;/e',
   "MakeTrailStop(\$pagename,'$1')");
-Markup('<|','><<|','/&lt;\\|([^|]+)\\|&gt;/e',
+Markup('<|','><<|','/&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;/e',
   "MakeTrailStopB(\$pagename,'$1')");
-Markup('^|','<links','/\\^\\|([^|]+)\\|\\^/e',
+Markup('^|','<links','/\\^\\|([^|]+|\\[\\[(.+?)\\]\\])\\|\\^/e',
   "MakeTrailPath(\$pagename,'$1')");
 
 function ReadTrail($pagename,$trailname) {
   global $SuffixPattern,$GroupPattern,$WikiWordPattern,$LinkWikiWords;
+  if (preg_match('/^\\[\\[(.+?)(-&gt;|\\|)(.+?)\\]\\]$/', $trailname, $m)) 
+    $trailname = ($m[2] == '|') ? $m[1] : $m[3];
   $trailname = MakePageName($pagename,$trailname);
   $trailpage = ReadPage($trailname);
   if (!$trailpage) return false;
