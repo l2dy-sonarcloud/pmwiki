@@ -537,12 +537,12 @@ class PageStore {
       $dir = array_shift($dirlist);
       $dfp = opendir($dir); if (!$dfp) continue;
       while (($pagefile=readdir($dfp))!=false) {
-        if (substr($pagefile,0,1)=='.') continue;
+        if ($pagefile{0} == '.') continue;
         if (is_dir("$dir/$pagefile"))
           { array_push($dirlist,"$dir/$pagefile"); continue; }
         if (@$seen[$pagefile]++) continue;
         foreach($pats as $p) {
-          if (substr($p,0,1)=='!') {
+          if ($p{0} == '!') {
            if (preg_match($p,$pagefile)) continue 2;
           } else if (!preg_match($p,$pagefile)) continue 2;
         }
@@ -627,11 +627,11 @@ function PrintFmt($pagename,$fmt) {
     return;
   }
   $x = FmtPageName($fmt,$pagename);
-  if (substr($fmt, 0, 9) == 'function:' &&
+  if (strncmp($fmt, 'function:', 9) == 0 &&
       preg_match('/^function:(\S+)\s*(.*)$/s', $x, $match) &&
       function_exists($match[1]))
     { $match[1]($pagename,$match[2]); return; }
-  if (substr($fmt, 0, 5) == 'file:' && preg_match("/^file:(.+)/s",$x,$match)) {
+  if (strncmp($fmt, 'file:', 5) == 0 && preg_match("/^file:(.+)/s",$x,$match)) {
     $filelist = preg_split('/[\\s]+/',$match[1],-1,PREG_SPLIT_NO_EMPTY);
     foreach($filelist as $f) {
       if (file_exists($f)) { include($f); return; }
@@ -704,7 +704,7 @@ function IncludeText($pagename,$inclspec) {
       if (preg_match('/^(lines?|paras?)=(\\d*)(\\.\\.(\\d*))?$/',
           $o,$match)) {
         @list($x,$unit,$a,$dots,$b) = $match;
-        $upat = (substr($unit,0,1)=='p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
+        $upat = ($unit{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
         if (!$dots) { $b=$a; $a=0; }
         if ($a>0) $a--;
         $itext=preg_replace("/^(($upat)\{0,$b}).*$/s",'$1',$itext,1);
@@ -807,7 +807,7 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $QueryFragPattern,$LinkPageExistsFmt,$LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets;
-  if (substr($path,0,1)=='#' && !$fmt) {
+  if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     return "<a href='#$path'>$txt</a>";
   }
@@ -896,7 +896,7 @@ function MarkupToHTML($pagename,$text) {
     $x = array_shift($lines);
     $RedoMarkupLine=0;
     foreach($markrules as $p=>$r) {
-      if (substr($p,0,1)=='/') $x=preg_replace($p,$r,$x); 
+      if ($p{0} == '/') $x=preg_replace($p,$r,$x); 
       elseif (strstr($x,$p)!==false) $x=eval($r);
       if (isset($php_errormsg)) { echo "pat=$p"; unset($php_errormsg); }
       if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
@@ -956,7 +956,7 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
         if ($match[4]=='c') array_splice($t,$b1-1,$a2-$a1+1);
         continue;
       }
-      if (substr($x,0,2)=='< ') { $nlflag=true; continue; }
+      if (strncmp($x,'< ',2) == 0) { $nlflag=true; continue; }
       if (preg_match('/^> (.*)$/',$x,$match)) {
         $nlflag=false;
         array_splice($t,$b1-1,0,$match[1]); $b1++;
@@ -1124,7 +1124,7 @@ function PrintAttrForm($pagename) {
     <table>",$pagename);
   $page = ReadPage($pagename);
   foreach($PageAttributes as $attr=>$p) {
-    $value = (substr($attr,0,6)=='passwd') ? '' : $page[$attr];
+    $value = (strncmp($attr, 'passwd', 6) == 0) ? '' : $page[$attr];
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
       <td><input type='text' name='$attr' value='$value' /></td></tr>";
