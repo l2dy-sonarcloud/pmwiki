@@ -160,6 +160,10 @@ $ActionTitleFmt = array(
 $DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
 
 $Conditions['false'] = 'false';
+$Conditions['true'] = 'true';
+$Conditions['group'] = "FmtPageName('\$Group',\$pagename)==\$condparm";
+$Conditions['name'] = "FmtPageName('\$Name',\$pagename)==\$condparm";
+$Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 
 $MarkupTable['_begin']['seq'] = 'B';
 $MarkupTable['_end']['seq'] = 'E';
@@ -613,12 +617,12 @@ function Keep($x,$level='') {
 
 function CondText($pagename,$condspec,$condtext) {
   global $Conditions;
-  if (!preg_match("/^(\\S+)\\s*(!?)\\s*(\\S+)?\\s*(.*)$/",
+  if (!preg_match("/^(\\S+)\\s*(!?)\\s*(\\S+)?\\s*(.*?)\\s*$/",
     $condspec,$match)) return '';
   @list($condstr,$condtype,$not,$condname,$condparm) = $match;
   if (isset($Conditions[$condname])) {
-    $tf = @eval("return ".$Conditions[$condname].";");
-    if (!$tf && !$not) $condtext='';
+    $tf = @eval("return (".$Conditions[$condname].");");
+    if (!$tf xor $not) $condtext='';
   }
   return $condtext;
 }

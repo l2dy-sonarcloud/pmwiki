@@ -32,7 +32,7 @@ Markup('${fmt}','>[=',
 Markup('${var}','>${fmt}',
   '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
   "\$GLOBALS['$1']");
-Markup('if','fulltext',"\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*:\\)|$)/se",
+Markup('if','fulltext',"/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/se",
   "CondText(\$pagename,PSS('$1'),PSS('$2'))");
 
 ## (:include:)
