@@ -6,7 +6,14 @@
     (at your option) any later version.  See pmwiki.php for full details.
 
     This script configures PmWiki to use utf-8 in page content and
-    pagenames.
+    pagenames.  There are some unfortunate side effects about PHP's
+    utf-8 implementation, however.  First, since PHP doesn't have a
+    way to do pattern matching on upper/lowercase UTF-8 characters,
+    WikiWords are limited to the ASCII-7 set, and all links to page
+    names with UTF-8 characters have to be in double brackets.
+    Second, we have to assume that all non-ASCII characters are valid
+    in pagenames, since there's no way to determine which UTF-8
+    characters are "letters" and which are punctuation.
 */
 
 global $HTTPHeaders, $U8;
@@ -36,12 +43,14 @@ function MakeUTF8PageName($basepage,$x) {
   $PageNameChars = '-\\w\\x80-\\xff';
   if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
   $name = preg_replace("/[^$PageNameChars]+/", ' ', $m[2]);
-  $name = preg_replace('/(?<=^| )(.)/eu', "mb_strtoupper('$1','UTF-8')", $name);
+  $name = preg_replace('/(?<=^| )(.)/eu', 
+    "mb_strtoupper('$1','UTF-8')", $name);
   $name = str_replace(' ', '', $name);
   if ($m[1]) {
-    $group = str_replace(' ','',
-      preg_replace("/\\b(\\w)/e", "strtoupper('$1')",
-        preg_replace("/[^$PageNameChars]+/", ' ', $m[1])));
+    $group = preg_replace("/[^$PageNameChars]+/", ' ', $m[2]);
+    $group = preg_replace('/(?<=^| )(.)/eu', 
+      "mb_strtoupper('$1','UTF-8')", $group);
+    $group = str_replace(' ', '', $group);
     return "$group.$name";
   }
   foreach((array)$PagePathFmt as $pg) {
