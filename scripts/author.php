@@ -32,6 +32,8 @@ SDV($AuthorLink,"[[~$Author]]");
 if (IsEnabled($EnableAuthorSignature,1)) {
   $ROSPatterns['/~~~~/'] = '[[~$Author]] $CurrentTime';
   $ROSPatterns['/~~~/'] = '[[~$Author]]';
+  Markup('~~~~','<links','/~~~~/',"[[~$Author]] $CurrentTime");
+  Markup('~~~','>~~~~','/~~~/',"[[~$Author]]");
 }
 if (IsEnabled($EnableAuthorRequired,0))
   array_unshift($EditFunctions,'RequireAuthor');
