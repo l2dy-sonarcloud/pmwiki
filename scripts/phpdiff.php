@@ -25,11 +25,11 @@ function PHPDiff(&$old,&$new)
 {
    # split the source text into arrays of lines
    $t1 = explode("\n",$old);
-   if ($t1[count($t1)-1]=='') array_pop($t1);
-   else $t1[]="\\ No newline at end of file";
+   $x=array_pop($t1); 
+   if ($x>'') $t1[]="$x\n\\ No newline at end of file";
    $t2 = explode("\n",$new);
-   if ($t2[count($t2)-1]=='') array_pop($t2);
-   else $t2[]="\\ No newline at end of file";
+   $x=array_pop($t2); 
+   if ($x>'') $t2[]="$x\n\\ No newline at end of file";
 
    # build a reverse-index array using the line as key and line number as value
    foreach($t1 as $i=>$x) $r1[$x][]=$i;
