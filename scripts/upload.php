@@ -88,33 +88,33 @@ SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
 SDV($DefaultPasswords['upload'],'*');
 
 Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
-  "'<ul>'.FmtUploadList('$pagename','$1').'</ul>'");
-SDV($LinkFunctions['Attach:'],'LinkUpload');
-SDV($IMap['Attach:'],'$1');
-SDV($HandleActions['upload'],'HandleUpload');
-SDV($HandleActions['postupload'],'HandlePostUpload');
-SDV($ActionTitleFmt['upload'],'| $[Uploads]');
-SDV($UploadVerifyFunction,'UploadVerifyBasic');
+  "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
+SDV($LinkFunctions['Attach:'], 'LinkUpload');
+SDV($IMap['Attach:'], '$1');
+SDV($HandleActions['upload'], 'HandleUpload');
+SDV($HandleActions['postupload'], 'HandlePostUpload');
+SDV($ActionTitleFmt['upload'], '| $[Uploads]');
+SDV($UploadVerifyFunction, 'UploadVerifyBasic');
 
 function MakeUploadName($pagename,$x) {
-  $x = preg_replace('/[^-\\w. ]/','',$x);
-  $x = preg_replace('/^[^[:alnum:]]+/','',$x);
-  return preg_replace('/[^[:alnum:]]+$/','',$x);
+  $x = preg_replace('/[^-\\w. ]/', '', $x);
+  $x = preg_replace('/^[^[:alnum:]]+/', '', $x);
+  return preg_replace('/[^[:alnum:]]+$/', '', $x);
 }
 
-function LinkUpload($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $FmtV,$UploadFileFmt,$LinkUploadCreateFmt,$UploadUrlFmt,
+function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
+  global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt, $UploadUrlFmt,
     $UploadPrefixFmt;
-  $upname = MakeUploadName($pagename,$path);
-  $filepath = FmtPageName("$UploadFileFmt/$upname",$pagename);
+  $upname = MakeUploadName($pagename, $path);
+  $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
   if (!file_exists($filepath)) {
     $FmtV['$LinkUrl'] = 
-      FmtPageName("\$PageUrl?action=upload&amp;upname=$upname",$pagename);
+      FmtPageName("\$PageUrl?action=upload&amp;upname=$upname", $pagename);
     $FmtV['$LinkText'] = $txt;
-    return FmtPageName($LinkUploadCreateFmt,$pagename);
+    return FmtPageName($LinkUploadCreateFmt, $pagename);
   }
-  $path = FmtPageName("$UploadUrlFmt$UploadPrefixFmt/$upname",$pagename);
-  return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
+  $path = FmtPageName("$UploadUrlFmt$UploadPrefixFmt/$upname", $pagename);
+  return LinkIMap($pagename, $imap, $path, $title, $txt, $fmt);
 }
 
 function HandleUpload($pagename) {
@@ -200,8 +200,7 @@ function dirsize($dir) {
 function FmtUploadList($pagename,$opt) {
   global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $TimeFmt;
   $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
-  $uploadurl = preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))",
-    FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename));
+  $uploadurl = FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename);
 
   $dirp = @opendir($uploaddir);
   if (!$dirp) return '';
@@ -214,9 +213,9 @@ function FmtUploadList($pagename,$opt) {
   $out = array();
   asort($filelist);
   foreach($filelist as $file=>$x) {
-    $name = preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $file);
+    $name = PUE("$uploadurl/$file");
     $stat = stat("$uploaddir/$file");
-    $out[] = "<li> <a href='$uploadurl/$name'>$file</a> ... 
+    $out[] = "<li> <a href='$name'>$file</a> ... 
       {$stat['size']} bytes ... " . strftime($TimeFmt, $stat['mtime']) 
       . "</li>";
   }
