@@ -23,7 +23,7 @@ if ($pagename=='') $pagename=$DefaultPage;
 
 if (!IsEnabled($EnableStdConfig,1)) return;
 
-if (IsEnabled($EnablePerGroupCust,1))
+if (IsEnabled($EnablePGCust,1))
   include_once("$FarmD/scripts/pgcust.php");
 
 ## Browser cache-control.  If this is a cacheable action (e.g., browse,
