@@ -92,6 +92,7 @@ $PageAttributes = array(
   'passwdedit' => '$[Set new edit password:]',
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
+setlocale(LC_CTYPE,'en_US');
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -178,7 +179,9 @@ if ($action=='') $action='browse';
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
-  $pagename = MakePageName('',$match[1]);
+  $pagename = MakePageName('',urldecode($match[1]));
+if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
+  $pagename=utf8_decode($pagename);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -681,6 +684,7 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
   global $MarkupTable,$MarkupRules;
   unset($MarkupRules);
   if (preg_match('/^([<>])?(.+)$/',$cmd,$m)) {
+    $MarkupTable[$id]['cmd']=$cmd;
     $MarkupTable[$m[2]]['dep']=array($id=>$m[1]);
     if (!$m[1]) $m[1]='=';
     if (@$MarkupTable[$m[2]]['seq']) {
@@ -743,9 +747,9 @@ function HandleBrowse($pagename) {
   SetPage($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
     <a href='\$PageUrl?action=edit'>\$PageName</a>)</i></p>\$HTMLVSpace\n");
+  $text = $page['text'];
   if (@!$_GET['from']) {
     $PageRedirectFmt = '';
-    $text = $page['text'];
     if (preg_match('/\\[:redirect\\s+(.+?):\\]/',$text,$match)) {
       $rname = MakePageName($pagename,$match[1]);
       if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
