@@ -33,6 +33,8 @@ if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableWikiTrails,1))
   include_once("$FarmD/scripts/trails.php");
+if (IsEnabled($EnableStdWikiStyles,1))
+  include_once("$FarmD/scripts/wikistyles.php");
 if (IsEnabled($EnableMailPosts,0))
   include_once("$FarmD/scripts/mailposts.php");
 if (IsEnabled($EnableDiag,0)) 
