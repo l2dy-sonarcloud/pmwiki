@@ -92,7 +92,7 @@ function MakeTrailPath($pagename,$trailname) {
   $crumbs = '';
   for($i=0;$i<count($t);$i++) {
     if ($t[$i]['pagename']==$pagename) {
-      while ($i>'' && $t[$i]['depth']>0) {
+      while (@$t[$i]['depth']>0) {
         $crumbs = $TrailPathSep.$t[$i]['markup'].$crumbs;
         $i = @$t[$i]['parent'];
       }
