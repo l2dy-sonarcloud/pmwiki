@@ -36,16 +36,25 @@ function HandleRuleset($pagename) {
   print Ruleset();
 }
 
-function Elapsed($a,$b=NULL) {
-  if (!$b) $b = microtime();
-  list($au,$as) = explode(' ',$a);
-  list($bu,$bs) = explode(' ',$b);
-  return round($bs + $bu - $as - $au,2);
+function DisplayStopWatch() {
+  global $StopWatch;
+  StopWatch('now');
+  $u = $StopWatch[0];
+  $au=$u; 
+  $out[] = "<table><th>Event</th><th>Time</th><th>Cumulative</th>\n";
+  for($i=0;$i<count($StopWatch);$i++) {
+    list($bu,$bevent) = explode(' ',$StopWatch[$i],2);
+    $t = sprintf('%.02f',$bu-$au);
+    $c = sprintf('%.02f',$bu-$u);
+    $out[] = "<tr><td>$bevent</td>
+      <td align='right'>$t</td><td align='right'>$c</td></tr>";
+    $au=$bu; 
+  }
+  array_pop($StopWatch);
+  $out[] = '</table>';
+  return implode('',$out);
 }
 
-$FmtVP['/\\$ElapsedPmWiki/e'] = 
-  "Elapsed(\$GLOBALS['StopWatch']['PmWiki'])";
-$FmtVP['/\\$ElapsedMarkup/e'] =
-  "Elapsed(\$GLOBALS['StopWatch']['MarkupToHTML'],
-    \$GLOBALS['StopWatch']['MarkupToHTMLEnd'])";
+$FmtP['/\\$StopWatch/e'] = 'DisplayStopWatch()';
+
 ?>
