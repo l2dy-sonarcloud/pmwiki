@@ -577,7 +577,8 @@ function ReadPage($pagename) {
 function WritePage($pagename,$page) {
   global $WikiDir,$LastModFile;
   $WikiDir->write($pagename,$page);
-  if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
+  if ($LastModFile && !@touch($LastModFile)) 
+    { unlink($LastModFile); touch($LastModFile); fixperms($LastModFile); }
 }
 
 function PageExists($pagename) {
