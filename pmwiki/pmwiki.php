@@ -455,9 +455,23 @@ function PrintFmt($pagename,$fmt) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
+  if (preg_match('/^wiki:(.+)$/',$x,$match)) 
+    { PrintWikiPage($pagename,$match[1]); return; }
   echo $x;
 }
 
+function PrintWikiPage($pagename,$wikilist=NULL) {
+  if (is_null($wikilist)) $wikilist=$pagename;
+  $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
+  foreach($pagelist as $p) {
+    if (PageExists($p)) {
+      $page = ReadPage($p,'');
+      if ($page['text']) echo MarkupToHTML($pagename,$page['text']);
+      return;
+    }
+  }
+}
+   
 function HandleBrowse($pagename) {
   global $FmtV,$HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
   # handle display of a page
