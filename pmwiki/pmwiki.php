@@ -123,6 +123,8 @@ if (!$pagename &&
 include_once('local/config.php');
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
+SDV($ImgExtPattern,"\\.(?:gif|jpg|jpeg|png)");
+SDV($ImgTagFmt,"<img src='\$LinkUrl' alt='\$LinkAlt' />");
 
 $MarkupPatterns[50]["/\\r/"] = '';
 $MarkupPatterns[100]["/\\[([=@])(.*?)\\1\\]/se"] =
@@ -136,9 +138,12 @@ $MarkupPatterns[4000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
 $MarkupPatterns[4100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
 $MarkupPatterns[4200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
-  "Keep(MakeLink(\$pagename,'$1',NULL,'$2'))";
+  "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
 $MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
   "Keep(MakeLink(\$pagename,'$0','$1'))";
+$MarkupPatterns[4350]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
+  "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
+    \$GLOBALS['ImgTagFmt']))";
 $MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
   "Keep(MakeLink(\$pagename,'$0','$0'))";
 $MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
@@ -388,40 +393,46 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
-function LinkIMap($pagename,$match,$txt) {
+function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap;
-  @list($tgt,$imap,$path,$q,$title) = $match;
   $path = str_replace(' ','%20',$path);
-  $url = str_replace('$1',$path,$IMap[$imap]);
-  return "<a class='urllink' href='$url'>$txt</a>";
+  $FmtV['$LinkUrl'] = str_replace('$1',$path,$IMap[$imap]);
+  $FmtV['$LinkText'] = $txt;
+  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
+  if (!$fmt) $fmt="<a class='urllink' href='\$LinkUrl'>\$LinkText</a>";
+  return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
-function LinkPage($pagename,$match,$txt) {
+function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $LinkPageExistsFmt,$LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
   $PageNameChars = '-[:alnum:]';
-  @list($tgt,$imap,$path,$q,$title) = $match;
   preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$path,$m);
   if (!$m[1]) $group=FmtPageName('$Group',$pagename);
   else $group=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
   $name = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
   $tgtname = "$group.$name";
-  if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
-  elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
-  else $fmt=$LinkPageCreateFmt;
+  if (!$fmt) {
+    if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
+    elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
+    else $fmt=$LinkPageCreateFmt;
+  }
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($fmt,$tgtname);
 }
 
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
-  global $LinkPattern,$LinkFunctions,$UrlExcludeChars;
+  global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt;
   $t = preg_replace('/[()]/','',trim($tgt));
-  preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$match);
-  if (!$match[1]) $match[1]='<:page>';
+  preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
+  if (!$m[1]) $m[1]='<:page>';
   if (is_null($txt)) {
     $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-    if ($match[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
+    if ($m[1]=='<:page>') $txt = preg_replace('!^.*/!','',$txt);
   }
-  $out = $LinkFunctions[$match[1]]($pagename,$match,$txt.$suffix);
+  if (preg_match("/^($LinkPattern)?([^$UrlExcludeChars]+$ImgExtPattern)(\"(.*)\")?$/",$txt,$tm)) 
+    $txt = $LinkFunctions[$tm[1]]($pagename,$tm[1],$tm[2],@$tm[4],'',$ImgTagFmt);
+  else $txt .= $suffix;
+  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt);
   return $out;
 }
 
