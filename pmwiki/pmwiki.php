@@ -337,6 +337,8 @@ function FmtPageName($fmt,$pagename) {
   return $fmt;
 }
 
+## class PageStore holds objects that store pages via the native
+## filesystem.
 class PageStore {
   var $dirfmt;
   function PageStore($d='wiki.d') { $this->dirfmt=$d; }
@@ -415,6 +417,12 @@ function PageExists($pagename) {
   return false;
 }
 
+function RetrieveAuthPage($pagename,$level,$authprompt=true) {
+  global $AuthFunction;
+  if (!function_exists($AuthFunction)) return ReadPage($pagename);
+  return $AuthFunction($pagename,$level,$authprompt);
+}
+
 function SetPage($pagename,$page) {
   global $PageTitle,$TimeFmt,$LastModified,$LastModifiedBy,$LastModifiedHost;
   $PageTitle = FmtPageName('$Name',(@$page['name'])?$page['name']:$pagename);
@@ -469,7 +477,7 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
   $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
   foreach($pagelist as $p) {
     if (PageExists($p)) {
-      $page = ReadPage($p,'');
+      $page = RetrieveAuthPage($p,'read',false);
       if ($page['text']) 
         echo MarkupToHTML($pagename,ProcessIncludes($pagename,$page['text']));
       return;
@@ -493,7 +501,7 @@ function ProcessIncludes($pagename,$text) {
       "Keep(\$K0['$1'].htmlentities(PSS('$2'),ENT_NOQUOTES).\$K1['$1'])",$text);
     if (!preg_match("/\\[:include\\s+([^#]+?)(#(\\w[-.:\\w]*)?(#(\\w[-.:\\w]*)?)?)?:\\]/",$text,$match)) break;
     @list($inclrepl,$inclname,$a,$aa,$b,$bb) = $match;
-    $inclpage = ReadPage(MakePageName($pagename,$inclname));
+    $inclpage  =RetrieveAuthPage(MakePageName($pagename,$inclname),'read',false);
     $incltext = $inclpage['text'];
     $FmtV['$BadAnchor'] = '';
     if ($bb && !ctype_digit($bb) && strpos($incltext,"[[#$bb]]")===false)
@@ -654,8 +662,8 @@ function HandleBrowse($pagename) {
   global $FmtV,$GroupHeaderFmt,$GroupFooterFmt,
     $HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
   Lock(1);
-  $page = ReadPage($pagename);
-  if (!$page) Abort('Invalid page name');
+  $page = RetrieveAuthPage($pagename,'read');
+  if (!$page) Abort('?cannot read $pagename');
   SetPage($pagename,$page);
   $hdname = FmtPageName($GroupHeaderFmt,$pagename);
   $ftname = FmtPageName($GroupFooterFmt,$pagename);
@@ -800,7 +808,8 @@ function HandleEdit($pagename) {
     $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PagePreviewFmt,$PageEndFmt;
   $IsPagePosted = false;
   Lock(2);
-  $page = ReadPage($pagename);
+  $page = RetrieveAuthPage($pagename,'edit');
+  if (!$page) Abort("?cannot edit $pagename"); 
   SetPage($pagename,$page);
   $new = $page;
   foreach((array)$EditFields as $k) 
@@ -816,8 +825,9 @@ function HandleEdit($pagename) {
 
 function HandleSource($pagename) {
   Lock(1);
+  $page = RetrieveAuthPage($pagename,'read');
+  if (!$page) Abort("?cannot source $pagename");
   header("Content-type: text/plain");
-  $page = ReadPage($pagename);
   echo $page['text'];
 }
 
