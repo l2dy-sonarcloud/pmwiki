@@ -34,6 +34,7 @@ body {
 }
 
 #printfoot {
+  clear:both;
   margin-top:1em; 
   border-top:5px solid #a0a0a0; 
   font-size:smaller; 
