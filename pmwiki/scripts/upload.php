@@ -129,7 +129,7 @@ function HandleUpload($pagename) {
 }
 
 function HandlePostUpload($pagename) {
-  global $UploadVerifyFunction,$UploadFileFmt;
+  global $UploadVerifyFunction,$UploadFileFmt,$LastModFile;
   $page = RetrieveAuthPage($pagename,'upload');
   if (!$page) Abort("?cannot upload to $pagename");
   $uploadfile = $_FILES['uploadfile'];
@@ -146,6 +146,7 @@ function HandlePostUpload($pagename) {
     if (!move_uploaded_file($uploadfile['tmp_name'],$filepath))
       { Abort("?cannot move uploaded file to $filepath"); return; }
     fixperms($filepath);
+    if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
     $result = "upresult=success";
   }
   Redirect($pagename,"\$PageUrl?action=upload&upname=$upname&$result");

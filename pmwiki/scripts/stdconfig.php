@@ -23,6 +23,23 @@ if ($pagename=='') $pagename=$DefaultPage;
 
 if (!IsEnabled($EnableStdConfig,1)) return;
 
+## Browser cache-control.  If this is a cacheable action (e.g., browse,
+## diff), then set the Last-Modified header to the time the site was 
+## last modified.  If the browser has provided us with a matching 
+## If-Modified-Since request header, we can return 304 Not Modified.
+SDV($LastModFile,"$WorkDir/.lastmod");
+$v = @filemtime($LastModFile);
+if ($v && in_array($action,(array)$CachedActions)) {
+  $HTTPLastMod=gmstrftime('%a, %d %b %Y %H:%M:%S GMT',$v);
+  $HTTPHeaders[] = "Cache-Control: no-cache";
+  $HTTPHeaders[] = "Last-Modified: $HTTPLastMod";
+  if (@$_SERVER['HTTP_IF_MODIFIED_SINCE']==$HTTPLastMod) {
+    header("HTTP/1.0 304 Not Modified");
+    exit();
+  }
+}
+
+## Scripts that are part of a standard PmWiki distribution.
 if (IsEnabled($EnablePerGroupCust,1))
   include_once("$FarmD/scripts/pgcust.php");
 if (IsEnabled($EnableStdMarkup,1))
