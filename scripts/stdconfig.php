@@ -28,14 +28,14 @@ if (!IsEnabled($EnableStdConfig,1)) return;
 ## last modified.  If the browser has provided us with a matching 
 ## If-Modified-Since request header, we can return 304 Not Modified.
 SDV($LastModFile,"$WorkDir/.lastmod");
-$v = @filemtime($LastModFile);
-if ($v && in_array($action,(array)$CacheActions)) {
-  $HTTPLastMod=gmstrftime('%a, %d %b %Y %H:%M:%S GMT',$v);
-  $HTTPHeaders[] = "Cache-Control: no-cache";
-  $HTTPHeaders[] = "Last-Modified: $HTTPLastMod";
-  if (@$_SERVER['HTTP_IF_MODIFIED_SINCE']==$HTTPLastMod) {
-    header("HTTP/1.0 304 Not Modified");
-    exit();
+if (@$EnableIMSCaching && in_array($action,(array)$CacheActions)) {
+  $v = @filemtime($LastModFile);
+  if ($v) {
+    $HTTPLastMod=gmstrftime('%a, %d %b %Y %H:%M:%S GMT',$v);
+    $HTTPHeaders[] = "Cache-Control: no-cache";
+    $HTTPHeaders[] = "Last-Modified: $HTTPLastMod";
+    if (@$_SERVER['HTTP_IF_MODIFIED_SINCE']==$HTTPLastMod) 
+      { header("HTTP/1.0 304 Not Modified"); exit(); }
   }
 }
 
