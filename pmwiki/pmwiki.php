@@ -85,8 +85,8 @@ $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$WikiHeaderFmt = '[:INCLUDE $Group.GroupHeader:][:nl:]';
-$WikiFooterFmt = '[:nl:][:INCLUDE $Group.GroupFooter:]';
+$GroupHeaderFmt = '[:include $Group.GroupHeader:][:nl:]';
+$GroupFooterFmt = '[:nl:][:include $Group.GroupFooter:]';
 $PagePathFmt = array('$Group.$1','$1.$1');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
@@ -183,11 +183,19 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
     "FmtPageName('$$1',\$pagename)";
   $MarkupPatterns[420]["/\{\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost)}/e"] =
     "\$GLOBALS['$1']";
-  $MarkupPatterns[500]["/\\[:include\\s+(.+?):\\]/e"] = 
-    "IncludeText(\$pagename,'$0')";
-#### 1000: conditional markups
-  $MarkupPatterns[1500]["/\\[:INCLUDE\\s+(.+?):\\]/e"] =
-    "IncludeText(\$pagename,'$0')";
+#### 1000: conditional markups, includes, group header/footers
+  $MarkupPatterns[1200]["/\\[:(if[^\n]*?):\\](.*?)(?=\\[:if[^\n]*:\\]|$)/se"]=
+    "CondText(\$pagename,PSS('$1'),PSS('$2'))";
+  $MarkupPatterns[1300]["/\\[:(include\\s+.+?):\\]/e"] = 
+    "PRR().IncludeText(\$pagename,'$1')";
+  $MarkupPatterns[1400]['/\\[:nogroupheader:\\]/e'] =
+    "PZZ(\$GLOBALS['GroupHeaderFmt']='')";
+  $MarkupPatterns[1400]['/\\[:nogroupfooter:\\]/e'] =
+    "PZZ(\$GLOBALS['GroupFooterFmt']='')";
+  $MarkupPatterns[1420]['/\\[:groupheader:\\]/e'] = 
+    "PRR().FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename)";
+  $MarkupPatterns[1420]['/\\[:groupfooter:\\]/e'] = 
+    "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)";
 #### 2000: line breaks
   $MarkupPatterns[2200]["/(\\\\*)\\\\\n/e"] =
     "Keep(' '.str_repeat('<br />',strlen('$1')))";
@@ -196,12 +204,12 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[2800]["\n"] = 
     '$RedoMarkupLine=1; return explode("\n",$x);';
 #### 3000: directives
-  $MarkupPatterns[3200]['[:noheader:]'] = 
-  "\$GLOBALS['PageHeaderFmt']='';";
-  $MarkupPatterns[3220]['[:nofooter:]'] =
-  "\$GLOBALS['PageFooterFmt']='';";
-  $MarkupPatterns[3240]['[:notitle:]'] =
-  "\$GLOBALS['PageTitleFmt']='';";
+  $MarkupPatterns[3200]['/\\[:noheader:\\]/e'] = 
+    "PZZ(\$GLOBALS['PageHeaderFmt']='')";
+  $MarkupPatterns[3220]['/\\[:nofooter:\\]/e'] = 
+    "PZZ(\$GLOBALS['PageFooterFmt']='')";
+  $MarkupPatterns[3240]['/\\[:notitle:\\]/e'] = 
+    "PZZ(\$GLOBALS['PageTitleFmt']='')";
   $MarkupPatterns[3300]['/\\[:title\\s(.*?):\\]/e'] =
     "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))";
   $MarkupPatterns[3320]['/\\[:keywords\\s(.*?):\\]/e'] =
@@ -258,6 +266,8 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[8500]["/$KeepToken(\\d+?)$KeepToken/e"] =
     '$GLOBALS[\'KPV\'][\'$1\']';
 
+$Conditions['false'] = 'false';
+
 SDVA($BlockMarkups,array(
   'block' => array('','',''),
   'ul' => array('<ul><li>','</li><li>','</li></ul>'),
@@ -282,6 +292,7 @@ function stripmagic($x)
 function PSS($x) 
   { return str_replace('\\"','"',$x); }
 function PZZ($x,$y='') { return ''; }
+function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
@@ -515,17 +526,28 @@ function Keep($x,$level='') {
   return $KeepToken.$KPCount.$level.$KeepToken;
 }
 
+function CondText($pagename,$condspec,$condtext) {
+  global $Conditions;
+  if (!preg_match("/^(\\S+)\\s*(!?)\\s*(\\S+)?\\s*(.*)$/",
+    $condspec,$match)) return '';
+  @list($condstr,$condtype,$not,$condname,$condparm) = $match;
+  if (isset($Conditions[$condname])) {
+    $tf = @eval("return ".$Conditions[$condname].";");
+    if (!$tf && !$not) $condtext='';
+  }
+  return $condtext;
+}
+  
 function IncludeText($pagename,$inclspec) {
-  global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV,$RedoMarkupLine;
+  global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV;
   SDV($MaxIncludes,10);
   SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
-  if (preg_match("/\\[:(include|INCLUDE)\\s+([^#]+?)\\]/",$inclspec,$match)) {
-    @list($inclrepl,$incltype,$inclname) = $match;
+  if (preg_match("/^(include|INCLUDE)\\s+([^#]+)$/",$inclspec,$match)) {
+    @list($inclstr,$incltype,$inclname) = $match;
     $inclname = MakePageName($pagename,$inclname);
     if ($inclname==$pagename) return '';
     $inclpage=RetrieveAuthPage($inclname,'read',false,'');
-    $RedoMarkupLine++;
     return htmlentities($inclpage['text'],ENT_QUOTES);
   }
   return Keep($inclspec);
@@ -655,8 +677,7 @@ function MarkupToHTML($pagename,$text) {
    
 function HandleBrowse($pagename) {
   # handle display of a page
-  global $FmtV,$WikiHeaderFmt,$WikiFooterFmt,
-    $HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
+  global $FmtV,$HandleBrowseFmt,$PageStartFmt,$PageEndFmt,$PageRedirectFmt;
   Lock(1);
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort('?cannot read $pagename');
@@ -671,8 +692,7 @@ function HandleBrowse($pagename) {
       if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
     }
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
-  $text = FmtPageName($WikiHeaderFmt,$pagename).$text.
-    FmtPageName($WikiFooterFmt,$pagename);
+  $text = '[:groupheader:]'.$text.'[:groupfooter:]';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
@@ -786,10 +806,9 @@ function PostRecentChanges($pagename,&$page,&$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved,$WikiHeaderFmt,$WikiFooterFmt,$FmtV,$PagePreviewFmt;
+  global $IsPageSaved,$FmtV,$PagePreviewFmt;
   if (!$IsPageSaved && @$_REQUEST['preview']) {
-    $text = FmtPageName($WikiHeaderFmt,$pagename).$new['text'].
-      FmtPageName($WikiFooterFmt,$pagename);
+    $text = '[:groupheader:]'.$new['text'].'[:groupfooter:]';
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
   } else $PagePreviewFmt = '';
 }
