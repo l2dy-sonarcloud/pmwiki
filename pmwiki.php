@@ -127,6 +127,34 @@ $HandleActions = array(
   'edit' => 'HandleEdit', 'source' => 'HandleSource', 
   'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
 
+$Conditions['false'] = 'false';
+
+$BlockMarkups = array(
+  'block' => array('','',''),
+  'ul' => array('<ul><li>','</li><li>','</li></ul>'),
+  'dl' => array('<dl>','</dd>','</dd></dl>'),
+  'ol' => array('<ol><li>','</li><li>','</li></ol>'),
+  'p' => array('<p>','','</p>'),
+  'indent' => 
+     array("<div class='indent'>","</div><div class='indent'>",'</div>'),
+  'pre' => array('<pre> ',' ','</pre>'),
+  'table' => array("<table width='100%'>",'','</table>'));
+
+$WikiStylePattern = '%%|%[A-Za-z][-,=:#\\w\\s]*%';
+$WikiStyleTags = array(
+  'bgcolor' => array('style'=>'background-color:$value;'),
+  'class' => array('class'=>'$value'),
+  'target' => array('a'=>'target=\'$value\''),
+  'rel' => array('a'=>'rel=\'$value\''),
+  'hspace' => array('img'=>'hspace=\'$value\''),
+  'vspace' => array('img'=>'vspace=\'$1\''),
+  'width' => array('img'=>'width=\'$1\''),
+  'height' => array('img'=>'height=\'$1\''));
+$WikiStyleCSSPatterns[] = 'color|background-color|font-size|
+  font-family|font-style|font-weight|text-decoration';
+
+$CurrentTime = strftime($TimeFmt,$Now);
+
 foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
   as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
@@ -218,21 +246,21 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[3340]['/\\[:comments .*?:\\]/'] = '';
 #### 4000: links
   $MarkupPatterns[4200]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e'] =
-    "Keep(\"<a name='$1' id='$1'></a>\")";
+    "Keep(\"<a name='$1' id='$1'></a>\",'7')";
   $MarkupPatterns[4300]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
-    "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
-  $MarkupPatterns[4320]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'))";
+    "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'7')";
+  $MarkupPatterns[4320]["/\\[\\[([^\\]]+?)-+&gt;\\s*(.*?)\\]\\]($SuffixPattern)/e"] = "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'7')";
   $MarkupPatterns[4340]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
-    "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
+    "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'7')";
   $MarkupPatterns[4400]['/\\bmailto:(\\S+)/e'] =
-    "Keep(MakeLink(\$pagename,'$0','$1'))";
+    "Keep(MakeLink(\$pagename,'$0','$1'),'7')";
   $MarkupPatterns[4420]["/\\b($LinkPattern)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e"] =
     "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','',
-      \$GLOBALS['ImgTagFmt']))";
+      \$GLOBALS['ImgTagFmt']),'7')";
   $MarkupPatterns[4440]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
-    "Keep(MakeLink(\$pagename,'$0','$0'))";
+    "Keep(MakeLink(\$pagename,'$0','$0'),'7')";
   $MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
-    "Keep(MakeLink(\$pagename,'$0'))";
+    "Keep(MakeLink(\$pagename,'$0'),'7')";
 #### 5000: block markups
   $MarkupPatterns[5200]['/^(\\*+)/'] = '<:ul,$1>';
   $MarkupPatterns[5220]['/^(#+)/'] = '<:ol,$1>';
@@ -261,6 +289,9 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
     '<code>$1</code>';
   $MarkupPatterns[6300]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
     "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
+#### 6999: Restore keeps that still need WikiStyle processing ('7')
+  $MarkupPatterns[6999]["/$KeepToken(\\d+?,7)$KeepToken/e"] =
+    '$GLOBALS[\'KPV\'][\'$1\']';
 #### 7000: wikistyles
   $MarkupPatterns[7300]['%'] =
     'return ApplyStyles($x);';
@@ -268,20 +299,6 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[8500]["/$KeepToken(\\d+?)$KeepToken/e"] =
     '$GLOBALS[\'KPV\'][\'$1\']';
 
-$Conditions['false'] = 'false';
-
-SDVA($BlockMarkups,array(
-  'block' => array('','',''),
-  'ul' => array('<ul><li>','</li><li>','</li></ul>'),
-  'dl' => array('<dl>','</dd>','</dd></dl>'),
-  'ol' => array('<ol><li>','</li><li>','</li></ol>'),
-  'p' => array('<p>','','</p>'),
-  'indent' => 
-     array("<div class='indent'>","</div><div class='indent'>",'</div>'),
-  'pre' => array('<pre> ',' ','</pre>'),
-  'table' => array("<table width='100%'>",'','</table>')));
-
-$CurrentTime = strftime($TimeFmt,$Now);
 
 if (!function_exists($HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
@@ -524,6 +541,7 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
 function Keep($x,$level='') {
   # Keep preserves a string from being processed by wiki markups
   global $KeepToken,$KPV,$KPCount;
+  if ($level) $level=",$level";
   $KPCount++; $KPV[$KPCount.$level]=$x;
   return $KeepToken.$KPCount.$level.$KeepToken;
 }
@@ -632,8 +650,7 @@ function FormatTableRow($x) {
 }
 
 function ApplyStyles($x) {
-  global $WikiStylePattern,$WikiStyle;
-  SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"]*%');
+  global $WikiStylePattern,$WikiStyles,$WikiStyleTags,$WikiStyleCSSPatterns;
   $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
   $out = array();
   $style = array();
@@ -646,14 +663,33 @@ function ApplyStyles($x) {
         $m = array_shift($match);
         if (@$m[2]) $style[$m[1]]=$m[3];
         else if (!isset($WikiStyles[$m[1]])) $style['class']=$m[1];
-        else $style=array_merge($style,(array)$WikiStyle[$m[1]]);
+        else $style=array_merge($style,(array)$WikiStyles[$m[1]]);
       }
       if (@$style['define']) {
         $d = $style['define']; unset($style['define']);
-        $WikiStyle[$d] = $style;
+        $WikiStyles[$d] = $style;
       }
     }
     $p = array_shift($parts);
+    if ($p=='') continue;
+    $elems=array();
+    foreach($style as $k=>$v) {
+      if (isset($WikiStyleTags[$k])) {
+        foreach($WikiStyleTags[$k] as $tag=>$w) 
+          $elems[$tag][] = str_replace('$value',$v,$w);
+      } 
+      foreach((array)$WikiStyleCSSPatterns as $prop) {
+        if (preg_match("/^($prop)$/x",$k)) 
+          { $elems['style'][]="$k:$v;"; break; }
+      }
+    }
+    $spanattr='';
+    foreach($elems as $tag=>$v) {
+      if ($tag=='style' || $tag=='class') 
+        $spanattr.="$tag='".implode(' ',$v)."' ";
+      else $p=preg_replace("/<$tag\b/","<$tag ".implode(' ',$v),$p);
+    }
+    if ($spanattr) $p="<span $spanattr>$p</span>";
     $out[] = $p;
   }
   return implode('',$out);
