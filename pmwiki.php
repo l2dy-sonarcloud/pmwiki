@@ -561,12 +561,14 @@ function IncludeText($pagename,$inclspec) {
           $itext=preg_replace("/(.)[^\n]*\\[\\[#$bb\\]\\].*$/s",'$1',$itext,1);
         continue;
       } 
-      if (preg_match('/^(l|lines)=(\\d*)(\\.\\.(\\d*))?$/',$o,$match)) {
+      if (preg_match('/^(lines?|paras?)=(\\d*)(\\.\\.(\\d*))?$/',
+          $o,$match)) {
         @list($x,$unit,$a,$dots,$b) = $match;
+        $upat = (substr($unit,0,1)=='p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
         if (!$dots) { $b=$a; $a=0; }
         if ($a>0) $a--;
-        $itext=preg_replace("/^(([^\n]*\n)\{0,$b}).*$/s",'$1',$itext,1);
-        $itext=preg_replace("/^([^\n]*\n)\{0,$a}/s",'',$itext,1); 
+        $itext=preg_replace("/^(($upat)\{0,$b}).*$/s",'$1',$itext,1);
+        $itext=preg_replace("/^($upat)\{0,$a}/s",'',$itext,1); 
         continue;
       }
     }
