@@ -65,6 +65,7 @@ $EditMessageFmt = '';
 $EditFields = array('text');
 $EditFunctions = array('RestorePage','ReplaceOnSave','PostPage',
   'PostRecentChanges','PreviewPage');
+$AsSpacedFunction = 'AsSpaced';
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
@@ -256,6 +257,15 @@ function StopWatch($x) {
   }
   list($usec,$sec) = explode(' ',microtime());
   $GLOBALS['StopWatch'][] = ($sec+$usec)." $x"; 
+}
+
+## AsSpaced converts a string with WikiWords into a spaced version
+## of that string.  (It can be overridden via $AsSpacedFunction.)
+function AsSpaced($text) {
+  $text = preg_replace('/([[:lower:]\\d])([[:upper:]])/','$1 $2',$text);
+  $text = preg_replace('/(?<![-\\d])(\\d+( |$))/',' $1',$text);
+  return preg_replace('/([[:upper:]])([[:upper:]][[:lower:]\\d])/',
+    '$1 $2',$text);
 }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
@@ -686,6 +696,14 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
+function WikiLink($pagename,$word) {
+  global $WikiWords,$AsSpacedFunction;
+  $text = (preg_match('/(?<![\\w!])spaced?/',$WikiWords)) ? 
+    $AsSpacedFunction($word) : $word;
+  if (stristr($word,'!link')!==false) return $text;
+  return MakeLink($pagename,$word,$text);
+}
+  
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap,$IMapLinkFmt,$UrlLinkFmt;
   $path = str_replace(' ','%20',$path);

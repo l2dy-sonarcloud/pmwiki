@@ -144,7 +144,7 @@ Markup('img','<urllink',
 
 ## bare wikilinks
 Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
-  "Keep(MakeLink(\$pagename,'$0'),'L')");
+  "Keep(WikiLink(\$pagename,'$0'),'L')");
 
 ## escaped `WikiWords
 Markup('`wikiword','<wikilink',"/`($WikiWordPattern)/e","Keep('$1')");
