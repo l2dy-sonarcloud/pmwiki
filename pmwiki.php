@@ -1012,7 +1012,7 @@ function HandleEdit($pagename) {
     str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
   SDV($HandleEditFmt,array(&$PageStartFmt,
-    &$PageEditFmt,'wiki:PmWiki.EditQuickReference',&$PagePreviewFmt,
+    &$PageEditFmt,'wiki:$[PmWiki.EditQuickReference]',&$PagePreviewFmt,
     &$PageEndFmt));
   PrintFmt($pagename,$HandleEditFmt);
 }
