@@ -416,7 +416,7 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
-  if (IsEnabled($EnableRedirect,0)) {
+  if (IsEnabled($EnableRedirect,1)) {
     header("Location: $pageurl");
     header("Content-type: text/html");
     echo "<html><head>
