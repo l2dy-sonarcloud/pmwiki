@@ -26,14 +26,6 @@ $WikiTitle = 'PmWiki';
 ## See PmWiki.LayoutBasics and Cookbook.Skins.
 # $Skin = 'pmwiki';
 
-##  Set $SpaceWikiWords if you want WikiWords to automatically 
-##  have spaces before each sequence of capital letters.
-# $SpaceWikiWords = 1;                     # turn on WikiWord spacing
-
-##  Set $LinkWikiWords to zero if you don't want WikiWord links (i.e.,
-##  all links are made using [[...]].
-# $LinkWikiWords = 0;                      # disable WikiWord links
-
 ##  If you want uploads enabled on your system, set $EnableUpload=1.
 ##  You'll also need to set a default upload password, or else set
 ##  passwords on individual groups and pages.  For more information
@@ -51,6 +43,37 @@ $WikiTitle = 'PmWiki';
 ##  smart manner.  Note that you may want to have caching disabled while
 ##  adjusting configuration files or layout templates.
 # $EnableIMSCaching = 1;                   # allow browser caching
+
+##  Set $SpaceWikiWords if you want WikiWords to automatically 
+##  have spaces before each sequence of capital letters.
+# $SpaceWikiWords = 1;                     # turn on WikiWord spacing
+
+##  Set $LinkWikiWords to zero if you don't want WikiWord links (i.e.,
+##  all links are made using [[...]].
+# $LinkWikiWords = 0;                      # disable WikiWord links
+
+##  If you want only the first occurrence of a WikiWord to be converted
+##  to a link, set $WikiWordCountMax=1.
+# $WikiWordCountMax = 1;                   # converts only first WikiWord
+# $WikiWordCountMax = 0;                   # another way to disable WikiWords
+
+##  The $WikiWordCount array can be used to control the number of times
+##  a WikiWord is converted to a link.  This is useful for disabling
+##  or limiting specific WikiWords.
+# $WikiWordCount['PhD'] = 0;               # disables 'PhD'
+# $WikiWordCount['PmWiki'] = 1;            # convert only first 'PmWiki'
+
+##  By default, PmWiki is configured such that only the first occurrence
+##  of 'PmWiki' in a page is treated as a WikiWord.  If you want to 
+##  restore 'PmWiki' to be treated like other WikiWords, uncomment the
+##  line below.
+# unset($WikiWordCount['PmWiki']);
+
+##  If you want to disable WikiWords matching a pattern, you can use 
+##  something like the following.  Note that the first argument has to 
+##  be different for each call to Markup().  The example below disables
+##  WikiWord links like COM1, COM2, COM1234, etc.
+# Markup('COM\d+', '<wikilink', '/\\bCOM\\d+/', "Keep('$0')");
 
 ##  $DiffKeepDays specifies the minimum number of days to keep a page's
 ##  revision history.  The default is 3650 (approximately 10 years).
