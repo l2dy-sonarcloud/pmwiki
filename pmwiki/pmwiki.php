@@ -749,7 +749,7 @@ function HandleBrowse($pagename) {
       if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
     }
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
-  $text = '[:groupheader:]'.$text.'[:groupfooter:]';
+  $text = '[:groupheader:]'.@$text.'[:groupfooter:]';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
