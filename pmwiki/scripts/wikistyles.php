@@ -37,7 +37,7 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   SDVA($WikiStyleApply,array(
     'item' => 'li|dt',
     'list' => 'ul|ol|dl',
-    'block' => 'p(?!\\sclass=)|div|ul|ol|dl|li|dt|pre',
+    'block' => 'p(?!\\sclass=)|div|ul|ol|dl|li|dt|pre|h[1-6]',
     'p' => 'p(?!\\sclass=)'));
   foreach(array('item','list','block','p') as $c)
     SDV($WikiStyle[$c],array('apply'=>$c));
