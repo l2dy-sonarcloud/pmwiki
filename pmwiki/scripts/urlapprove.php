@@ -12,17 +12,18 @@
     WhiteUrlPatterns is rendered using $UnapprovedLinkFmt.
 
     The script also provides ?action=approveurls and ?action=approvesites, 
-    which scan the current page for any new URLs and automatically adds 
-    them to the first page of $UrlApprovalPagesFmt.
+    which scan the current page for any new URLs to be automatically added
+    the first page of $UrlApprovalPagesFmt.
 */
 
 $LinkFunctions['http:'] = 'LinkHTTP';
 $LinkFunctions['https:'] = 'LinkHTTP';
-$ApprovedUrlPagesFmt = array('Main.ApprovedURLs');
+$ApprovedUrlPagesFmt = array('Main.ApprovedUrls');
 $UnapprovedLinkFmt = 
   "\$LinkText<a class='apprlink' href='\$PageUrl?action=approveurls'>$[(approve links)]</a>";
 $HTMLStylesFmt[] = '.apprlink { font-size:smaller; }';
-$ApproveUrlPattern = "\\bhttps?:[^\\s$UrlExcludeChars]+";
+$ApproveUrlPattern = 
+  "\\bhttps?:[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]";
 $WhiteUrlPatterns = array();
 $HandleActions['approveurls'] = 'HandleApprove';
 $HandleActions['approvesites'] = 'HandleApprove';
@@ -33,9 +34,10 @@ function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   if (!$havereadpages) { ReadApprovedUrls($pagename); $havereadpages=true; }
   $p = str_replace(' ','%20',$path);
   $url = str_replace('$1',$p,$IMap[$imap]);
-  foreach((array)$WhiteUrlPatterns as $pat) 
+  foreach((array)$WhiteUrlPatterns as $pat) {
     if (preg_match("!^$pat(/|$)!",$url))
       return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
+  }
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($UnapprovedLinkFmt,$pagename);
 }
