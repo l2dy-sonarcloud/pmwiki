@@ -27,7 +27,7 @@ function HandleCrypt($pagename) {
       in your <i>config.php</i> file, <br />replacing <tt>'type'</tt> with
       one of <tt>'admin'</tt>, <tt>'read'</tt>, <tt>'edit'</tt>,
       or <tt>'attr'</tt>.  <br />See <a 
-      href='$ScriptUrl?p=PmWiki.PasswordsAdmin'>PasswordsAdmin</a> for more
+      href='$ScriptUrl?n=PmWiki.PasswordsAdmin'>PasswordsAdmin</a> for more
       details.</p>
       <pre class='vspace'>  \$DefaultPasswords['type']='$crypt';</pre>";
   }
