@@ -33,7 +33,8 @@ $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$FullName');
 $WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/$FullName'));
-$InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
+$InterMapFiles = array("$FarmD/scripts/intermap.txt",
+  "$FarmD/local/farmmap.txt", 'local/localmap.txt');
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
@@ -642,7 +643,7 @@ function CondText($pagename,$condspec,$condtext) {
   
 function IncludeText($pagename,$inclspec) {
   global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV;
-  SDV($MaxIncludes,10);
+  SDV($MaxIncludes,50);
   SDV($IncludeBadAnchorFmt,"include:\$FullName - #\$BadAnchor \$[not found]\n");
   $npat = '[[:alpha:]][-\\w]*';
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
