@@ -12,6 +12,7 @@
 */
 
 # the [:css:] directive allows authors to define new CSS classes
-$MarkupPatterns[3600]['/\\[:css\\s+(\\.\\w[-\\w]*\\s*\\{[^}]*})\\s*:\\]/e'] =
-  "PZZ(\$GLOBALS['HTMLStylesFmt'][]=PSS('$1\n'))";
+Markup('.class','directive',
+  '/\\[:css\\s+(\\.\\w[-\\w]*\\s*\\{[^}]*})\\s*:\\]/e',
+  "PZZ(\$GLOBALS['HTMLStylesFmt'][]=PSS('$1\n'))");
 ?>

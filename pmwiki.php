@@ -625,7 +625,8 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     $path = preg_replace('/[^-.:\\w]/','',$path);
     return "<a href='#$path'>$txt</a>";
   }
-  preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match);
+  if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
+    return '';
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
     if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
@@ -672,13 +673,14 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
   }
 }
 
-function mpcmp($a,$b) { return strcmp($a['seq'].'=',$b['seq'].'='); }
+function mpcmp($a,$b) { return @strcmp($a['seq'].'=',$b['seq'].'='); }
 function BuildMarkupRules() {
-  global $MarkupTable,$MarkupRules;
+  global $MarkupTable,$MarkupRules,$LinkPattern;
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if (@$m['pat']) $MarkupRules[$m['pat']]=$m['rep'];
+      if (@$m['pat']) 
+        $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
   }
   return $MarkupRules;
 }

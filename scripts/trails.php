@@ -27,12 +27,12 @@
     markups and the original suggestion for WikiTrails.
 */
 
-$MarkupPatterns[3800]["/&lt;&lt;\\|([^|]+)\\|&gt;&gt;/e"] =
-  "MakeTrailStop(\$pagename,'$1')";
-$MarkupPatterns[3805]["/&lt;\\|([^|]+)\\|&gt;/e"] =
-  "MakeTrailStopB(\$pagename,'$1')";
-$MarkupPatterns[3810]["/\\^\\|([^|]+)\\|\\^/e"] =
-  "MakeTrailPath(\$pagename,'$1')";
+Markup('<<|','<links','/&lt;&lt;\\|([^|]+)\\|&gt;&gt;/e',
+  "MakeTrailStop(\$pagename,'$1')");
+Markup('<|','><<|','/&lt;\\|([^|]+)\\|&gt;/e',
+  "MakeTrailStopB(\$pagename,'$1')");
+Markup('^|','<links','/\\^\\|([^|]+)\\|\\^/e',
+  "MakeTrailPath(\$pagename,'$1')");
 
 function ReadTrail($pagename,$trailname) {
   global $SuffixPattern,$GroupNamePattern,$WikiWordPattern;
