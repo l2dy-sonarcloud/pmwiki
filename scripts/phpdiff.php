@@ -32,8 +32,10 @@ function PHPDiff($old,$new)
    if ($x>'') $t2[]="$x\n\\ No newline at end of file";
 
    # build a reverse-index array using the line as key and line number as value
-   foreach($t1 as $i=>$x) $r1[$x][]=$i;
-   foreach($t2 as $i=>$x) $r2[$x][]=$i;
+   # don't store blank lines, so they won't be targets of the shortest distance
+   # search
+   foreach($t1 as $i=>$x) if ($x>'') $r1[$x][]=$i;
+   foreach($t2 as $i=>$x) if ($x>'') $r2[$x][]=$i;
 
    $a1=0; $a2=0;   # start at beginning of each list
    $actions=array();
