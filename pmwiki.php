@@ -139,10 +139,10 @@ Markup('fulltext','>_begin');
 Markup('split','>fulltext',"\n",
   '$RedoMarkupLine=1; return explode("\n",$x);');
 Markup('directives','>split');
-Markup('links','>directives');
+Markup('inline','>directives');
+Markup('links','>inline');
 Markup('block','>links');
-Markup('inline','>block');
-Markup('style','>inline');
+Markup('style','>block');
 
 $ImgExtPattern="\\.(?:gif|jpg|jpeg|png)";
 $ImgTagFmt="<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />";
