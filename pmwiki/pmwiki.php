@@ -154,19 +154,6 @@ $BlockMarkups = array(
   'pre' => array('<pre> ',' ','</pre>'),
   'table' => array("<table width='100%'>",'','</table>'));
 
-$WikiStylePattern = '%%|%[A-Za-z][-,=:#\\w\\s\'"]*%';
-$WikiStyleTags = array(
-  'bgcolor' => array('style'=>'background-color:$value;'),
-  'class' => array('class'=>'$value'),
-  'target' => array('a'=>'target=\'$value\''),
-  'rel' => array('a'=>'rel=\'$value\''),
-  'hspace' => array('img'=>'hspace=\'$value\''),
-  'vspace' => array('img'=>'vspace=\'$1\''),
-  'width' => array('img'=>'width=\'$1\''),
-  'height' => array('img'=>'height=\'$1\''));
-$WikiStyleCSSPatterns[] = 'color|background-color|font-size|
-  font-family|font-style|font-weight|text-decoration|text-align';
-
 $CurrentTime = strftime($TimeFmt,$Now);
 
 foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
@@ -562,61 +549,6 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
-function ApplyStyles($x) {
-  global $WikiStylePattern,$WikiStyle,$WikiStyleTags,$WikiStyleCSSPatterns;
-  $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
-  $parts[] = '<:>';
-  $out = array();
-  $style = array();
-  while ($parts) {
-    $WikiStyle['curr']=$style; $style=array();
-    if (preg_match("/^$WikiStylePattern\$/",$parts[0])) {
-      preg_match_all('/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w]+|([\'"]).*?\\4))?/',
-        array_shift($parts),$match,PREG_SET_ORDER);
-      while ($match) {
-        $m = array_shift($match);
-        if (@$m[2]) $style[$m[1]]=preg_replace('/^([\'"])(.*)\\1$/','$2',$m[3]);
-        else if (!isset($WikiStyle[$m[1]])) $style['class']=$m[1];
-        else $style=array_merge($style,(array)$WikiStyle[$m[1]]);
-      }
-      if (@$style['define']) {
-        $d = $style['define']; unset($style['define']);
-        $WikiStyle[$d] = $style;
-      }
-      if (@$style['apply']=='block') $block=array_merge((array)@$block,$style);
-    }
-    $p = array_shift($parts);
-    if ($p=='') continue;
-    if ($p=='<:>') { $style=(array)@$block; $p=implode('',$out); $out=array(); }
-    $elems=array();
-    foreach($style as $k=>$v) {
-      if (preg_match('/["\\s]/',$v)) $v=str_replace('"','\\"',$v);
-      if (isset($WikiStyleTags[$k])) {
-        foreach($WikiStyleTags[$k] as $tag=>$w) 
-          $elems[$tag][] = str_replace('$value',$v,$w);
-      } 
-      foreach((array)$WikiStyleCSSPatterns as $prop) {
-        if (preg_match("/^($prop)$/x",$k)) 
-          { $elems['style'][]="$k:$v;"; break; }
-      }
-    }
-    $spanattr='';
-    foreach($elems as $tag=>$v) {
-      if ($tag=='style' || $tag=='class') 
-        $spanattr.="$tag='".implode(' ',$v)."' ";
-      else $p=preg_replace("/<$tag\b/","<$tag ".implode(' ',$v),$p);
-    }
-    if ($spanattr) {
-      if (@$style['apply']=='block') 
-        $p = preg_replace('/(<(p|ul|li|ol|pre|dl|dd|dt|div)\\b)/',
-          "$1 $spanattr",$p);
-      else $p="<span $spanattr>$p</span>";
-    }
-    $out[] = $p;
-  }
-  return implode('',$out);
-}
-        
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap;
   $path = str_replace(' ','%20',$path);
