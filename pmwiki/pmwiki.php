@@ -20,31 +20,43 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 error_reporting(E_ALL);
-#if (ini_get('register_globals')) {
-#  foreach($_REQUEST as $k=>$v) { unset(${$k}); }
+if (ini_get('register_globals')) 
+  foreach($_REQUEST as $k=>$v) { unset(${$k}); }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
+SDV($FarmD,dirname(__FILE__));
 define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
-$WikiDir = new PageStore('wiki.d/$Group.$Name');
-$WikiLibDirs = array($WikiDir,new PageStore('wikilib.d/$Group.$Name'));
-$InterMapFiles = array('scripts/intermap.txt','local/localmap.txt');
+$WikiDir = new PageStore('wiki.d/$PageName');
+$WikiLibDirs = array($WikiDir,new PageStore('$FarmD/wikilib.d/$PageName'));
+$InterMapFiles = array("$FarmD/scripts/intermap.txt",'local/localmap.txt');
 $KeepToken = "\377\377";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
-$PageEditFmt = "<form method='post' action='\$PageUrl?action=edit'>
-  <input type='hidden' name='pagename' value='\$PageName' />
+$PageEditFmt = "<div id='wikiedit'>
+  <a id='top' name='top'></a>
+  <h1 class='wikiaction'>$[Editing \$PageName]</h1>
+  <form method='post' action='\$PageUrl?action=edit'>
   <input type='hidden' name='action' value='edit' />
-  <textarea name='text' cols='70' rows='24'>\$EditText</textarea><br />
-  <input type='submit' name='post' value=' Save ' />
-  <input type='submit' name='preview' value=' Preview ' />
-  </form>";
+  <input type='hidden' name='pagename' value='\$PageName' />
+  <input type='hidden' name='basetime' value='\$EditBaseTime' />
+  \$EditMessageFmt
+  <textarea name='text' rows='25' cols='60'
+    onkeydown='if (event.keyCode==27) event.returnValue=false;'
+    >\$EditText</textarea><br />
+  $[Author]: <input type='text' name='author' value='\$Author' />
+  <input type='checkbox' name='diffclass' value='minor' \$DiffClassMinor />
+    $[This is a minor edit]<br />
+  <input type='submit' name='post' value=' $[Save] ' />
+  <input type='submit' name='preview' value=' $[Preview] ' />
+  <input type='reset' value=' $[Reset] ' /></form></div>";
+$EditMessageFmt = '';
 $EditFields = array('text');
-$EditFunctions = array('PostPage','RecentChanges');
+$EditFunctions = array('RestorePage','PostPage','PostRecentChanges');
 $RCDelimPattern = ' \\. ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
@@ -54,10 +66,6 @@ $RecentChangesFmt = array(
 $DefaultPageTextFmt = 'Describe [[$Name]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
-$RedirectDelay = 0;
-$DiffFunction = 'Diff';
-$SysDiffCmd = '/usr/bin/diff';
-$DiffKeepDays = 0;
 $HTMLVSpace = "<p class='vspace'></p>";
 $BlockCS = array(); $BlockVS = array();
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
@@ -76,7 +84,7 @@ $HTTPHeaders = array(
   "Last-Modified: ".gmstrftime('%a, %d %b %Y %H:%M:%S GMT'),
   "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
   "Pragma: no-cache",
-  "Content-type: text/html; charset=utf-8;");
+  "Content-type: text/html; charset=iso-8859-1;");
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
@@ -111,7 +119,7 @@ if (strpos($_SERVER['QUERY_STRING'],'?')===true) {
   parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
 }
 
-foreach(array('pagename','action','text','restore','preview') as $v) {
+foreach(array('pagename','action','text') as $v) {
   if (isset($_GET[$v])) $$v=$_GET[$v];
   elseif (isset($_POST[$v])) $$v=$_POST[$v];
   else $$v='';
@@ -123,7 +131,13 @@ if (!$pagename &&
       $_SERVER['REQUEST_URI'],$match))
   $pagename = $match[1];
 
-include_once('local/config.php');
+if (file_exists("$FarmD/local/farmconfig.php")) 
+  include_once("$FarmD/local/farmconfig.php");
+if (file_exists('local/config.php')) 
+  include_once('local/config.php');
+
+if (IsEnabled($EnableStdConfig,1))
+  include_once("$FarmD/scripts/stdconfig.php");
 
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 if (!$pagename) $pagename=$DefaultPage;
@@ -221,6 +235,8 @@ function PZZ($x,$y='') { return ''; }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
+function IsEnabled(&$var,$f=0)
+  { return (isset($var)) ? $var : $f; }
 function XL($x)  { return $x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
@@ -303,6 +319,11 @@ class PageStore {
     $pagefile = FmtPageName($this->dirfmt,$pagename);
     return ($pagefile && file_exists($pagefile));
   }
+  function delete($pagename) {
+    global $Now;
+    $pagefile = FmtPageName($this->dirfmt,$pagename);
+    @rename($pagefile,"$pagefile,$Now");
+  }
 }
 
 function ReadPage($pagename,$defaulttext=NULL) {
@@ -342,6 +363,7 @@ function Abort($msg) {
 function Redirect($pagename,$urlfmt='$PageUrl') {
   # redirect the browser to $pagename
   global $EnableRedirect,$RedirectDelay;
+  SDV($RedirectDelay,0);
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
@@ -486,6 +508,9 @@ function PrintFmt($pagename,$fmt) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
+  if (preg_match('/^function:(\S+)\s*(.*)$/s',$x,$match) &&
+      function_exists($match[1]))
+    { $match[1]($pagename,$match[2]); return; }
   if (preg_match('/^wiki:(.+)$/',$x,$match)) 
     { PrintWikiPage($pagename,$match[1]); return; }
   echo $x;
@@ -513,8 +538,42 @@ function HandleBrowse($pagename) {
   PrintFmt($pagename,$HandleBrowseFmt);
 }
 
+
+function RestorePage($pagename,&$page,&$new) {
+  $restore = @$_REQUEST['restore'];
+  if (!$restore) return;
+  $t = $page['text'];
+  $nl = (substr($t,-1)=="\n");
+  $t = explode("\n",$t);
+  if ($nl) array_pop($t);
+  krsort($page); reset($page);
+  foreach($page as $k=>$v) {
+    if ($k<$restore) break;
+    foreach(explode("\n",$v) as $x) {
+      if (preg_match('/^(\\d+)(,(\\d+))?([adc])(\\d+)/',$x,$match)) {
+        $a1 = $a2 = $match[1];
+        if ($match[3]) $a2=$match[3];
+        $b1 = $match[5];
+        if ($match[4]=='d') array_splice($t,$b1,$a2-$a1+1);
+        if ($match[4]=='c') array_splice($t,$b1-1,$a2-$a1+1);
+        continue;
+      }
+      if (substr($x,0,2)=='< ') { $nlflag=true; continue; }
+      if (preg_match('/^> (.*)$/',$x,$match)) {
+        $nlflag=false;
+        array_splice($t,$b1-1,0,$match[1]); $b1++;
+      }
+      if ($x=='\\ No newline at end of file') $nl=$nlflag;
+    }
+  }
+  if ($nl) $t[]='';
+  $new['text']=implode("\n",$t);
+  return $new['text'];
+}
+
 function Diff($oldtext,$newtext) {
   global $TempDir,$SysDiffCmd;
+  SDV($SysDiffCmd,"/usr/bin/diff");
   if (!$SysDiffCmd) return '';
   $tempold = tempnam($TempDir,'old');
   if ($oldfp=fopen($tempold,'w')) { fputs($oldfp,$oldtext); fclose($oldfp); }
@@ -531,7 +590,11 @@ function Diff($oldtext,$newtext) {
 } 
 
 function PostPage($pagename,&$page,&$new) {
-  global $Now,$WikiDir,$IsPagePosted,$DiffFunction,$DiffKeepDays;
+  global $DiffKeepDays,$DiffFunction,$DeleteKeyPattern,
+    $Now,$WikiDir,$IsPagePosted;
+  SDV($DiffKeepDays,3650);
+  SDV($DiffFunction,'Diff');
+  SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   if (@$_REQUEST['post']) {
     if ($new['text']==$page['text']) { Redirect($pagename); return; }
     $new["author:$Now"] = @$Author;
@@ -545,12 +608,14 @@ function PostPage($pagename,&$page,&$new) {
     foreach($keys as $k)
       if (preg_match("/^\\w+:(\\d+)/",$k,$match) && $match[1]<$keepgmt)
         unset($new[$k]);
-    WritePage($pagename,$new);
+    if (preg_match("/$DeleteKeyPattern/",$new['text']))
+      $WikiDir->delete($pagename);
+    else WritePage($pagename,$new);
     $IsPagePosted=true;
   }
 }
 
-function RecentChanges($pagename,&$page,&$new) {
+function PostRecentChanges($pagename,&$page,&$new) {
   global $IsPagePosted,$RecentChangesFmt,$RCDelimPattern;
   if (!$IsPagePosted) return;
   foreach($RecentChangesFmt as $rcfmt=>$pgfmt) {
@@ -573,6 +638,7 @@ function HandleEdit($pagename) {
   global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,
     $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PageEndFmt;
   $IsPagePosted = false;
+  Lock(2);
   $page = ReadPage($pagename);
   $new = $page;
   foreach((array)$EditFields as $k) 
@@ -580,6 +646,7 @@ function HandleEdit($pagename) {
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
+  $FmtV['$EditBaseTime'] = $page['time'];
   SDV($HandleEditFmt,array(&$PageStartFmt,&$PageEditFmt,&$PageEndFmt));
   PrintFmt($pagename,$HandleEditFmt);
 }
