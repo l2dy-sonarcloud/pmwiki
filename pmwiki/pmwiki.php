@@ -82,6 +82,7 @@ $MarkupFrameBase=array('cs'=>array(),'vs'=>'',
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
+$LinkPageSelfFmt = "<a class='selflink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageCreateFmt = "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
   class='createlink' href='\$PageUrl?action=edit'>?</a>";
@@ -692,7 +693,7 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 }
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $QueryFragPattern,$LinkPageExistsFmt,
+  global $QueryFragPattern,$LinkPageExistsFmt,$LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
   if (substr($path,0,1)=='#' && !$fmt) {
     $path = preg_replace('/[^-.:\\w]/','',$path);
@@ -702,7 +703,8 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     return '';
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
-    if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
+    if (PageExists($tgtname)) 
+      $fmt = ($tgtname==$pagename) ? $LinkPageSelfFmt : $LinkPageExistsFmt;
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
