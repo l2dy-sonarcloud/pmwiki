@@ -39,14 +39,15 @@ function FmtPageList($fmt,$pagename,$opt) {
   global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
   if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
   $opt = array_merge($opt,@$_REQUEST);
-  $needle = $opt['o'] . ' ' . stripmagic(@$_REQUEST['q']);
-  $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
-    $needle,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
-  if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",@$terms[0],$match)) 
+  $rq = stripmagic(@$_REQUEST['q']);
+  if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i",$rq,$match)) 
   { 
     $opt['group'] = @$match[1]; 
-    $terms[0]=str_replace(@$match[1].'/','',$terms[0]);
+    $rq = str_replace(@$match[1].'/','',$rq);
   }
+  $needle = $opt['o'] . ' ' . $rq;
+  $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
+    $needle,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
   $excl = array(); $incl = array();
   foreach($terms as $t) {
     if (trim($t)=='') continue;
