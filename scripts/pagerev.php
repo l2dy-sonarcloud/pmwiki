@@ -9,6 +9,11 @@
     is included by default from the stdconfig.php script.
 */
 
+$LinkFunctions['http:'] = 'LinkSuppress';
+$LinkFunctions['https:'] = 'LinkSuppress';
+function LinkSuppress($pagename,$imap,$path,$title,$txt,$fmt=NULL) 
+  { return $txt; }
+
 SDV($DiffShow['minor'],(@$_REQUEST['minor']!='n')?'y':'n');
 SDV($DiffShow['source'],(@$_REQUEST['source']=='y')?'y':'n');
 SDV($DiffMinorFmt, ($DiffShow['minor']=='y') ?
