@@ -294,8 +294,8 @@ function MakePageName($pagename,$x) {
   global $MakePageNameFunction,$PageNameChars,$PagePathFmt;
   if (@$MakePageNameFunction) return $MakePageNameFunction($pagename,$x);
   SDV($PageNameChars,'-[:alnum:]');
-  if (!preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$x,$m)) return '';
-  $name=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
+  if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
+  $name=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[2])));
   if ($m[1]) {
     $group = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
     return "$group.$name";
