@@ -148,7 +148,7 @@ function HandlePostUpload($pagename) {
     mkdirp($filedir);
     if (!move_uploaded_file($uploadfile['tmp_name'],$filepath))
       { Abort("?cannot move uploaded file to $filepath"); return; }
-    fixperms($filepath);
+    fixperms($filepath,0444);
     if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
     $result = "upresult=success";
   }
