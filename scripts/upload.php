@@ -56,7 +56,7 @@ SDV($UploadDir,'uploads');
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
 SDV($UploadUrlFmt,preg_replace('#/[^/]*$#',"/$UploadDir",$ScriptUrl,1));
-SDV($LinkUploadCreateFmt,"<a class='createlinktext' href='\$LinkUpload'>\$LinkText</a><a class='createlink' href='\$LinkUpload'>&nbsp;&Delta;</a>");
+SDV($LinkUploadCreateFmt, "<a class='createlinktext' href='\$LinkUpload'>\$LinkText</a><a class='createlink' href='\$LinkUpload'>&nbsp;&Delta;</a>");
 
 SDV($PageUploadFmt,array("
   <h2 class='wikiaction'>$[Attachments for] \$FullName</h2>
@@ -89,13 +89,8 @@ SDV($DefaultPasswords['upload'],'*');
 
 Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
   "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
-Markup('Attach:', '>img', 
-  "/\\bAttach:([^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars])/e",
-  "Keep(MakeLink(\$pagename, '$0', '$1'), 'L')");
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
 SDV($IMap['Attach:'], '$1');
-SDV($IMapLinkFmt['Attach:'], 
-  "<a class='urllink' href='\$LinkUrl'>Attach:\$LinkText</a>");
 SDV($HandleActions['upload'], 'HandleUpload');
 SDV($HandleActions['postupload'], 'HandlePostUpload');
 SDV($ActionTitleFmt['upload'], '| $[Uploads]');
@@ -203,7 +198,8 @@ function dirsize($dir) {
 }
 
 function FmtUploadList($pagename,$opt) {
-  global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $TimeFmt;
+  global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $EnableUploadOverwrite,
+    $TimeFmt;
   $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
   $uploadurl = FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename);
 
@@ -217,10 +213,15 @@ function FmtUploadList($pagename,$opt) {
   closedir($dirp);
   $out = array();
   asort($filelist);
+  $overwrite = '';
   foreach($filelist as $file=>$x) {
     $name = PUE("$uploadurl/$file");
     $stat = stat("$uploaddir/$file");
-    $out[] = "<li> <a href='$name'>$file</a> ... 
+    if ($EnableUploadOverwrite) 
+      $overwrite = FmtPageName("<a class='createlink'
+        href='\$PageUrl?action=upload&amp;upname=$file'>&nbsp;&Delta;</a>", 
+        $pagename);
+    $out[] = "<li> <a href='$name'>$file</a>$overwrite ... 
       {$stat['size']} bytes ... " . strftime($TimeFmt, $stat['mtime']) 
       . "</li>";
   }
