@@ -879,13 +879,24 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
   }
 }
 
+function DisableMarkup() {
+  global $MarkupTable;
+  $idlist = func_get_args();
+  unset($MarkupRules);
+  while (count($idlist)>0) {
+    $id = array_shift($idlist);
+    if (is_array($id)) { $idlist = array_merge($idlist, $id); continue; }
+    $MarkupTable[$id] = array('cmd' => 'none', pat=>'');
+  }
+}
+    
 function mpcmp($a,$b) { return @strcmp($a['seq'].'=',$b['seq'].'='); }
 function BuildMarkupRules() {
   global $MarkupTable,$MarkupRules,$LinkPattern;
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if (isset($m['pat'])) 
+      if ($m['pat']) 
         $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
   }
   return $MarkupRules;
