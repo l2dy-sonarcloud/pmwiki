@@ -1,0 +1,3 @@
+PmWiki		http://www.pmichaud.com/devel/pmwiki.php/
+Cookbook	http://www.pmichaud.com/devel/pmwiki.php/Cookbook/
+Wiki		http://www.c2.com/cgi/wiki?
