@@ -32,61 +32,74 @@ Markup('{$fmt}','>[=',
 Markup('{$var}','>{$fmt}',
   '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
   "\$GLOBALS['$1']");
-Markup('if','fulltext',"/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/se",
+Markup('if', 'fulltext',
+  "/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/sei",
   "CondText(\$pagename,PSS('$1'),PSS('$2'))");
 
 ## (:include:)
-Markup('include','>if',"/\\(:(include\\s+.+?):\\)/e",
+Markup('include', '>if',
+  '/\\(:(include\\s+.+?):\\)/ei',
   "PRR().IncludeText(\$pagename,'$1')");
 
 ## GroupHeader/GroupFooter handling
-Markup('nogroupheader','>include','/\\(:nogroupheader:\\)/e',
+Markup('nogroupheader', '>include',
+  '/\\(:nogroupheader:\\)/ei',
   "PZZ(\$GLOBALS['GroupHeaderFmt']='')");
-Markup('nogroupfooter','>include','/\\(:nogroupfooter:\\)/e',
+Markup('nogroupfooter', '>include',
+  '/\\(:nogroupfooter:\\)/ei',
   "PZZ(\$GLOBALS['GroupFooterFmt']='')");
-Markup('groupheader','>nogroupheader','/\\(:groupheader:\\)/e',
+Markup('groupheader', '>nogroupheader',
+  '/\\(:groupheader:\\)/ei',
   "PRR().FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename)");
-Markup('groupfooter','>nogroupfooter','/\\(:groupfooter:\\)/e',
+Markup('groupfooter','>nogroupfooter',
+  '/\\(:groupfooter:\\)/ei',
   "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)");
 
 ## (:nl:)
-Markup('nl0','<split',"/([^\n])\\(:nl:\\)([^\n])/","$1\n$2");
-Markup('nl1','>nl0',"/\\(:nl:\\)/",'');
+Markup('nl0','<split',"/([^\n])\\(:nl:\\)([^\n])/i","$1\n$2");
+Markup('nl1','>nl0',"/\\(:nl:\\)/i",'');
 
 ## \\$  (end of line joins)
 Markup('\\$','>nl1',"/\\\\(?>(\\\\*))\n/e",
   "Keep(' '.str_repeat('<br />',strlen('$1')))");
 
 ## (:noheader:),(:nofooter:),(:notitle:)...
-Markup('noheader','directives','/\\(:noheader:\\)/e',
+Markup('noheader', 'directives',
+  '/\\(:noheader:\\)/ei',
   "SetTmplDisplay('PageHeaderFmt',0)");
-Markup('nofooter','directives','/\\(:nofooter:\\)/e',
+Markup('nofooter', 'directives',
+  '/\\(:nofooter:\\)/ei',
   "SetTmplDisplay('PageFooterFmt',0)");
-Markup('notitle','directives','/\\(:notitle:\\)/e',
+Markup('notitle', 'directives',
+  '/\\(:notitle:\\)/ei',
   "SetTmplDisplay('PageTitleFmt',0)");
 
 ## (:title:)
-Markup('title','directives','/\\(:title\\s(.*?):\\)/e',
+Markup('title','directives',
+  '/\\(:title\\s(.*?):\\)/ei',
   "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
 
 ## (:comment:)
-Markup('comment','directives','/\\(:comment .*?:\\)/','');
+Markup('comment', 'directives', '/\\(:comment .*?:\\)/i', '');
 
 ## (:keywords:)
-Markup('keywords', 'directives', "/\\(:keywords?\\s+([^'\n]+?):\\)/e",
+Markup('keywords', 'directives', 
+  "/\\(:keywords?\\s+([^'\n]+?):\\)/ei",
   "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = 
     \"<meta name='keywords' content='$1' />\")");
 Markup('description', 'directives',
-  "/\\(:description\\s+(.+?):\\)/e",
+  "/\\(:description\\s+(.+?):\\)/ei",
   "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='description' content='\".
     str_replace('\\'','&#39;',PSS('$1')).\"' />\")"); 
 
 ## (:spacewikiwords:)
-Markup('spacewikiwords','directives','/\\(:(no)?spacewikiwords:\\)/e',
+Markup('spacewikiwords', 'directives',
+  '/\\(:(no)?spacewikiwords:\\)/ei',
   "PZZ(\$GLOBALS['SpaceWikiWords']=('$1'!='no'))");
 
 ## (:linkwikiwords:)
-Markup('linkwikiwords','directives','/\\(:(no)?linkwikiwords:\\)/e',
+Markup('linkwikiwords', 'directives',
+  '/\\(:(no)?linkwikiwords:\\)/ei',
   "PZZ(\$GLOBALS['LinkWikiWords']=('$1'!='no'))");
 
 #### inline markups ####
@@ -233,6 +246,7 @@ function Cells($name,$attr) {
   global $MarkupFrame;
   $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
   $tattr = @$MarkupFrame[0]['tattr'];
+  $name = strtolower($name);
   if ($name == 'cell' || $name == 'cellnr') {
     if (!@$MarkupFrame[0]['posteval']['cells']) {
       $MarkupFrame[0]['posteval']['cells'] = "\$out .= '</td></tr></table>';";
@@ -248,13 +262,13 @@ function Cells($name,$attr) {
   return '<:block>';
 }
 
-Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/e',
+Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/ie',
   "Cells('$1',PSS('$2'))");
 
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
-Markup('markup','<[=',"/\n\\(:markup:\\)\\s*\\[=(.*?)=\\]/se",
+Markup('markup','<[=',"/\n\\(:markup:\\)\\s*\\[=(.*?)=\\]/sei",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
     '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 $HTMLStylesFmt['markup'] = "
