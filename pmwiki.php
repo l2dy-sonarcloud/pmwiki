@@ -865,6 +865,7 @@ function MarkupToHTML($pagename,$text) {
   StopWatch('MarkupToHTML begin');
   array_unshift($MarkupFrame,$MarkupFrameBase);
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
+  $MarkupFrame[0]['ref'] = 0;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   $out = array();
