@@ -1,0 +1,9 @@
+version=pmwiki-2.0.devel3
+newline=²
+version=pmwiki-2.0.devel1
+text=This page is intended to describe features of PmWiki 1.0 that have been changed or eliminated in PmWiki 2.0.  For now this page will be maintained a simple list and will probably need some restructuring later.²²* Double brackets are used for all links, including [@[[free links]]@].  Providing alternate text for a link is performed using either a vertical brace  [@[[PageName | link text]]@] or an arrow [@[[link text -> PageName]]@].  See LinkSyntax.²²* The $BrowseReplacements, $DoubleBrackets, and $InlineReplacements arrays are no longer used -- see [[custom markup]].²²* [@?action=post@] no longer exists -- posting a new page is now performed by using [@?action=edit@] with the [@post@] control set to a true value.²²* $WikiWordPagePathFmt is now $PagePathFmt, which is applied to all links not qualified by a group.²²²
+time=1093632424
+name=PmWiki.ChangesFromPmWiki1
+host=24.1.26.221
+agent=Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7) Gecko/20040707 Firefox/0.8
+rev=5
