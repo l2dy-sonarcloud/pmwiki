@@ -700,6 +700,7 @@ function WikiLink($pagename,$word) {
   global $WikiWords,$AsSpacedFunction;
   $text = (preg_match('/(?<![\\w!])spaced?/',$WikiWords)) ? 
     $AsSpacedFunction($word) : $word;
+  $text = preg_replace('!.*/!','',$text);
   if (stristr($word,'!link')!==false) return $text;
   return MakeLink($pagename,$word,$text);
 }
