@@ -201,7 +201,7 @@ $BlockMarkups = array(
      array("<div class='indent'>","</div><div class='indent'>",'</div>',1),
   'outdent' => 
      array("<div class='outdent'>","</div><div class='outdent'>",'</div>',1),
-  'pre' => array('<pre> ',' ','</pre>',0),
+  'pre' => array('<pre>','','</pre>',0),
   'table' => array("<table width='100%'>",'','</table>',0));
 
 foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
