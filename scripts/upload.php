@@ -166,7 +166,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   if ($uploadfile['size']>$maxsize) 
     return "upresult=toobigext&upext=$ext&upmax=$maxsize";
   if (!is_uploaded_file($uploadfile['tmp_name'])) return 'upresult=nofile';
-  switch ($uploadfile['error']) {
+  switch (@$uploadfile['error']) {
     case 1: return 'upresult=toobig';
     case 2: return 'upresult=toobig';
     case 3: return 'upresult=partial';
