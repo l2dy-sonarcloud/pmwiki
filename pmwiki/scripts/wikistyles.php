@@ -11,8 +11,8 @@ Markup('%%','style','%','return ApplyStyles($x);');
 ## restore links before applying styles
 Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
   '$GLOBALS[\'KPV\'][\'$1\']');
-## Place a closing %% at the end of every line
-Markup('%%$','<block','/$/','%%');
+## Place a closing %% at the end of any line with a (possible) WikiStyle in it
+Markup('%%$','<block','/(%.*?)$/','$1%%');
 
 if (IsEnabled($EnableStdWikiStyles,1)) {
   ## standard colors
