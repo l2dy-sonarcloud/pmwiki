@@ -771,7 +771,7 @@ function FormatTableRow($x) {
     if ($td[$i]=='') continue;
     $FmtV['$TableCellCount'] = $i;
     $attr = FmtPageName($TableCellAttrFmt, '');
-    if (preg_match('/^\\s+$/',$td[$i])) $td[$i]='&nbsp;';
+    $td[$i] = preg_replace('/^(!?)\\s+$/', '$1&nbsp;', $td[$i]);
     if (preg_match('/^!(.*?)!$/',$td[$i],$match))
       { $td[$i]=$match[1]; $t='caption'; $attr=''; }
     elseif (preg_match('/^!(.*)$/',$td[$i],$match)) 
