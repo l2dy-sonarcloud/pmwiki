@@ -66,8 +66,8 @@ $PagePreviewFmt = "<div id='wikipreview'>
 $EditMessageFmt = '';
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
-$EditFunctions = array('RestorePage','ReplaceOnSave','SaveAttributes',
-  'PostPage','PostRecentChanges','PreviewPage');
+$EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
+  'SaveAttributes', 'PostPage', 'PostRecentChanges', 'PreviewPage');
 $AsSpacedFunction = 'AsSpaced';
 $SpaceWikiWords = 0;
 $LinkWikiWords = 1;
@@ -978,7 +978,24 @@ function HandleBrowse($pagename) {
   PrintFmt($pagename,$HandleBrowseFmt);
 }
 
+# EditTemplate allows a site administrator to pre-populate new pages
+# with the contents of another page.
+function EditTemplate($pagename, &$page, &$new) {
+  global $EditTemplatesFmt;
+  if ($new['text'] > '') return;
+  if (@$_REQUEST['template'] && PageExists($_REQUEST['template'])) {
+    $p = RetrieveAuthPage($_REQUEST['template'], 'read', 'false');
+    if ($p['text'] > '') $new['text'] = $p['text']; 
+    return;
+  }
+  foreach((array)$EditTemplatesFmt as $t) {
+    $p = RetrieveAuthPage(FmtPageName($t,$pagename), 'read', false);
+    if (@$p['text'] > '') { $new['text'] = $p['text']; return; }
+  }
+}
 
+# RestorePage handles returning to the version of text as of
+# the version given by $restore or $_REQUEST['restore'].
 function RestorePage($pagename,&$page,&$new,$restore=NULL) {
   if (is_null($restore)) $restore=@$_REQUEST['restore'];
   if (!$restore) return;
