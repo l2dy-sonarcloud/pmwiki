@@ -194,6 +194,10 @@ Markup('^::','block','/^(:+)([^:]+):/','<:dl,$1><dt>$2</dt><dd>');
 ## preformatted text
 Markup('^ ','block','/^(\\s)/','<:pre,1>');
 
+## Q: and A:
+Markup('^Q:', 'block', '/^Q:(.*)$/', "<:block><p class='question'>$1</p>");
+Markup('^A:', 'block', '/^(A:.*)$/', "<:block><p class='answer'>$1</p>");
+
 ## blank lines
 Markup('blank','<^ ','/^\\s*$/','<:vspace>');
 
@@ -247,6 +251,7 @@ $HTMLStylesFmt['markup'] = "
     padding-left:10px; padding-right:10px; }
   div.markup pre { border-bottom:1px solid #ccf; 
     padding-top:10px; padding-bottom:10px; }
+  p.question { font-weight:bold; }
   ";
 
 ?>
