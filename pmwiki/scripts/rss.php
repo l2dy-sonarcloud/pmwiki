@@ -38,7 +38,7 @@ if ($action=='rdf') {
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns:dc="http://purl.org/dc/elements/1.1/">
       <channel rdf:about="$PageUrl">
-        <title>$WikiTitle - $Group.$Name</title>
+        <title>$WikiTitle | $Group / $Title</title>
         <link>$PageUrl</link>
         <description>$RssChannelDesc</description>
         <dc:date>$RssChannelBuildDate</dc:date>
@@ -49,7 +49,7 @@ if ($action=='rdf') {
       </channel>'));
   SDV($RssItemFmt,'
       <item rdf:about="$PageUrl">
-        <title>$WikiTitle - $Group.$Name</title>
+        <title>$WikiTitle | $Group / $Title</title>
         <link>$PageUrl</link>
         <description>$RssItemDesc</description>
         <dc:date>$RssItemPubDate</dc:date>
@@ -62,14 +62,14 @@ SDV($RssTimeFmt,'%Y-%m-%dT%H:%MZ');
 SDV($RssChannelFmt,'<?xml version="1.0"?'.'>
   <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
-      <title>$WikiTitle - $Group.$Name</title>
+      <title>$WikiTitle | $Group / $Title</title>
       <link>$PageUrl</link>
       <description>$RssChannelDesc</description>
       <lastBuildDate>$RssChannelBuildDate</lastBuildDate>
       <generator>$Version</generator>');
 SDV($RssItemFmt,'
         <item>
-          <title>$FullName</title>
+          <title>$Group / $Title</title>
           <link>$PageUrl</link>
           <description>$RssItemDesc</description>
           <dc:contributor>$RssItemAuthor</dc:contributor>
