@@ -138,7 +138,7 @@ class PageStore {
 
 function ReadPage($pagename,$defaulttext=NULL) {
   # read a page from the appropriate directories given by $WikiReadDirsFmt.
-  global $WikiLibDirs,$DefaultPageTextFmt;
+  global $WikiLibDirs,$DefaultPageTextFmt,$Now;
   if (is_null($defaulttext)) $defaulttext=$DefaultPageTextFmt;
   Lock(1);
   foreach ($WikiLibDirs as $dir) {
@@ -147,7 +147,7 @@ function ReadPage($pagename,$defaulttext=NULL) {
   }
   if ($page['text']=='') 
     $page['text']=FmtPageName($defaulttext,$pagename);
-  if (!$page['time']) $page['time']=$Now;
+  if (@!$page['time']) $page['time']=$Now;
   return $page;
 }
 
