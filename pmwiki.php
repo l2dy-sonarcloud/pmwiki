@@ -88,6 +88,10 @@ $DefaultName = 'HomePage';
 $GroupHeaderFmt = '$Group.GroupHeader';
 $GroupFooterFmt = '$Group.GroupFooter';
 $PagePathFmt = array('$Group.$1','$1.$1');
+$PageAttributes = array(
+  'passwdread' => '$[Set new read password:]',
+  'passwdedit' => '$[Set new edit password:]',
+  'passwdattr' => '$[Set new attribute password:]');
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -119,7 +123,8 @@ $PageEndFmt = array('</div>',&$HTMLEndFmt);
 
 $HandleActions = array(
   'browse' => 'HandleBrowse',
-  'edit' => 'HandleEdit', 'source' => 'HandleSource');
+  'edit' => 'HandleEdit', 'source' => 'HandleSource', 
+  'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
 
 foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
   as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
@@ -252,7 +257,7 @@ $CurrentTime = strftime($TimeFmt,$Now);
 if (!function_exists(@$HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
 Lock(0);
-exit();
+exit;
 
 ## helper functions
 function stripmagic($x) 
@@ -436,7 +441,7 @@ function Abort($msg) {
   # exit pmwiki with an abort message
   echo "<h3>PmWiki can't process your request</h3>
     <p>$msg</p><p>We are sorry for any inconvenience.</p>";
-  exit();
+  exit;
 }
 
 function Redirect($pagename,$urlfmt='$PageUrl') {
@@ -837,18 +842,22 @@ function HandleSource($pagename) {
 function BasicAuth($pagename,$level,$authprompt=true) {
   global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
     $AllowPassword,$GroupAttributesFmt;
+  SDV($GroupAttributesFmt,'$Group/GroupAttributes');
+  SDV($AllowPassword,'nopass');
+  SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
+  SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
   $page = ReadPage($pagename);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
   if ($passwd=="") { 
     $grouppg = ReadPage(FmtPageName($GroupAttributesFmt,$pagename));
     $passwd = @$grouppg["passwd$level"];
-    if ($passwd=="") $passwd = @$DefaultPasswords[$level];
-    if ($passwd=="") $passwd = @$page["passwdread"];
-    if ($passwd=="") $passwd = @$grouppg["passwdread"];
-    if ($passwd=="") $passwd = @$DefaultPasswords['read'];
+    if ($passwd=='') $passwd = @$DefaultPasswords[$level];
+    if ($passwd=='') $passwd = @$page["passwdread"];
+    if ($passwd=='') $passwd = @$grouppg["passwdread"];
+    if ($passwd=='') $passwd = @$DefaultPasswords['read'];
   }
-  if ($passwd=="") return $page;
+  if ($passwd=='') return $page;
   if (crypt($AllowPassword,$passwd)==$passwd) return $page;
   foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) as $pw)
     if (@crypt($_SERVER['PHP_AUTH_PW'],$pw)==$pw) return $page;
@@ -860,5 +869,48 @@ function BasicAuth($pagename,$level,$authprompt=true) {
   PrintFmt($pagename,$AuthDeniedFmt);
   exit;
 }
+
+function PrintAttrForm($pagename) {
+  global $PageAttributes;
+  echo FmtPageName("<form action='\$PageUrl' method='post'>
+    <input type='hidden' name='action' value='postattr' />
+    <input type='hidden' name='pagename' value='\$PageName' />
+    <table>",$pagename);
+  foreach($PageAttributes as $attr=>$p) {
+    $value = (substr($attr,0,6)=='passwd') ? '' : $page[$k];
+    $prompt = FmtPageName($p,$pagename);
+    echo "<tr><td>$prompt</td>
+      <td><input type='text' name='$attr' value='$value' /></td></tr>";
+  }
+  echo "</table><input type='submit' /></form>";
+}
+
+function HandleAttr($pagename) {
+  global $PageAttrFmt;
+  $page = RetrieveAuthPage($pagename,'attr');
+  if (!$page) { Abort("?unable to read $pagename"); }
+  SetPage($pagename,$page);
+  SDV($PageAttrFmt,"<h1 class='wikiaction'>$[\$PageName Attributes]</h1>
+    <p>Enter new attributes for this page below.  Leaving a field blank
+    will leave the attribute unchanged.  To clear an attribute, enter
+    'clear'.</p>");
+  SDV($HandleAttrFmt,array(&$PageStartFmt,&$PageAttrFmt,
+    'function:PrintAttrForm',&$PageEndFmt));
+  PrintFmt($pagename,$HandleAttrFmt);
+}
+
+function HandlePostAttr($pagename) {
+  global $PageAttributes;
+  $page = RetrieveAuthPage($pagename,'attr');
+  if (!$page) { Abort("?unable to read $pagename"); }
+  foreach($PageAttributes as $attr=>$p) {
+    $newpw = @$_POST[$attr];
+    if ($newpw=='clear') unset($page[$attr]);
+    else if ($newpw>'') $page[$attr]=crypt($newpw);
+  }
+  WritePage($pagename,$page);
+  Redirect($pagename);
+  exit;
+} 
 
 ?> 
