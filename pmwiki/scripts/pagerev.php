@@ -83,9 +83,14 @@ function PrintDiff($pagename) {
         if ($d[0]=='<') { $out[]=substr($d,2); continue; }
         if ($d[0]=='>') { $in[]=substr($d,2); continue; }
       }
-      if (preg_match("/^(\\d+)(,(\\d+))?([adc])\\d/",$dtype,$match)) {
-        if ($match[3]>'') { $lines='lines'; $count=$match[1].'-'.$match[3]; }
-        else { $lines='line'; $count=$match[1]; }
+      if (preg_match("/^(\\d+)(,(\\d+))?([adc])(\\d+)(,(\\d+))?/",
+          $dtype,$match)) {
+        if (@$match[7]>'') {
+          $lines='lines';
+          $count=$match[1].'-'.($match[1]+$match[7]-$match[5]);
+        } elseif ($match[3]>'') {
+          $lines='lines'; $count=$match[1].'-'.$match[3];
+        } else { $lines='line'; $count=$match[1]; }
         if ($match[4]=='a' || $match[4]=='c') {
           $txt = str_replace('line',$lines,$DiffDelFmt[$match[4]]);
           $FmtV['$DiffLines'] = $count;
