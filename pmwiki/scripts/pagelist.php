@@ -59,13 +59,13 @@ function FmtPageList($fmt,$pagename,$opt) {
   foreach($pagelist as $pagefile) {
     $page = ReadPage($pagefile);  Lock(0);  if (!$page) continue;
     if ($searchterms) {
-      $text = $pagefile."\n".$page['text'];
+      $text = $pagefile."\n".@$page['text'];
       foreach($excl as $t) if (stristr($text,$t)) continue 2;
       foreach($incl as $t) if (!stristr($text,$t)) continue 2;
     }
     $matches[] = array(
       'pagename' => $pagefile,
-      'size' => strlen($page['text']),
+      'size' => strlen(@$page['text']),
       'author' => @$page['author'],
       'time' => $page['time']);
   }

@@ -169,6 +169,31 @@ Markup('^!','block','/^(!{1,6})(.*)$/e',
 ## horiz rule
 Markup('^----','>^->','/^----+/','<:block><hr />');
 
+#### [:table:] markup (AdvancedTables)
+
+function Cells($name,$attr) {
+  global $MarkupFrame;
+  $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
+  $tattr = @$MarkupFrame[0]['tattr'];
+  if ($name == 'cell' || $name == 'cellnr') {
+    if (!@$MarkupFrame[0]['posteval']['cells']) {
+      $MarkupFrame[0]['posteval']['cells'] = "return Cells('','');";
+      return "<:block><table $tattr><tr><td $attr>";
+    } else if ($name == 'cellnr') return "<:block></td></tr><tr><td $attr>";
+    return "<:block></td><td $attr>";
+  }
+  $MarkupFrame[0]['tattr'] = $attr;
+  if (@$MarkupFrame[0]['posteval']['cells']) {
+    unset($MarkupFrame[0]['posteval']['cells']);
+    return '<:block></td></tr></table>';
+  }
+  return '<:block>';
+}
+
+Markup('^table','<block','/^\\[:(table|cell|cellnr|tableend)(\\s.*?)?:\\]/e',
+  "Cells('$1',PSS('$2'))");
+
+
 #### special stuff ####
 ## [:markup:] for displaying markup examples
 Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
