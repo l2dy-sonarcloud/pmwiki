@@ -25,11 +25,11 @@ Markup('restore','<_end',"/$KeepToken(\\d.*?)$KeepToken/e",
 ## remove carriage returns before preserving text
 Markup('\\r','<[=','/\\r/','');
 
-# ${var} substitutions
-Markup('${fmt}','>[=',
+# {$var} substitutions
+Markup('{$fmt}','>[=',
   '/{\\$((Group|Name)(spaced)?|LastModified(By|Host)?)}/e',
   "FmtPageName('$$1',\$pagename)");
-Markup('${var}','>${fmt}',
+Markup('{$var}','>{$fmt}',
   '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
   "\$GLOBALS['$1']");
 Markup('if','fulltext',"/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/se",
