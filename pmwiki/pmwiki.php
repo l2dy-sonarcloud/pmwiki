@@ -188,9 +188,14 @@ if (file_exists('local/config.php'))
   include_once('local/config.php');
 
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
-if ($pagename && !preg_match("/^$GroupPattern([\/.])$NamePattern$/",$pagename))
-  Redirect(MakePageName($DefaultPage,$pagename));
-$pagename = MakePageName($DefaultPage,$pagename);
+SDV($UrlPage,'{$UrlPage}');
+if ($pagename&&!preg_match("/^$GroupPattern([\/.])$NamePattern$/",$pagename)) {
+  $UrlPage=$pagename;
+  $p = MakePageName($DefaultPage,$pagename);
+  if (PageExists($p)) { Redirect($p); exit(); }
+  SDV($PageNotFound,"$DefaultGroup.PageNotFound");
+  $pagename = $PageNotFound;
+} else $pagename=MakePageName($DefaultPage,$pagename);
 
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
