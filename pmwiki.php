@@ -389,7 +389,7 @@ function FmtPageName($fmt,$pagename) {
     $match = $m;
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
-    $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
+    $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e',
       "'\$ScriptUrl?pagename='.str_replace('/','.','$1')",$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
