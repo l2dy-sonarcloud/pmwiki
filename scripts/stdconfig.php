@@ -71,6 +71,8 @@ if (!function_exists(@$DiffFunction))
   include_once("$FarmD/scripts/phpdiff.php");
 if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");
+if ($action=='edit' && IsEnabled($EnableGUIButtons,0))
+  include_once("$FarmD/scripts/guiedit.php");
 
 SDV($MetaRobots,
   ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
