@@ -216,7 +216,7 @@ function FmtUploadList($pagename,$opt) {
   foreach($filelist as $file=>$x) {
     $name = preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $file);
     $stat = stat("$uploaddir/$file");
-    $out[] = "<li> <a href='$uploadurl$name'>$file</a> ... 
+    $out[] = "<li> <a href='$uploadurl/$name'>$file</a> ... 
       {$stat['size']} bytes ... " . strftime($TimeFmt, $stat['mtime']) 
       . "</li>";
   }
