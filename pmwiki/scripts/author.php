@@ -22,7 +22,7 @@ if (!isset($Author)) {
   } else {
     $Author = htmlspecialchars(stripmagic(@$_COOKIE['author']),ENT_QUOTES);
   }
-  $Author = preg_replace('/(^[^[:alpha:]]+)|[^\\w- ]/','',$Author);
+  $Author = preg_replace('/(^[^[:alpha:]]+)|[^-\\w ]/','',$Author);
 }
 $k = MakePageName($pagename,$Author);
 SDV($AuthorPage,"$AuthorGroup/$k");
