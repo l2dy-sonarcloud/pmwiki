@@ -789,7 +789,7 @@ function WikiLink($pagename, $word) {
 }
   
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $IMap,$IMapLinkFmt,$UrlLinkFmt;
+  global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt;
   $FmtV['$LinkUrl'] = Keep(PUE(str_replace('$1',$path,$IMap[$imap])));
   $FmtV['$LinkText'] = $txt;
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
