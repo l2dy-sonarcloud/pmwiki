@@ -117,7 +117,7 @@ function HandleUpload($pagename) {
     $HandleUploadFmt,$PageStartFmt,$PageEndFmt,$PageUploadFmt;
   $page = RetrieveAuthPage($pagename,'upload');
   if (!$page) Abort("?cannot upload to $pagename");
-  SetPage($pagename,$page);
+  PCache($pagename,$page);
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $upresult = @$_REQUEST['upresult'];
   $FmtV['$upext'] = @$_REQUEST['upext'];

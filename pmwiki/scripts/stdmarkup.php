@@ -26,10 +26,11 @@ Markup('restore','<_end',"/$KeepToken(\\d.*?)$KeepToken/e",
 Markup('\\r','<[=','/\\r/','');
 
 # ${var} substitutions
-Markup('${fmt}','>[=','/{\\$(Group|Name)}/e',
+Markup('${fmt}','>[=',
+  '/{\\$((Group|Name)(spaced)?|LastModified(By|Host)?)}/e',
   "FmtPageName('$$1',\$pagename)");
 Markup('${var}','>${fmt}',
-  '/{\\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost|UrlPage|DefaultName|DefaultGroup)}/e',
+  '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
   "\$GLOBALS['$1']");
 Markup('if','fulltext',"\\[:(if[^\n]*?):\\](.*?)(?=\\[:if[^\n]*:\\]|$)/se",
   "CondText(\$pagename,PSS('$1'),PSS('$2'))");
