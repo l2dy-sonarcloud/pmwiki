@@ -8,9 +8,13 @@
 
 ## %% markup
 Markup('%%','style','%','return ApplyStyles($x);');
+## restore links before applying styles
+Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
+  '$GLOBALS[\'KPV\'][\'$1\']');
 ## Place a closing %% at the end of any line with a (possible) WikiStyle in it
 Markup('%%$','<block','/(%.*?)$/','$1%%');
 
+# define PmWiki's standard/default wikistyles
 if (IsEnabled($EnableStdWikiStyles,1)) {
   ## standard colors
   foreach(array('black','white','red','yellow','blue','gray',
@@ -60,8 +64,9 @@ $WikiStyleCSS[] = 'text-align|text-decoration';
 $WikiStyleCSS[] = 'font-size|font-family|font-weight|font-style';
 
 function ApplyStyles($x) {
-  global $WikiStylePattern,$WikiStyleRepl,$WikiStyle,$WikiStyleAttr,
-    $WikiStyleCSS, $WikiStyleApply, $KeepToken, $KPV;
+  global $UrlExcludeChars, $WikiStylePattern, $WikiStyleRepl, $WikiStyle,
+    $WikiStyleAttr, $WikiStyleCSS, $WikiStyleApply, $KeepToken, $KPV;
+  $x = preg_replace("/\\bhttps?:[^$UrlExcludeChars]+/e", "Keep('$0')", $x);
   $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
   $parts[] = NULL;
   $out = array();
@@ -96,7 +101,6 @@ function ApplyStyles($x) {
       { $alist=@$apply; unset($alist['']); $p=implode('',$out); $out=array(); }
     elseif ($p=='') continue;
     else { $alist=array(''=>$style); }
-    $p = preg_replace("/$KeepToken(\\d+L)$KeepToken/e", "\$KPV['\$1']", $p);
     foreach((array)$alist as $a=>$s) {
       $classv=array(); $stylev=array();
       foreach((array)$s as $k=>$v) {
