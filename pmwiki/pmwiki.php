@@ -599,6 +599,13 @@ function PrintFmt($pagename,$fmt) {
     { $match[1]($pagename,$match[2]); return; }
   if (preg_match('/^wiki:(.+)$/',$x,$match)) 
     { PrintWikiPage($pagename,$match[1]); return; }
+  if (preg_match("/^file:(.+)/s",$x,$match)) {
+    $filelist = preg_split('/[\\s]+/',$match[1],-1,PREG_SPLIT_NO_EMPTY);
+    foreach($filelist as $f) {
+      if (file_exists($f)) { include($f); return; }
+    }
+    return;
+  }
   echo $x;
 }
 
