@@ -22,7 +22,7 @@
 error_reporting(E_ALL);
 #if (ini_get('register_globals')) {
 #  foreach($_REQUEST as $k=>$v) { unset(${$k}); }
-$UnsafeGlobals = array_keys($GLOBALS);
+$UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
@@ -75,16 +75,16 @@ $HTMLDoctypeFmt =
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
-  <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en><head>\n";
+  <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
 $HTMLTitleFmt = "  <title>\$WikiTitle - \$HTMLTitle</title>\n";
 $HTMLStylesFmt = array("
   body { margin-left:20px; }
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  p.vspace { margin-top:1.33em; }
-  div.indent { margin-left:40px; }
-  textarea#editbox { width:98%; }");
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  ");
 $HTMLHeaderFmt = array(
-  "<style type='text/css'><!--",&$HTMLStylesFmt,"--></style>");
+  "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
 $HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
   &$HTMLTitleFmt,&$HTMLBodyFmt);
