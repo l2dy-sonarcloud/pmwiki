@@ -49,10 +49,8 @@ if (IsEnabled($EnableAuthorTracking,1))
   include_once("$FarmD/scripts/author.php");
 if (IsEnabled($EnableSimulEdit,1))
   include_once("$FarmD/scripts/simuledit.php");
-if (IsEnabled($EnablePrint,1))
-  include_once("$FarmD/scripts/print.php");
-if (IsEnabled($EnableTemplateLayout,1))
-  include_once("$FarmD/scripts/tlayout.php");
+if (IsEnabled($EnableSkinLayout,1))
+  include_once("$FarmD/scripts/skins.php");
 if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableWikiTrails,1))
