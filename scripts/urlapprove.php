@@ -20,7 +20,7 @@ $LinkFunctions['http:'] = 'LinkHTTP';
 $LinkFunctions['https:'] = 'LinkHTTP';
 $ApprovedUrlPagesFmt = array('Main.ApprovedUrls');
 $UnapprovedLinkFmt = 
-  "\$LinkText<a class='apprlink' href='\$PageUrl?action=approveurls'>$[(approve links)]</a>";
+  "\$LinkText<a class='apprlink' href='\$PageUrl?action=approvesites'>$[(approve sites)]</a>";
 $HTMLStylesFmt[] = '.apprlink { font-size:smaller; }';
 $ApproveUrlPattern = 
   "\\bhttps?:[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]";
