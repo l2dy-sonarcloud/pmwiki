@@ -25,13 +25,13 @@
 
 SDVA($Compat1x,array(
   # noheader, nofooter, etc.
-  "/\\[\\[(noheader|nofooter|nogroupheader|nogroupfooter|notitle|spacewikiwords)\\]\\]/" => '[:$1:]',
+  "/\\[\\[(noheader|nofooter|nogroupheader|nogroupfooter|notitle|spacewikiwords)\\]\\]/" => '(:$1:)',
 
   # include, redirect
-  "/\\[\\[(include|redirect):(.*?)\\]\\]/" => '[:$1 $2:]',
+  "/\\[\\[(include|redirect):(.*?)\\]\\]/" => '(:$1 $2:)',
 
   # table, cell, cellnr, endtable
-  "/\\[\\[(table|cell|cellnr|tableend)(\\s.*?)?\\]\\]\n?/" => "[:$1$2:]\n",
+  "/\\[\\[(table|cell|cellnr|tableend)(\\s.*?)?\\]\\]\n?/" => "(:$1$2:)\n",
 
   # [[$Title]]
   "/\\[\\[\\\$Title\\]\\]/" => '{$Name}',
@@ -44,9 +44,9 @@ SDVA($Compat1x,array(
   "/\\[\\[\\\$Diff\\s(.*?)\\]\\]/" => '[[{$Name}?action=diff |$1]]',
 
   # [[$Search]], [[$SearchResults]], [[$Attachlist]]
-  "/\\[\\[\\\$Search\\]\\]/" => '[:searchbox:]',
-  "/\\[\\[\\\$Searchresults\\]\\]/" => '[:searchresults:]',
-  "/\\[\\[\\\$Attachlist(\\s.*?)?\\]\\]/" => '[:attachlist$1:]',
+  "/\\[\\[\\\$Search\\]\\]/" => '(:searchbox:)',
+  "/\\[\\[\\\$Searchresults\\]\\]/" => '(:searchresults:)',
+  "/\\[\\[\\\$Attachlist(\\s.*?)?\\]\\]/" => '(:attachlist$1:)',
 
   # [[target linktext]]
   "/\\[\\[((\\w|\\#)[^$UrlExcludeChars\\s]*)\\s(.*?)\\]\\]/" => '[[$1 |$3]]',

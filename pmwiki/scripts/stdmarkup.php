@@ -32,52 +32,52 @@ Markup('${fmt}','>[=',
 Markup('${var}','>${fmt}',
   '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup)}/e',
   "\$GLOBALS['$1']");
-Markup('if','fulltext',"\\[:(if[^\n]*?):\\](.*?)(?=\\[:if[^\n]*:\\]|$)/se",
+Markup('if','fulltext',"\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*:\\)|$)/se",
   "CondText(\$pagename,PSS('$1'),PSS('$2'))");
 
-## [:include:]
-Markup('include','>if',"/\\[:(include\\s+.+?):\\]/e",
+## (:include:)
+Markup('include','>if',"/\\(:(include\\s+.+?):\\)/e",
   "PRR().IncludeText(\$pagename,'$1')");
 
 ## GroupHeader/GroupFooter handling
-Markup('nogroupheader','>include','/\\[:nogroupheader:\\]/e',
+Markup('nogroupheader','>include','/\\(:nogroupheader:\\)/e',
   "PZZ(\$GLOBALS['GroupHeaderFmt']='')");
-Markup('nogroupfooter','>include','/\\[:nogroupfooter:\\]/e',
+Markup('nogroupfooter','>include','/\\(:nogroupfooter:\\)/e',
   "PZZ(\$GLOBALS['GroupFooterFmt']='')");
-Markup('groupheader','>nogroupheader','/\\[:groupheader:\\]/e',
+Markup('groupheader','>nogroupheader','/\\(:groupheader:\\)/e',
   "PRR().FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename)");
-Markup('groupfooter','>nogroupfooter','/\\[:groupfooter:\\]/e',
+Markup('groupfooter','>nogroupfooter','/\\(:groupfooter:\\)/e',
   "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)");
 
-## [:nl:]
-Markup('nl0','<split',"/(?!\n)\\[:nl:\\](?!\n)/","\n");
-Markup('nl1','>nl0',"/\\[:nl:\\]/",'');
+## (:nl:)
+Markup('nl0','<split',"/(?!\n)\\(:nl:\\)(?!\n)/","\n");
+Markup('nl1','>nl0',"/\\(:nl:\\)/",'');
 
 ## \\$  (end of line joins)
 Markup('\\$','>nl1',"/(\\\\*)\\\\\n/e",
   "Keep(' '.str_repeat('<br />',strlen('$1')))");
 
-## [:noheader:],[:nofooter:],[:notitle:]...
-Markup('noheader','directives','/\\[:noheader:\\]/e',
+## (:noheader:),(:nofooter:),(:notitle:)...
+Markup('noheader','directives','/\\(:noheader:\\)/e',
   "PZZ(\$GLOBALS['PageHeaderFmt']='')");
-Markup('nofooter','directives','/\\[:nofooter:\\]/e',
+Markup('nofooter','directives','/\\(:nofooter:\\)/e',
   "PZZ(\$GLOBALS['PageFooterFmt']='')");
-Markup('notitle','directives','/\\[:notitle:\\]/e',
+Markup('notitle','directives','/\\(:notitle:\\)/e',
   "PZZ(\$GLOBALS['PageTitleFmt']='')");
 
-## [:title:]
-Markup('title','directives','/\\[:title\\s(.*?):\\]/e',
+## (:title:)
+Markup('title','directives','/\\(:title\\s(.*?):\\)/e',
   "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
 
-## [:comment:]
-Markup('comment','directives','/\\[:comment .*?:\\]/','');
+## (:comment:)
+Markup('comment','directives','/\\(:comment .*?:\\)/','');
 
-## [:spacewikiwords:]
-Markup('spacewikiwords','directives','/\\[:(no)?spacewikiwords:\\]/e',
+## (:spacewikiwords:)
+Markup('spacewikiwords','directives','/\\(:(no)?spacewikiwords:\\)/e',
   "PZZ(\$GLOBALS['SpaceWikiWords']=('$1'!='no'))");
 
-## [:linkwikiwords:]
-Markup('linkwikiwords','directives','/\\[:(no)?linkwikiwords:\\]/e',
+## (:linkwikiwords:)
+Markup('linkwikiwords','directives','/\\(:(no)?linkwikiwords:\\)/e',
   "PZZ(\$GLOBALS['LinkWikiWords']=('$1'!='no'))");
 
 #### inline markups ####
@@ -195,7 +195,7 @@ Markup('^!','block','/^(!{1,6})(.*)$/e',
 ## horiz rule
 Markup('^----','>^->','/^----+/','<:block><hr />');
 
-#### [:table:] markup (AdvancedTables)
+#### (:table:) markup (AdvancedTables)
 
 function Cells($name,$attr) {
   global $MarkupFrame;
@@ -216,13 +216,13 @@ function Cells($name,$attr) {
   return '<:block>';
 }
 
-Markup('^table','<block','/^\\[:(table|cell|cellnr|tableend)(\\s.*?)?:\\]/e',
+Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/e',
   "Cells('$1',PSS('$2'))");
 
 
 #### special stuff ####
-## [:markup:] for displaying markup examples
-Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
+## (:markup:) for displaying markup examples
+Markup('markup','<[=',"/\n\\(:markup:\\)\\s*\\[=(.*?)=\\]/se",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
     '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 $HTMLStylesFmt['markup'] = "
