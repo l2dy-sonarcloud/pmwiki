@@ -122,6 +122,7 @@ $HTMLStylesFmt = array("
   code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
   a.createlinktext { text-decoration:none; border-bottom:1px dotted grey; }
   a.createlink { text-decoration:none; position:relative; top:-0.5em;
     font-weight:bold; font-size:smaller; border-bottom:none; }
@@ -164,6 +165,8 @@ $BlockMarkups = array(
   'p' => array('<p>','','</p>'),
   'indent' => 
      array("<div class='indent'>","</div><div class='indent'>",'</div>'),
+  'outdent' => 
+     array("<div class='outdent'>","</div><div class='outdent'>",'</div>'),
   'pre' => array('<pre> ',' ','</pre>'),
   'table' => array("<table width='100%'>",'','</table>'));
 
