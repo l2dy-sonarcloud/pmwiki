@@ -84,7 +84,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   $FmtV['$Needle'] = $opt['q'];
   $GLOBALS['SearchIncl'] = $incl;
   $GLOBALS['SearchExcl'] = $excl;
-  $GLOBALS['SearchGroup'] = $opt['group'];
+  $GLOBALS['SearchGroup'] = @$opt['group'];
   $fmtfn = @$FPLFunctions[$opt['fmt']];
   if (!function_exists($fmtfn)) $fmtfn='FPLByGroup';
   $FmtV['$MatchList'] = $fmtfn($pagename,$matches,$opt);
