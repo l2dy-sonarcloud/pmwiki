@@ -59,6 +59,7 @@ SDV($UploadUrlFmt,preg_replace('#/[^/]*$#',"/$UploadDir",$ScriptUrl,1));
 SDV($LinkUploadCreateFmt, "<a class='createlinktext' href='\$LinkUpload'>\$LinkText</a><a class='createlink' href='\$LinkUpload'>&nbsp;&Delta;</a>");
 
 SDV($PageUploadFmt,array("
+  <div id='wikiupload'>
   <h2 class='wikiaction'>$[Attachments for] \$FullName</h2>
   <h3>\$UploadResult</h3>
   <form enctype='multipart/form-data' action='\$PageUrl' method='post'>
@@ -70,7 +71,7 @@ SDV($PageUploadFmt,array("
     <tr><td align='right'>$[Name attachment as:]</td>
       <td><input type='text' name='upname' value='\$UploadName' />
         <input type='submit' value=' $[Upload] ' /><br />
-        </td></tr></table></form>",
+        </td></tr></table></form></div>",
   'wiki:$[PmWiki.UploadQuickReference]'));
 XLSDV('en',array(
   'ULsuccess' => 'successfully uploaded',

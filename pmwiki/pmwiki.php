@@ -57,11 +57,12 @@ $PageEditFmt = "<div id='wikiedit'>
   <input type='submit' name='post' value=' $[Save] ' />
   <input type='submit' name='preview' value=' $[Preview] ' />
   <input type='reset' value=' $[Reset] ' /></form></div>";
-$PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$FullName]</h2>
+$PagePreviewFmt = "<div id='wikipreview'>
+  <h2 class='wikiaction'>$[Preview \$FullName]</h2>
   <p><b>$[Page is unsaved]</b></p>
   \$PreviewText
   <hr /><p><b>$[End of preview -- remember to save]</b><br />
-  <a href='#top'>$[Top]</a></p>";
+  <a href='#top'>$[Top]</a></p></div>";
 $EditMessageFmt = '';
 $EditFields = array('text');
 $EditFunctions = array('RestorePage','ReplaceOnSave','SaveAttributes',
@@ -1131,10 +1132,11 @@ function HandleAttr($pagename) {
   $page = RetrieveAuthPage($pagename,'attr');
   if (!$page) { Abort("?unable to read $pagename"); }
   PCache($pagename,$page);
-  SDV($PageAttrFmt,"<h1 class='wikiaction'>$[\$FullName Attributes]</h1>
+  SDV($PageAttrFmt,"<div class='wikiattr'>
+    <h1 class='wikiaction'>$[\$FullName Attributes]</h1>
     <p>Enter new attributes for this page below.  Leaving a field blank
     will leave the attribute unchanged.  To clear an attribute, enter
-    'clear'.</p>");
+    'clear'.</p></div>");
   SDV($HandleAttrFmt,array(&$PageStartFmt,&$PageAttrFmt,
     'function:PrintAttrForm',&$PageEndFmt));
   PrintFmt($pagename,$HandleAttrFmt);
