@@ -188,7 +188,7 @@ $MarkupPatterns[1615]['/\\[:nogroup(header|footer):\\]/'] = '';
 $MarkupPatterns[1620]['/\\[:comments .*?:\\]/'] = '';
 $MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
-$MarkupPatterns[3100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
+$MarkupPatterns[3100]["/\\[\\[([^|\\]]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'))";
 $MarkupPatterns[3200]["/\\[\\[(.*?)\\]\\]($SuffixPattern)/e"] =
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'))";
@@ -595,7 +595,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   return FmtPageName($fmt,$tgtname);
 }
 
-function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
+function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt;
   $t = preg_replace('/[()]/','',trim($tgt));
   preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
@@ -607,7 +607,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
   if (preg_match("/^($LinkPattern)?([^$UrlExcludeChars]+$ImgExtPattern)(\"(.*)\")?$/",$txt,$tm)) 
     $txt = $LinkFunctions[$tm[1]]($pagename,$tm[1],$tm[2],@$tm[4],'',$ImgTagFmt);
   else $txt .= $suffix;
-  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt);
+  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
   return $out;
 }
 
