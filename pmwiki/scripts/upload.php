@@ -142,9 +142,10 @@ function HandlePostUpload($pagename) {
   $result = $UploadVerifyFunction($pagename,$uploadfile,$filepath);
   if ($result=='') {
     $filedir = preg_replace('#/[^/]*$#','',$filepath);
-    mkgiddir($filedir);
+    mkdirp($filedir);
     if (!move_uploaded_file($uploadfile['tmp_name'],$filepath))
       { Abort("?cannot move uploaded file to $filepath"); return; }
+    fixperms($filepath);
     $result = "upresult=success";
   }
   Redirect($pagename,"\$PageUrl?action=upload&upname=$upname&$result");
