@@ -145,7 +145,7 @@ $HTMLStylesFmt['pmwiki'] = "
   a.createlink { text-decoration:none; position:relative; top:-0.5em;
     font-weight:bold; font-size:smaller; border-bottom:none; }
   ";
-$HTMLHeaderFmt = array(
+$HTMLHeaderFmt['styles'] = array(
   "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
 $HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
