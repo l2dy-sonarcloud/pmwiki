@@ -220,8 +220,12 @@ $pagename = preg_replace('!/+$!','',$pagename);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
-if (file_exists('local/config.php')) 
-  include_once('local/config.php');
+if (IsEnabled($EnableLocalConfig,1)) {
+  if (file_exists('local/config.php')) 
+    include_once('local/config.php');
+  elseif (file_exists('config.php'))
+    include_once('config.php');
+}
 
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 SDV($UrlPage,'{$UrlPage}');
