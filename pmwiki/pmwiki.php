@@ -72,9 +72,9 @@ $LinkWikiWords = 1;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
-    '* [[$Group.$Name]]  . . . $CurrentTime by $AuthorLink',
+    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink',
   '$Group.RecentChanges' =>
-    '* [[$Group/$Name]]  . . . $CurrentTime by $AuthorLink');
+    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink');
 $DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
@@ -275,8 +275,9 @@ function PZZ($x,$y='') { return ''; }
 function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
   { return preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $x); }
-function PQA($x)
-  { return preg_replace('/([a-zA-Z]=)([^\'">][^\\s>]*)/', "$1'$2'", $x); }
+function PQA($x) { 
+  return preg_replace('/([a-zA-Z])\\s*=\\s*([^\'">][^\\s>]*)/', "$1='$2'", $x);
+}
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
