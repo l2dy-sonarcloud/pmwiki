@@ -309,9 +309,11 @@ function Lock($op) {
   SDV($LockFile,"$WorkDir/.flock");
   mkdirp(dirname($LockFile));
   static $lockfp,$curop;
-    if (!$lockfp) {
-    $lockfp=fopen($LockFile,"w") or
-      Abort("Cannot acquire lockfile","Lockfile");
+  if (!$lockfp) $lockfp = @fopen($LockFile,"w");
+  if (!$lockfp) { 
+    @unlink($LockFile); 
+    $lockfp = fopen($LockFile,"w") or
+      Abort("Cannot acquire lockfile", "Lockfile");
     fixperms($LockFile);
   }
   if ($op<0) { flock($lockfp,LOCK_UN); fclose($lockfp); $lockfp=0; $curop=0; }
