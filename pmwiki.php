@@ -593,6 +593,10 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $QueryFragPattern,$LinkPageExistsFmt,
     $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
+  if (substr($path,0,1)=='#' && !$fmt) {
+    $path = preg_replace('/[^-.:\\w]/','',$path);
+    return "<a href='#$path'>$txt</a>";
+  }
   preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match);
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   if (!$fmt) {
