@@ -19,17 +19,17 @@ XLSDV('en',array(
   'SearchFound' =>
     '$MatchCount pages found out of $MatchSearched pages searched.'));
 
-Markup('searchbox','>links','/\\[:searchbox:\\]/',
+Markup('searchbox','>links','/\\(:searchbox:\\)/',
   FmtPageName("<form class='wikisearch' action='\$ScriptUrl' 
     method='get'><input type='hidden' name='pagename' 
     value='$[Main/SearchWiki]' /><input class='wikisearchbox' 
     type='text' name='q' value='' size='40' /><input 
     class='wikisearchbutton' type='submit' value='$[Search]' /></form>",
     $pagename));
-Markup('searchresults','directives','/\\[:searchresults\\s*(.*?):\\]/e',
+Markup('searchresults','directives','/\\(:searchresults\\s*(.*?):\\)/e',
   "Keep(FmtPageList(\$GLOBALS['SearchResultsFmt'],\$pagename,
     array('q'=>PSS('$1'))))");
-Markup('pagelist','directives','/\\[:pagelist\\s*(.*):\\]/e',
+Markup('pagelist','directives','/\\(:pagelist\\s*(.*):\\)/e',
   "Keep(FmtPageList('\$MatchList',\$pagename,array('q'=>PSS('$1 '))))");
 
 SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple'));

@@ -93,8 +93,8 @@ $UrlLinkFmt = "<a class='urllink' href='\$LinkUrl'>\$LinkText</a>";
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$GroupHeaderFmt = '[:include $Group.GroupHeader:][:nl:]';
-$GroupFooterFmt = '[:nl:][:include $Group.GroupFooter:]';
+$GroupHeaderFmt = '(:include $Group.GroupHeader:)(:nl:)';
+$GroupFooterFmt = '(:nl:)(:include $Group.GroupFooter:)';
 $PagePathFmt = array('$Group.$1','$1.$1','$1.$DefaultName');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
@@ -846,12 +846,12 @@ function HandleBrowse($pagename) {
   else $text = FmtPageName($DefaultPageTextFmt,$pagename);
   if (@!$_GET['from']) {
     $PageRedirectFmt = '';
-    if (preg_match('/\\[:redirect\\s+(.+?):\\]/',$text,$match)) {
+    if (preg_match('/\\(:redirect\\s+(.+?):\\)/',$text,$match)) {
       $rname = MakePageName($pagename,$match[1]);
       if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
     }
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
-  $text = '[:groupheader:]'.@$text.'[:groupfooter:]';
+  $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
@@ -906,9 +906,9 @@ function SaveAttributes($pagename,&$page,&$new) {
   if (!@$_REQUEST['post']) return;
   unset($new['title']);
   $text = preg_replace('/\\[([=@]).*?\\1\\]/s',' ',$new['text']);
-  if (preg_match('/\\[:title\\s(.+?):\\]/',$text,$match))
+  if (preg_match('/\\(:title\\s(.+?):\\)/',$text,$match))
     $new['title'] = $match[1];
-  MarkupToHTML($pagename,preg_replace('/\\[:(.*?):\\]/s',' ',$text));
+  MarkupToHTML($pagename,preg_replace('/\\(:(.*?):\\)/s',' ',$text));
   $new['targets'] = implode(',',array_keys((array)$LinkTargets));
 }
 
@@ -961,7 +961,7 @@ function PostRecentChanges($pagename,&$page,&$new) {
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved,$FmtV,$PagePreviewFmt;
   if (!$IsPageSaved && @$_REQUEST['preview']) {
-    $text = '[:groupheader:]'.$new['text'].'[:groupfooter:]';
+    $text = '(:groupheader:)'.$new['text'].'(:groupfooter:)';
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
   } else $PagePreviewFmt = '';
 }

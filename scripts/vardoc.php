@@ -18,7 +18,7 @@ Markup('varlink','<wikilink',"/\\$($WikiWordPattern)\\b/e",
   "Keep(VarLink(\$pagename,'$1','$$1'))");
 Markup('vardef','<links',"/^:\\$($WikiWordPattern):/",
   ':[[#$1]]$$1:');
-Markup('varindex','directives','/\\[:varindex:\\]/e',
+Markup('varindex','directives','/\\(:varindex:\\)/e',
   "Keep(VarIndexList())");
 
 $HTMLStylesFmt[] = "a.varlink { text-decoration:none; }\n";
