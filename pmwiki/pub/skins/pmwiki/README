@@ -14,9 +14,7 @@ in local/config.php.
 
 The files in this directory:
     screen.tmpl   -- the default template for page layouts
-    pmwiki.css    -- PmWiki's default css
-    print.tmpl    -- the default template for ?action=print
-    print.css     -- the print template's css
+    screen.css    -- PmWiki's default css
     pmwiki-32.gif -- the PmWiki logo
 
 If you just want to change the logo, you can do it by setting $PageLogoUrl
