@@ -1055,8 +1055,9 @@ function PrintAttrForm($pagename) {
     <input type='hidden' name='action' value='postattr' />
     <input type='hidden' name='pagename' value='\$FullName' />
     <table>",$pagename);
+  $page = ReadPage($pagename);
   foreach($PageAttributes as $attr=>$p) {
-    $value = (substr($attr,0,6)=='passwd') ? '' : $page[$k];
+    $value = (substr($attr,0,6)=='passwd') ? '' : $page[$attr];
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
       <td><input type='text' name='$attr' value='$value' /></td></tr>";
