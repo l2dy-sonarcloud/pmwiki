@@ -35,7 +35,7 @@ Markup('^|','<links','/\\^\\|([^|]+)\\|\\^/e',
   "MakeTrailPath(\$pagename,'$1')");
 
 function ReadTrail($pagename,$trailname) {
-  global $SuffixPattern,$GroupPattern,$WikiWordPattern;
+  global $SuffixPattern,$GroupPattern,$WikiWordPattern,$LinkWikiWords;
   $trailname = MakePageName($pagename,$trailname);
   $trailpage = ReadPage($trailname);
   if (!$trailpage) return false;
@@ -47,8 +47,10 @@ function ReadTrail($pagename,$trailname) {
           (\\[\\[([^|]*?)(\\|.*?)?\\]\\]($SuffixPattern)
           | (($GroupPattern([\\/.]))?$WikiWordPattern))/x",$x,$match))
        continue;
-    $tgt = (@$match[6]) ? 
-       MakePageName($trailname,$match[6]) : MakePageName($trailname,$match[3]);
+    if (@$match[6]) {
+       if (!$LinkWikiWords) continue;
+       $tgt = MakePageName($trailname,$match[6]);
+    } else $tgt = MakePageName($trailname,$match[3]);
     $t[$n]['depth'] = $depth = strlen($match[1]);
     $t[$n]['pagename'] = $tgt;
     $t[$n]['markup'] = $match[2];
