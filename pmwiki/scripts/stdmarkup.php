@@ -268,9 +268,14 @@ Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/ie',
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
-Markup('markup','<[=',"/\n\\(:markup:\\)\\s*\\[([=@])(.*?)\\1\\]/sei",
+Markup('markup', '<[=',
+  "/^\\(:markup:\\)\\s*\\[([=@])(.*?)\\1\\]/seim",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
     '</pre>').PSS('\n$2\n<:block,0></div>\n')");
+Markup('markupend', '>markup',
+  "/^\\(:markup:\\)\\s*\n(.*?)(\\(:markup(end)?:\\)|\\z)/seim",
+  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
+    '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 $HTMLStylesFmt['markup'] = "
   div.markup { border:2px dotted #ccf; 
     margin-left:30px; margin-right:30px; 
