@@ -39,10 +39,8 @@ function HandleRuleset($pagename) {
 function DisplayStopWatch() {
   global $StopWatch;
   StopWatch('now');
-  $u = $StopWatch[0];
-  $au=$u; 
   $out[] = "<pre>";
-  foreach($StopWatch as $k => $x) {
+  foreach((array)$StopWatch as $k => $x) {
     $out[] = "$x\n";
   }
   array_pop($StopWatch);
