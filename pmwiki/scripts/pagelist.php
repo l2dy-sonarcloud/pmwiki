@@ -48,17 +48,9 @@ function FmtPageList($fmt,$pagename,$opt) {
     $rq = str_replace(@$match[1].'/','',$rq);
   }
   $needle = $opt['o'] . ' ' . $rq;
-  $terms = preg_split('/((?<!\\S)[-+]?[\'"].*?[\'"](?!\\S)|\\S+)/',
-    $needle,-1,PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
-  $excl = array(); $incl = array();
-  foreach($terms as $t) {
-    if (trim($t)=='') continue;
-    if (preg_match('/^([^\'":=]*)[:=]([\'"]?)(.*?)\\2$/',$t,$match)) 
-      { $opt[$match[1]] = $match[3]; continue; }
-    preg_match('/^([-+]?)([\'"]?)(.+?)\\2$/',$t,$match);
-    if ($match[1]=='-') $excl[] = $match[3];
-    else $incl[] = $match[3];
-  }
+  $opt = array_merge($opt, ParseArgs($needle));
+  $excl = (array)@$opt['-'];
+  $incl = array_merge((array)@$opt[''], (array)@$opt['+']);
   if (@$opt['req'] && !$incl && !$excl && !isset($_REQUEST['q'])) return;
   $show = (isset($opt['list'])) ? $opt['list'] : 'default';
   $pats = (array)@$SearchPatterns[$show];
