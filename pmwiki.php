@@ -44,6 +44,7 @@ $InterMapFiles = array("$FarmD/scripts/intermap.txt",
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
+define('PAGE_NOHISTORY', $Now+86400);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
 $PageEditFmt = "<div id='wikiedit'>
@@ -502,12 +503,22 @@ function XLPage($lang,$p) {
   }
 }
 
+## CmpPageAttr is used with uksort to order a page's elements with
+## the latest items first.  This can make some operations more efficient.
+function CmpPageAttr($a, $b) {
+  @list($x, $agmt) = explode(':', $a);
+  @list($x, $bgmt) = explode(':', $b);
+  if ($agmt != $bgmt) 
+    return ($agmt==0 || $bgmt==0) ? $agmt - $bgmt : $bgmt - $agmt;
+  return strcmp($a, $b);
+}
+
 ## class PageStore holds objects that store pages via the native
 ## filesystem.
 class PageStore {
   var $dirfmt;
   function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
-  function read($pagename) {
+  function read($pagename, $since=0) {
     $newline = "\262";
     $pagefile = FmtPageName($this->dirfmt,$pagename);
     if ($pagefile && $fp=@fopen($pagefile,"r")) {
@@ -516,7 +527,14 @@ class PageStore {
         while (substr($line,-1,1)!="\n" && !feof($fp)) 
           { $line .= fgets($fp,4096); }
         @list($k,$v) = explode('=',rtrim($line),2);
-        if ($k=='newline') { $newline=$v; continue; }
+        if ($k == 'newline') { $newline = $v; continue; }
+        if ($since > 0) {
+          if ($k == 'version') $ordered = (strpos($v, 'ordered=') !== false); 
+          if (preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
+            if ($ordered) break;
+            continue;
+          }
+        }
         $page[$k] = str_replace($newline,"\n",$v);
       }
       fclose($fp);
@@ -531,13 +549,14 @@ class PageStore {
     $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
     $page['rev'] = @$page['rev']+1;
     unset($page['version']); unset($page['newline']);
+    uksort($page, 'CmpPageAttr');
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
     $dir = dirname($pagefile); mkdirp($dir);
     if (!file_exists("$dir/.htaccess") && $fp = @fopen("$dir/.htaccess", "w")) 
       { fwrite($fp, "Order Deny,Allow\nDeny from all\n"); fclose($fp); }
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
-      $s = true && fputs($fp,"version=$Version\nnewline=$Newline\n");
+      $s = true && fputs($fp,"version=$Version ordered=1\nnewline=$Newline\n");
       foreach($page as $k=>$v) 
         if ($k>'') $s = $s&&fputs($fp,str_replace("\n",$Newline,"$k=$v")."\n");
       $s = fclose($fp) && $s;
@@ -585,12 +604,12 @@ class PageStore {
   }
 }
 
-function ReadPage($pagename) {
+function ReadPage($pagename, $since=0) {
   # read a page from the appropriate directories given by $WikiReadDirsFmt.
   global $WikiLibDirs,$Now;
   Lock(1);
   foreach ($WikiLibDirs as $dir) {
-    $page = $dir->read($pagename);
+    $page = $dir->read($pagename, $since);
     if ($page) break;
   }
   if (@!$page['time']) $page['time']=$Now;
@@ -622,11 +641,11 @@ function ListPages($pat=NULL) {
   return $out;
 }
 
-function RetrieveAuthPage($pagename,$level,$authprompt=true) {
+function RetrieveAuthPage($pagename, $level, $authprompt=true, $since=0) {
   global $AuthFunction;
   SDV($AuthFunction,'BasicAuth');
-  if (!function_exists($AuthFunction)) return ReadPage($pagename);
-  return $AuthFunction($pagename,$level,$authprompt);
+  if (!function_exists($AuthFunction)) return ReadPage($pagename, $since);
+  return $AuthFunction($pagename, $level, $authprompt, $since);
 }
 
 function Abort($msg) {
@@ -1151,7 +1170,7 @@ function HandleSource($pagename) {
 
 ## BasicAuth provides password-protection of pages using PHP sessions.
 ## It is normally called from RetrieveAuthPage.
-function BasicAuth($pagename,$level,$authprompt=true) {
+function BasicAuth($pagename, $level, $authprompt=true, $since=0) {
   global $DefaultPasswords,$AllowPassword,$GroupAttributesFmt,$SessionAuthFmt,
     $HTMLStartFmt,$HTMLEndFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
