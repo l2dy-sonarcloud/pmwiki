@@ -79,9 +79,8 @@ $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $QueryFragPattern = "[?#][^\\s$UrlExcludeChars]*";
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
-$LinkPageCreateFmt = "<span class='createlink'>\$LinkText</span><a 
+$LinkPageCreateFmt = "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
   class='createlink' href='\$PageUrl?action=edit'>?</a>";
-$LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
@@ -112,7 +111,7 @@ $HTMLStylesFmt = array("
   code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
-  .createlink { border-bottom:1px dotted grey; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted grey; }
   a.createlink { text-decoration:none; position:relative; top:-0.5em;
     font-weight:bold; font-size:smaller; border-bottom:none; }
   ");
@@ -203,6 +202,7 @@ foreach((array)$InterMapFiles as $f) {
 }
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
+SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
 
 if (!function_exists($HandleActions[$action])) $action='browse';
 $HandleActions[$action]($pagename);
