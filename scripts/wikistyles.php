@@ -52,6 +52,7 @@ SDVA($WikiStyleAttr,array(
   'width' => 'img',
   'vspace' => 'img',
   'hspace' => 'img',
+  'align' => 'img',
   'target' => 'a',
   'rel' => 'a'));
 
@@ -102,8 +103,8 @@ function ApplyStyles($x) {
       $classv=array(); $stylev=array();
       foreach((array)$s as $k=>$v) {
         if (@$WikiStyleAttr[$k]) 
-          $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=)[^>]*)>/",
-            "<$1 $k='$v'>",$p);
+          $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=))([^>]*)>/",
+            "<$1 $k='$v' $2>",$p);
         elseif ($k=='class') $classv[]=$v;
         elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
       }
