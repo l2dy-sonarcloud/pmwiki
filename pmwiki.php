@@ -117,7 +117,7 @@ $HTMLDoctypeFmt =
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
 $HTMLTitleFmt = "  <title>\$WikiTitle - \$PageTitle</title>\n";
-$HTMLStylesFmt = array("
+$HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
@@ -126,7 +126,7 @@ $HTMLStylesFmt = array("
   a.createlinktext { text-decoration:none; border-bottom:1px dotted grey; }
   a.createlink { text-decoration:none; position:relative; top:-0.5em;
     font-weight:bold; font-size:smaller; border-bottom:none; }
-  ");
+  ";
 $HTMLHeaderFmt = array(
   "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
