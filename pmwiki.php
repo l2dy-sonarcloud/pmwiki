@@ -20,9 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 error_reporting(E_ALL);
+StopWatch('PmWiki');
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { unset(${$k}); }
-$StopWatch['PmWiki'] = microtime();
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
@@ -95,7 +95,7 @@ $PageAttributes = array(
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
 setlocale(LC_CTYPE,'en_US');
-$FmtVP = array(
+$FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
   '/\\$PageName/' => '$Group.$Name',
   '/\\$Group/e' => '@$match[1]',
@@ -238,6 +238,13 @@ function SDVA(&$var,$val)
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
+function StopWatch($x) { 
+  # $GLOBALS['StopWatch'][] = microtime()." $x"; 
+  if (!function_exists('getrusage')) return;
+  $dat = getrusage();
+  $GLOBALS['StopWatch'][] = 
+    ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
+}
 
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.  It does not "lock pages" for editing.
@@ -317,12 +324,12 @@ function MakePageName($basepage,$x) {
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$EnablePathInfo,
-    $GCount,$UnsafeGlobals,$FmtV,$FmtVP;
+    $GCount,$UnsafeGlobals,$FmtV,$FmtP;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
   preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match);
-  $fmt = preg_replace(array_keys($FmtVP),array_values($FmtVP),$fmt);
+  $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
     $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
       "'\$ScriptUrl?pagename='.str_replace('/','.','$1')",$fmt);
@@ -756,9 +763,9 @@ function BuildMarkupRules() {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine,$StopWatch;
+  global $MarkupRules,$BlockCS,$BlockVS,$K0,$K1,$RedoMarkupLine;
 
-  $StopWatch['MarkupToHTML'] = microtime();
+  StopWatch('MarkupToHTML begin');
   array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
@@ -777,7 +784,7 @@ function MarkupToHTML($pagename,$text) {
   $x = Block('block');
   if ($x>'') $out[] = "$x\n";
   array_shift($BlockCS); array_shift($BlockVS);
-  $StopWatch['MarkupToHTMLEnd'] = microtime();
+  StopWatch('MarkupToHTML end');
   return implode('',(array)$out);
 }
    
