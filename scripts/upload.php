@@ -102,6 +102,7 @@ SDV($UploadVerifyFunction, 'UploadVerifyBasic');
 
 function MakeUploadName($pagename,$x) {
   $x = preg_replace('/[^-\\w. ]/', '', $x);
+  $x = preg_replace('/\\.[^.]*$/e', "strtolower('$0')", $x);
   $x = preg_replace('/^[^[:alnum:]]+/', '', $x);
   return preg_replace('/[^[:alnum:]]+$/', '', $x);
 }
@@ -170,7 +171,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     $UploadDirQuota,$UploadDir;
   if (!$EnableUploadOverwrite && file_exists($filepath)) 
     return 'upresult=exists';
-  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=strtolower(@$match[1]);
+  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=@$match[1];
   $maxsize = $UploadExtSize[$ext];
   if ($maxsize<=0) return "upresult=badtype&upext=$ext";
   if ($uploadfile['size']>$maxsize) 
@@ -210,7 +211,7 @@ function FmtUploadList($pagename,$opt) {
     $TimeFmt;
 
   $opt = ParseArgs($opt);
-  if (@$opt['page']) $pagename = MakePageName($pagename, $opt['page']);
+  if (@$opt[''][0]) $pagename = MakePageName($pagename, $opt[''][0]);
   if (@$opt['ext']) 
     $matchext = '/\\.(' 
       . implode('|', preg_split('/\\W+/', $opt['ext'], -1, PREG_SPLIT_NO_EMPTY))
