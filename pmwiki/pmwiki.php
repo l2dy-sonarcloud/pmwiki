@@ -195,6 +195,7 @@ if (!$pagename &&
   $pagename = urldecode($match[1]);
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
+$pagename = preg_replace('!/+$!','',$pagename);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
