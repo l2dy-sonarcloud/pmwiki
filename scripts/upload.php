@@ -90,6 +90,8 @@ SDV($DefaultPasswords['upload'],'*');
 
 Markup('attachlist', '<block', '/\\(:attachlist:\\)/e',
   "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
+SDV($GUIButtons['attach'], array(220, 'Attach:', '', '$[file.ext]',
+  '$GUIButtonDirUrlFmt/attach.gif"$[Attach file]"'));
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
 SDV($IMap['Attach:'], '$1');
 SDV($HandleActions['upload'], 'HandleUpload');
