@@ -117,6 +117,7 @@ function PrintDiff($pagename) {
 
 function HandleDiff($pagename) {
   global $HandleDiffFmt,$PageStartFmt,$PageDiffFmt,$PageEndFmt;
+  Lock(1);
   $page = ReadPage($pagename,'');
   if (!$page) { Abort("?cannot diff $pagename"); }
   SDV($HandleDiffFmt,array(&$PageStartFmt,
