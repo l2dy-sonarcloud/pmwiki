@@ -8,9 +8,9 @@ $HTMLStylesFmt[] = "
   .pass { background-color:#ddffdd; }
   .fail { background-color:#ffdddd; }";
 
-$MarkupPatterns[3000]["/^=test\\s+(\\S+)\\s+$KeepToken(\\d+)$KeepToken/e"] =
+$MarkupPatterns[3000]["/^=test\\s+([\\s\\w]+?)\\s+$KeepToken(\\d+)$KeepToken/e"] =
   "PZZ(\$tname='$1',\$tkeep1=$2)";
-$MarkupPatterns[3001]["/=result\\s+(\\S+\\s*)?$KeepToken(\\d+)$KeepToken/e"] =
+$MarkupPatterns[3001]["/=result\\s+([\\s\\w]*)$KeepToken(\\d+)$KeepToken/e"] =
   "Keep(TestResult(\$pagename,\$tname,\$GLOBALS['KPV'][\$tkeep1],
     str_replace(array('&amp;','&lt;','&gt;'),array('&','<','>'),
       \$GLOBALS['KPV'][$2])))";
