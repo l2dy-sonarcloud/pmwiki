@@ -18,4 +18,9 @@ if ($action=='diag') {
 
 if ($action=='phpinfo') { phpinfo(); exit(); }
 
+session_start();
+if (@$_REQUEST['redirect']) 
+  $_SESSION['redirect'] = ($_REQUEST['redirect']!='y');
+$EnableRedirect = @$_SESSION['redirect'];
+
 ?>
