@@ -12,7 +12,7 @@ SDV($SearchResultsFmt,"\$[SearchFor]
   $HTMLVSpace\$[SearchFound]$HTMLVSpace");
 SDVA($SearchPatterns['all'],array());
 $SearchPatterns['normal'][] = '!\.(All)?Recent(Changes|Uploads)$!';
-$SearchPatterns['normal'][] = '!\.Group(Print)?(Header|Footer)$!';
+$SearchPatterns['normal'][] = '!\.Group(Print)?(Header|Footer|Attributes)$!';
 
 XLSDV('en',array(
   'SearchFor' => 'Results of search for <em>$Needle</em>:',
