@@ -523,6 +523,7 @@ class PageStore {
     $s && fixperms($pagefile);
     if (!$s)
       Abort("Cannot write page to $pagename ($pagefile)...changes not saved");
+    PCache($pagename, $page);
   }
   function exists($pagename) {
     $pagefile = FmtPageName($this->dirfmt,$pagename);
