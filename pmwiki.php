@@ -44,7 +44,7 @@ $InterMapFiles = array("$FarmD/scripts/intermap.txt",
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
-define('PAGE_NOHISTORY', $Now+86400);
+define('PAGEREAD_SKIP_HISTORY', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
 $PageEditFmt = "<div id='wikiedit'>
