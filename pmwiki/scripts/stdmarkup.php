@@ -223,7 +223,7 @@ Markup('^table','<block','/^\\[:(table|cell|cellnr|tableend)(\\s.*?)?:\\]/e',
 #### special stuff ####
 ## [:markup:] for displaying markup examples
 Markup('markup','<[=',"/\n\\[:markup:\\]\\s*\\[=(.*?)=\\]/se",
-  "'\n'.Keep('<div class=\"markup\" <pre>'.wordwrap(PSS('$1'),60).
+  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
     '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 $HTMLStylesFmt['markup'] = "
   div.markup { border:2px dotted #ccf; 
