@@ -66,7 +66,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   $FmtV['$MatchSearched'] = count($pagelist);
   $FmtV['$Needle'] = $opt['text'];
   $fmtfn = @$FPLFunctions[$opt['fmt']];
-  if (!function_exists($fmtfn)) $fmtfn=FPLByGroup;
+  if (!function_exists($fmtfn)) $fmtfn='FPLByGroup';
   $FmtV['$MatchList'] = $fmtfn($pagename,$matches,$opt);
   return FmtPageName($fmt,$pagename);
 }
