@@ -22,7 +22,7 @@
 error_reporting(E_ALL);
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { unset(${$k}); }
-$UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
+$UnsafeGlobals = array_keys($GLOBALS); $GCount=0;
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
@@ -94,7 +94,13 @@ $PageAttributes = array(
   'passwdattr' => '$[Set new attribute password:]');
 $XLLangs = array('en');
 setlocale(LC_CTYPE,'en_US');
-
+$FmtV = array(
+  '$PageUrl' => '$ScriptUrl/$Group/$Name',
+  '$PageName' => '$Group.$Name');
+$FmtVP = array(
+  '/\\$Group/e' => '$match[1]',
+  '/\\$Name/e' => '$match[2]');
+  
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
@@ -311,32 +317,29 @@ function MakePageName($basepage,$x) {
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern,$NamePattern,$EnablePathInfo,
-    $GCount,$UnsafeGlobals,$FmtV;
+    $GCount,$UnsafeGlobals,$FmtV,$FmtVP;
   if (strpos($fmt,'$')===false) return $fmt;                  
-  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match)) {
-    $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
-    $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
-    static $qk = array('$PageUrl','$PageName','$Group','$Name');
-    $qv = array('$ScriptUrl/$Group/$Name','$Group.$Name',$match[1],$match[2]);
-    $fmt = str_replace($qk,$qv,$fmt);
-  }
+  $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
+  $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
+  $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
+  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match))
+    $fmt = preg_replace(array_keys($FmtVP),array_values($FmtVP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
     $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
       "'\$ScriptUrl?pagename='.str_replace('/','.','$1')",$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
-  if ($GCount != count($GLOBALS)+count($FmtV)) {
+  if ($GCount != count($GLOBALS)) {
     $g = array();
     foreach($GLOBALS as $n=>$v) {
       if (is_array($v) || is_object($v) ||
-         isset($FmtV["\$$n"]) || in_array($n,$UnsafeGlobals)) continue;
+          in_array($n,$UnsafeGlobals)) continue;
       $g["\$$n"] = $v;
     }
-    $GCount = count($GLOBALS)+count($FmtV);
+    $GCount = count($GLOBALS);
     krsort($g); reset($g);
   }
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
-  $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
   return $fmt;
 }
 
