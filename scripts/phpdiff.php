@@ -50,12 +50,12 @@ function PHPDiff($old,$new)
      while(($s1+$s2-$a1-$a2) < ($best1+$best2-$a1-$a2)) {
        $d=-1;
        foreach((array)@$r1[$t2[$s2]] as $n) 
-         if ($n>$s1) { $d=$n; break; }
+         if ($n>=$s1) { $d=$n; break; }
        if ($d>=$s1 && ($d+$s2-$a1-$a2)<($best1+$best2-$a1-$a2))
          { $best1=$d; $best2=$s2; }
        $d=-1;
        foreach((array)@$r2[$t1[$s1]] as $n) 
-         if ($n>$s2) { $d=$n; break; }
+         if ($n>=$s2) { $d=$n; break; }
        if ($d>=$s2 && ($s1+$d-$a1-$a2)<($best1+$best2-$a1-$a2))
          { $best1=$s1; $best2=$d; }
        $s1++; $s2++;
