@@ -270,8 +270,7 @@ function SDVA(&$var,$val)
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
 function StopWatch($x) { 
-  if (function_exists('getrusage')) {
-    $dat = getrusage();
+  if (function_exists('getrusage') && ($dat=getrusage())) {
     $GLOBALS['StopWatch'][] = 
       ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
     return;
