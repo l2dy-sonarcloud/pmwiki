@@ -289,6 +289,17 @@ function SDVA(&$var,$val)
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
 function SetTmplDisplay($var, $val) { $GLOBALS['TmplDisplay'][$var] = $val; }
+function ParseArgs($x) {
+  $z = array();
+  preg_match_all('/([-+]|(?>(\\w+)[:=]))?("[^"]*"|\'[^\']*\'|\\S+)/',
+    $x, $terms, PREG_SET_ORDER);
+  foreach($terms as $t) {
+    $v = preg_replace('/^([\'"])?(.*)\\1$/', '$2', $t[3]);
+    if ($t[2]) $z[$t[2]] = $v;
+    else $z[$t[1]][] = $v;
+  }
+  return $z;
+}
 function StopWatch($x) { 
   global $StopWatch, $EnableStopWatch;
   if (!$EnableStopWatch) return;
@@ -1188,7 +1199,7 @@ function HandleAttr($pagename) {
 }
 
 function HandlePostAttr($pagename) {
-  global $PageAttributes;
+  global $PageAttributes, $EnablePostAttrClearSession;
   $page = RetrieveAuthPage($pagename,'attr');
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
@@ -1197,7 +1208,8 @@ function HandlePostAttr($pagename) {
     else if ($newpw>'') $page[$attr]=crypt($newpw);
   }
   WritePage($pagename,$page);
-  $_SESSION['authpw'] = array();
+  if (IsEnabled($EnablePostAttrClearSession, 1)) 
+    $_SESSION['authpw'] = array();
   Redirect($pagename);
   exit;
 } 
