@@ -27,6 +27,7 @@ define('PmWiki',1);
 @include_once('scripts/version.php');
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
+$WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/$Group.$Name');
 $WikiLibDirs = array($WikiDir,new PageStore('wikilib.d/$Group.$Name'));
 $KeepToken = "\377\377";  
@@ -49,7 +50,7 @@ $RecentChangesFmt = array(
     '* [[$Group.$Name]] . . . $CurrentTime by $AuthorLink',
   '$Group.RecentChanges' =>
     '* [[$Group/$Name]] . . . $CurrentTime by $AuthorLink');
-$DefaultPageTextFmt = 'Describe [[$PageName]] here.';
+$DefaultPageTextFmt = 'Describe [[$Name]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $RedirectDelay = 0;
@@ -140,6 +141,8 @@ $MarkupPatterns[4300]['/\\bmailto:(\\S+)/e'] =
   "Keep(MakeLink(\$pagename,'$0','$1'))";
 $MarkupPatterns[4400]["/\\b($LinkPattern)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e"] =
   "Keep(MakeLink(\$pagename,'$0','$0'))";
+$MarkupPatterns[4500]["/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e"] =
+  "Keep(MakeLink(\$pagename,'$0'))";
 $MarkupPatterns[5000]['/^(!{1,6})(.*)$/e'] =
   "'<:block><h'.strlen('$1').'>$2</h'.strlen('$1').'>'";
 $MarkupPatterns[5100]['/^(\\*+)/'] = '<:ul,$1>';
@@ -318,7 +321,7 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
   # redirect the browser to $pagename
   global $EnableRedirect,$RedirectDelay;
   clearstatcache();
-  if (!PageExists($pagename)) $pagename=$DefaultPage;
+  #if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
   if (!isset($EnableRedirect) || $EnableRedirect) {
     header("Location: $pageurl");
@@ -539,7 +542,8 @@ function RecentChanges($pagename,&$page,&$new) {
 }
     
 function HandleEdit($pagename) {
-  global $PageEditFmt,$EditFields,$EditFunctions,$IsPagePosted,$FmtV;
+  global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,
+    $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PageEndFmt;
   $IsPagePosted = false;
   $page = ReadPage($pagename);
   $new = $page;
@@ -548,7 +552,8 @@ function HandleEdit($pagename) {
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
-  print FmtPageName($PageEditFmt,$pagename);
+  SDV($HandleEditFmt,array(&$PageStartFmt,&$PageEditFmt,&$PageEndFmt));
+  PrintFmt($pagename,$HandleEditFmt);
 }
 
 function HandleSource($pagename) {
