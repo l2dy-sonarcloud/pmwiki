@@ -56,6 +56,10 @@ function GUIEdit($pagename, &$page, &$new) {
   foreach ($GUIButtons as $k => $g) {
     if (!$g) continue;
     list($when, $mopen, $mclose, $mtext, $tag) = $g;
+    if ($tag{0} == '<') { 
+        $out[] = "document.write(\"$tag\");\n";
+        continue; 
+    }
     if (preg_match('/^(.*\\.(gif|jpg|png))("([^"]+)")?$/', $tag, $m)) {
       $title = (@$m[4] > '') ? "title='{$m[4]}'" : '';
       $tag = "<img src='{$m[1]}' $title style='border:0px;' />";
