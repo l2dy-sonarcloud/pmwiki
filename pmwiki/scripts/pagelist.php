@@ -10,12 +10,9 @@
 SDV($SearchResultsFmt,"\$[SearchFor]
   $HTMLVSpace\$MatchList
   $HTMLVSpace\$[SearchFound]$HTMLVSpace");
-SDVA($SearchPatterns,array(
-  'all' => array(),
-  'nojunk' => array(
-    '!\.(All)?Recent(Changes|Uploads)$!',
-    '!\.Group(Print)?(Header|Footer)$!'
-   )));
+SDVA($SearchPatterns['all'],array());
+$SearchPatterns['normal'][] = '!\.(All)?Recent(Changes|Uploads)$!';
+$SearchPatterns['normal'][] = '!\.Group(Print)?(Header|Footer)$!';
 
 XLSDV('en',array(
   'SearchFor' => 'Results of search for <em>$Needle</em>:',
@@ -58,7 +55,7 @@ function FmtPageList($fmt,$pagename,$opt) {
     if ($match[1]=='-') $excl[] = $match[3];
     else $incl[] = $match[3];
   }
-  $show = (isset($opt['show'])) ? $opt['show'] : 'default';
+  $show = (isset($opt['list'])) ? $opt['list'] : 'default';
   $pats = (array)@$SearchPatterns[$show];
   if (@$opt['group']) array_unshift($pats,"/^({$opt['group']})\./i");
   if (@$opt['trail']) {
