@@ -198,6 +198,7 @@ $LinkFunctions['<:page>'] = 'LinkPage';
 if (strpos(@$_SERVER['QUERY_STRING'],'?')!==false) {
   unset($_GET);
   parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
+  $_REQUEST = array_merge($_REQUEST, $_GET, $_POST);
 }
 
 foreach(array('pagename','action','text') as $v) {
