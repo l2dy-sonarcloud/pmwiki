@@ -78,6 +78,7 @@ function PrintDiff($pagename) {
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
     if (!$diffauthor) $diffauthor="unknown";
+    $FmtV['$DiffChangeSum'] = @$page["csum:$diffgmt"];
     $FmtV['$DiffAuthor'] = $diffauthor;
     $FmtV['$DiffId'] = $k; 
     echo FmtPageName($DiffStartFmt,$pagename);
