@@ -51,7 +51,7 @@ SDV($MailPostsMessage,"Recent wiki posts:\n"
 SDV($MailPostsSubject,"$WikiTitle recent wiki posts");
 SDV($MailPostsFunction,"mail");
 SDV($MailPostsTimeFmt,$TimeFmt);
-SDV($MailPostsItemFmt,' * $PageName . . . $PostTime by $Author');
+SDV($MailPostsItemFmt,' * $FullName . . . $PostTime by $Author');
 SDV($MailPostsHeaders,'');
 if (@$MailPostsFrom) 
   $MailPostsHeaders = "From: $MailPostsFrom\r\n$MailPostsHeaders";

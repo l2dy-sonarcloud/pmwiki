@@ -17,7 +17,7 @@ SDV($DiffMinorFmt, ($DiffShow['minor']=='y') ?
 SDV($DiffSourceFmt, ($DiffShow['source']=='y') ?
   "<a href='\$PageUrl?action=diff&amp;source=n&amp;minor=".$DiffShow['minor']."'>$[Show changes to output]</a>" :
   "<a href='\$PageUrl?action=diff&amp;source=y&amp;minor=".$DiffShow['minor']."'>$[Show changes to markup]</a>");
-SDV($PageDiffFmt,"<h1 class='wikiaction'>$[\$PageName History]</h1>
+SDV($PageDiffFmt,"<h1 class='wikiaction'>$[\$FullName History]</h1>
   <p>$DiffMinorFmt - $DiffSourceFmt</p>
   ");
 SDV($DiffStartFmt,"
@@ -43,7 +43,8 @@ SDV($DiffAuthorPageExistsFmt,"<a class='authorlink'
    href='\$ScriptUrl/\$DiffAuthorPage'>\$DiffAuthor</a>");
 SDV($DiffAuthorPageMissingFmt,"\$DiffAuthor");
 
-$HandleActions['diff']='HandleDiff';
+SDV($HandleActions['diff'],'HandleDiff');
+SDV($ActionTitleFmt['diff'],'| $[History]');
 $HTMLStylesFmt[] = "
   .diffbox { border:1px #999999 solid; margin-top:1.33em; }
   .diffauthor { font-weight:bold; }

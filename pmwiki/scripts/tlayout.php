@@ -34,7 +34,7 @@ SDV($PageLogoFmt,"<div id='wikilogo'><a href='$ScriptUrl'><img
 SDV($PageCSSListFmt,array(
   'pub/css/local.css' => '$PubDirUrl/css/local.css',
   'pub/css/$Group.css' => '$PubDirUrl/css/$Group.css',
-  'pub/css/$PageName.css' => '$PubDirUrl/css/$PageName.css'));
+  'pub/css/$FullName.css' => '$PubDirUrl/css/$FullName.css'));
 
 foreach((array)$PageCSSListFmt as $k=>$v) 
   if (file_exists(FmtPageName($k,$pagename))) 
