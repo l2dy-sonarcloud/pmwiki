@@ -284,13 +284,19 @@ function SDVA(&$var,$val)
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
 function StopWatch($x) { 
-  if (function_exists('getrusage') && ($dat=getrusage())) {
-    $GLOBALS['StopWatch'][] = 
-      ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
-    return;
-  }
+  global $StopWatch, $EnableStopWatch;
+  if (!$EnableStopWatch) return;
+  static $wstart = 0, $ustart = 0;
   list($usec,$sec) = explode(' ',microtime());
-  $GLOBALS['StopWatch'][] = ($sec+$usec)." $x"; 
+  $wtime = ($sec+$usec); 
+  if (!$wstart) $wstart = $wtime;
+  if ($EnableStopWatch != 2) 
+    { $StopWatch[] = sprintf("%05.2f %s", $wtime-$wstart, $x); return; }
+  $dat = getrusage();
+  $utime = ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000);
+  if (!$ustart) $ustart=$utime;
+  $StopWatch[] = 
+    sprintf("%05.2f %05.2f %s", $wtime-$wstart, $utime-$ustart, $x);
 }
 
 ## AsSpaced converts a string with WikiWords into a spaced version
@@ -862,7 +868,7 @@ function BuildMarkupRules() {
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if (@$m['pat']) 
+      if (isset($m['pat'])) 
         $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
   }
   return $MarkupRules;
@@ -885,7 +891,7 @@ function MarkupToHTML($pagename,$text) {
     $RedoMarkupLine=0;
     foreach($markrules as $p=>$r) {
       if (substr($p,0,1)=='/') $x=preg_replace($p,$r,$x); 
-      elseif ($p=='' || strstr($x,$p)!==false) $x=eval($r);
+      elseif (strstr($x,$p)!==false) $x=eval($r);
       if (isset($php_errormsg)) { echo "pat=$p"; unset($php_errormsg); }
       if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
     }
