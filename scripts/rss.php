@@ -97,7 +97,7 @@ function HandleRss($pagename) {
   $r = array();
   for($i=0;$i<count($t) && count($r)<$RssMaxItems;$i++) {
     if (!PageExists($t[$i]['pagename'])) continue;
-    $page = RetrieveAuthPage($t[$i]['pagename'],'read',false);
+    $page = RetrieveAuthPage($t[$i]['pagename'],'read',false); Lock(0);
     if (!$page) continue;
     $text = 
       MarkupToHTML($t[$i]['pagename'],substr($page['text'],0,$RssSourceSize));
