@@ -174,7 +174,7 @@ Markup('links','>inline');
 Markup('block','>links');
 Markup('style','>block');
 
-$ImgExtPattern="\\.(?:gif|jpg|jpeg|png)";
+$ImgExtPattern="\\.(?:gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)";
 $ImgTagFmt="<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />";
 
 $BlockMarkups = array(
@@ -944,7 +944,7 @@ function PostPage($pagename,&$page,&$new) {
   SDV($DiffKeepDays,3650);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
-  if (@$_REQUEST['post']) {
+  if (@$_POST['post']) {
     if ($new['text']==@$page['text']) { Redirect($pagename); return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
@@ -986,7 +986,7 @@ function PostRecentChanges($pagename,&$page,&$new) {
 
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved,$FmtV,$PagePreviewFmt;
-  if (!$IsPageSaved && @$_REQUEST['preview']) {
+  if (!$IsPageSaved && @$_POST['preview']) {
     $text = '(:groupheader:)'.$new['text'].'(:groupfooter:)';
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
   } else $PagePreviewFmt = '';
