@@ -270,6 +270,8 @@ function PSS($x)
   { return str_replace('\\"','"',$x); }
 function PZZ($x,$y='') { return ''; }
 function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
+function PUE($x)
+  { return preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $x); }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
@@ -754,8 +756,7 @@ function WikiLink($pagename, $word) {
   
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap,$IMapLinkFmt,$UrlLinkFmt;
-  $FmtV['$LinkUrl'] = preg_replace('/[\\x80-\\xff ]/e',"'%'.dechex(ord('$0'))",
-    str_replace('$1',$path,$IMap[$imap]));
+  $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
   if (!$fmt) 
