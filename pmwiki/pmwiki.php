@@ -163,7 +163,7 @@ foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:')
   as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
-if (strpos(@$_SERVER['QUERY_STRING'],'?')===true) {
+if (strpos(@$_SERVER['QUERY_STRING'],'?')!==false) {
   unset($_GET);
   parse_str(str_replace('?','&',$_SERVER['QUERY_STRING']),$_GET);
 }
@@ -296,17 +296,19 @@ function MakePageName($pagename,$x) {
 ## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
-  global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals,$FmtV;
+  global $GroupPattern,$NamePattern,$EnablePathInfo,
+    $GCount,$UnsafeGlobals,$FmtV;
   if (strpos($fmt,'$')===false) return $fmt;                  
   if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match)) {
     $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
     $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
-    static $qk = array('$PageUrl','$ScriptUrl','$Group','$Name');
-    $qv = array('$ScriptUrl/$Group/$Name',$GLOBALS['ScriptUrl'],$match[1],
-      $match[2]);
-    $fmt = str_replace('$PageName','$Group.$Name',$fmt);
+    static $qk = array('$PageUrl','$PageName','$Group','$Name');
+    $qv = array('$ScriptUrl/$Group/$Name','$Group.$Name',$match[1],$match[2]);
     $fmt = str_replace($qk,$qv,$fmt);
   }
+  if (isset($EnablePathInfo) && !$EnablePathInfo)
+    $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s]+)!e',
+      "'\$ScriptUrl?pagename='.str_replace('/','.','$1')",$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
   if ($GCount != count($GLOBALS)+count($FmtV)) {
