@@ -29,8 +29,9 @@ $HandleActions['approveurls'] = 'HandleApprove';
 $HandleActions['approvesites'] = 'HandleApprove';
 
 function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $EnableUrlApproval,$IMap,$WhiteUrlPatterns,$FmtV,$UnapprovedLinkFmt;
-  if (!IsEnabled($EnableUrlApproval,1))
+  global $EnableUrlApprovalRequired,$IMap,$WhiteUrlPatterns,$FmtV,
+    $UnapprovedLinkFmt;
+  if (!IsEnabled($EnableUrlApprovalRequired,1))
     return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   static $havereadpages;
   if (!$havereadpages) { ReadApprovedUrls($pagename); $havereadpages=true; }
