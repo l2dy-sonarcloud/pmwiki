@@ -9,26 +9,33 @@
     local/ subdirectory.  For example, to create customizations for
     the 'Demo' group, place them in a file called local/Demo.php.
     To customize a single page, use the full page name (e.g., 
-    local/Demo.MyPage.php).  If neither a per-page nor a per-group
-    customization file exists, then the file 'default.php' is
-    included if it exists.
-   
-    Per-group customizations can be handled at any time by adding
+    local/Demo.MyPage.php).  Per-page/per-group customizations can be 
+    handled at any time by adding
 	include_once("scripts/pgcust.php");
     to config.php.  It is automatically included by scripts/stdconfig.php
-    unless $EnablePerGroupCust is set to zero in local.php.
+    unless $EnablePGCust is set to zero in config.php.
+
+    A page's customization is loaded first, followed by any group
+    customization.  If no page or group customizations are loaded,
+    then 'local/default.php' is loaded.  
+
+    A per-page configuration file can prevent its group's config from 
+    loading by setting $EnablePGCust=0;.  A per-page configuration file 
+    can force group customizations to be loaded first by using include_once
+    on the group customization file.
+    
 */
 
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 if ($pagename=='') $pagename=$DefaultPage;
 
+$v = 1;
 for($p=$pagename;$p;$p=preg_replace('/\\.*[^.]*$/','',$p)) {
-  if (file_exists("local/$p.php")) {
-    include_once("local/$p.php");
-    return;
-  }
+  if (!IsEnabled($EnablePGCust,1)) return;
+  if (file_exists("local/$p.php")) { include_once("local/$p.php"); $v=0; }
 }
-if (file_exists('local/default.php'))
+
+if ($v && IsEnabled($EnablePGCust,1) && file_exists('local/default.php'))
   include_once('local/default.php');
 
 ?>
