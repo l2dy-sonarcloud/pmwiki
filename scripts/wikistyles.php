@@ -1,44 +1,109 @@
-<?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004 Patrick R. Michaud (pmichaud@pobox.com)
-    This file is part of PmWiki; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published
-    by the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.  See pmwiki.php for full details.
+<?php
 
-    This script predefines WikiStyles for use in PmWiki pages.  The
-    script is automatically included by the stdconfig.php script unless
-    disabled by
-        $EnableStdWikiStyles = 0;
-*/
+## %% markup
+Markup('%%','style','%','return ApplyStyles($x);');
+## restore links before applying styles
+Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
+  '$GLOBALS[\'KPV\'][\'$1\']');
 
-# the [:css:] directive allows authors to define new CSS classes
-Markup('.class','directive',
-  '/\\[:css\\s+(\\.\\w[-\\w]*\\s*\\{[^}]*})\\s*:\\]/e',
-  "PZZ(\$GLOBALS['HTMLStylesFmt'][]=PSS('$1\n'))");
+if (IsEnabled($EnableStdWikiStyles,1)) {
+  ## standard colors
+  foreach(array('black','white','red','yellow','blue','gray',
+      'silver','maroon','green','navy','purple') as $c)
+    SDV($WikiStyle[$c]['color'],$c);
+  ## %newwin% style opens links in a new window
+  SDV($WikiStyle['newwin']['target'],'_blank');
+  ## %comment% style turns markup into a comment via display:none css
+  SDV($WikiStyle['comment']['display'],'none');
+  ## display, margin, padding, and border css properties
+  $WikiStyleCSS[] = 
+    'display|(margin|padding|border)(-(left|right|top|bottom))?';
+  ## apply ranges
+  SDVA($WikiStyleApply,array(
+    'item' => 'li|dt',
+    'list' => 'ul|ol|dl',
+    'block' => 'p(?!\\sclass=)|div|ul|ol|dl|li|dt|pre',
+    'p' => 'p(?!\\sclass=)'));
+  foreach(array('item','list','block','p') as $c)
+    SDV($WikiStyle[$c],array('apply'=>$c));
+  ## block justifications
+  foreach(array('left','right','center') as $c)
+    SDV($WikiStyle[$c],array('apply'=>'block','text-align'=>$c));
+}
 
-# allow other CSS properties in WikiStyles
-$WikiStyleCSSPatterns[] = 'display|margin[-\\w]*|border[-\\w]*';
+SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"]*%');
 
-# the 'block' style is a shortcut for apply=block
-SDV($WikiStyle['block'],array('apply'=>'block'));
+SDVA($WikiStyleAttr,array(
+  'height' => 'img',
+  'width' => 'img',
+  'vspace' => 'img',
+  'hspace' => 'img',
+  'target' => 'a',
+  'rel' => 'a'));
 
-# some styles for justifying text
-foreach(array('center','left','right') as $k)
-  SDV($WikiStyle[$k],array('text-align'=>$k, 'align'=>'block'));
+SDVA($WikiStyleRepl,array('/\\bbgcolor([:=])/' => 'background-color$1'));
 
-# the 'newwin' style causes links to open in a new window
-SDV($WikiStyle['newwin'],array('target' => '_blank'));
+$WikiStyleCSS[] = 'color|background-color';
+$WikiStyleCSS[] = 'text-align|text-decoration';
+$WikiStyleCSS[] = 'font-size|font-family|font-weight|font-style';
 
-# the 'comment' style turns text into a comment via display:none; property
-$WikiStyleCSSPatterns[] = 'display';
-SDV($WikiStyle['comment'],array('display'=>'none'));
-
-# define standard color text styles from CSS color names
-foreach(array('black','white','red','yellow','blue','gray',
-  'silver','maroon','green', 'navy', 'purple') as $c)
-    SDV($WikiStyle[$c],array('color'=>$c));
-
-# example of defining a color from a #rrggbb spec
-SDV($WikiStyle['darkgreen'],array('color'=>'#006400'));
+function ApplyStyles($x) {
+  global $WikiStylePattern,$WikiStyleRepl,$WikiStyle,$WikiStyleAttr,
+    $WikiStyleCSS,$WikiStyleApply;
+  $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
+  $parts[] = NULL;
+  $out = array();
+  $style = array();
+  $wikicsspat = '/^('.implode('|',(array)$WikiStyleCSS).')$/';
+  while ($parts) {
+    $p = array_shift($parts);
+    if (preg_match("/^$WikiStylePattern\$/",$p)) {
+      $WikiStyle['curr']=$style; $style=array();
+      foreach((array)$WikiStyleRepl as $pat=>$rep) 
+        $p=preg_replace($pat,$rep,$p);
+      preg_match_all('/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w]+|([\'"]).*?\\4))?/',
+        $p,$match,PREG_SET_ORDER);
+      while ($match) {
+        $m = array_shift($match);
+        if (@$m[2]) $style[$m[1]]=preg_replace('/^([\'"])(.*)\\1$/','$2',$m[3]);
+        else if (!isset($WikiStyle[$m[1]])) $style['class']=$m[1];
+        else $style=array_merge($style,(array)$WikiStyle[$m[1]]);
+      }
+      if (@$style['define']) {
+        $d = $style['define']; unset($style['define']);
+        $WikiStyle[$d] = $style;
+      }
+      if (@$WikiStyleApply[$style['apply']]) {
+        $apply[$style['apply']] = 
+          array_merge((array)@$apply[$style['apply']],$style);
+        $style=array();
+      }
+      continue;
+    }
+    if (is_null($p)) 
+      { $alist=@$apply; unset($alist['']); $p=implode('',$out); $out=array(); }
+    elseif ($p=='') continue;
+    else { $alist=array(''=>$style); }
+    foreach((array)$alist as $a=>$s) {
+      $classv=array(); $stylev=array();
+      foreach((array)$s as $k=>$v) {
+        if (@$WikiStyleAttr[$k]) 
+          $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=)[^>]*)>/",
+            "<$1 $k='$v'>",$p);
+        elseif ($k=='class') $classv[]=$v;
+        elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
+      }
+      $spanattr=''; 
+      if ($classv) $spanattr="class='".implode(' ',$classv)."' ";
+      if ($stylev) $spanattr.="style='".implode(' ',$stylev)."' ";
+      if ($spanattr) 
+        if (!@$WikiStyleApply[$a]) $p="<span $spanattr>$p</span>";
+        elseif (!preg_match('/^(\\s*<[^>]+>)*$/',$p))
+          $p = preg_replace("/<({$WikiStyleApply[$a]})\\b/","<$1 $spanattr",$p);
+    }
+    $out[] = $p;
+  }
+  return implode('',$out);
+}
 
 ?>
