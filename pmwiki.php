@@ -173,6 +173,13 @@ $MarkupPatterns[1100]["/\{\$(Version|Author)}/e"] =
   "\$GLOBALS['$1']";
 $MarkupPatterns[1500]['/\\[:title\\s(.*?):\\]/e'] =
   "PZZ(\$GLOBALS['HTMLTitle']=PSS('$1'))";
+$MarkupPatterns[1550]['/\\[:nogroup(header|footer):\\]/'] = '';
+$MarkupPatterns[1600]['[:noheader:]'] = 
+  "\$GLOBALS['PageHeaderFmt']='';";
+$MarkupPatterns[1605]['[:nofooter:]'] =
+  "\$GLOBALS['PageFooterFmt']='';";
+$MarkupPatterns[1610]['[:notitle:]'] =
+  "\$GLOBALS['PageTitleFmt']='';";
 $MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
 $MarkupPatterns[3100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
@@ -441,7 +448,7 @@ function ProcessIncludes($pagename,$text) {
     $text = str_replace($inclrepl,$incltext,$text);
   }
   while (preg_match("/(.?)\\[:HF (\\S+) (\\S+):\\](.?)/",$text,$match)) {
-    if (strpos("[:{$match[2]}:]",$text)===false && $pagename!=$match[3]) {
+    if (strpos($text,"[:{$match[2]}:]")===false && $pagename!=$match[3]) {
       $inclpage = ReadPage($match[3],'');
       $incltext = $inclpage['text'];
       if ($match[1] && $match[1]!="\n") $incltext = "\n".$incltext;
