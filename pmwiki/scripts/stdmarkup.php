@@ -129,7 +129,7 @@ Markup("'_",'inline',"/'_(.*?)_'/",'<sub>$1</sub>');
 
 ## [+big+], [-small-]
 Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/e',
-  "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.
+  "'<span style=\'font-size:'.(round(pow(6/5,$2strlen('$1'))*100,0)).'%\'>'.
     PSS('$3</span>')");
 
 ## {+ins+}, {-del-}
