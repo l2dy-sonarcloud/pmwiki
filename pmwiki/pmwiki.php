@@ -53,11 +53,17 @@ $PageEditFmt = "<div id='wikiedit'>
   <input type='checkbox' name='diffclass' value='minor' \$DiffClassMinor />
     $[This is a minor edit]<br />
   <input type='submit' name='post' value=' $[Save] ' />
-  <!--<input type='submit' name='preview' value=' $[Preview] ' />-->
+  <input type='submit' name='preview' value=' $[Preview] ' />
   <input type='reset' value=' $[Reset] ' /></form></div>";
+$PagePreviewFmt = "<h2 class='wikiaction'>$[Preview \$PageName]</h2>
+  <p><b>$[Page is unsaved]</b></p>
+  \$PreviewText
+  <hr /><p><b>$[End of preview -- remember to save]</b><br />
+  <a href='#top'>$[Top]</a></p>";
 $EditMessageFmt = '';
 $EditFields = array('text');
-$EditFunctions = array('RestorePage','PostPage','PostRecentChanges');
+$EditFunctions = array('RestorePage','PostPage',
+  'PostRecentChanges','PreviewPage');
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   'Main.AllRecentChanges' => 
@@ -748,10 +754,22 @@ function PostRecentChanges($pagename,&$page,&$new) {
     WritePage($rcname,$rcpage);
   }
 }
-    
+
+function PreviewPage($pagename,&$page,&$new) {
+  global $IsPageSaved,$GroupHeaderFmt,$GroupFooterFmt,$FmtV,$PagePreviewFmt;
+  if (!$IsPageSaved && @$_REQUEST['preview']) {
+    $hdname = FmtPageName($GroupHeaderFmt,$pagename);
+    $ftname = FmtPageName($GroupFooterFmt,$pagename);
+    $text = ProcessIncludes($pagename,
+      "[:HF nogroupheader $hdname:]".$new['text'].
+      "[:HF nogroupfooter $ftname:]");
+    $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
+  } else $PagePreviewFmt = '';
+}
+  
 function HandleEdit($pagename) {
   global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,
-    $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PageEndFmt;
+    $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PagePreviewFmt,$PageEndFmt;
   $IsPagePosted = false;
   Lock(2);
   $page = ReadPage($pagename);
@@ -763,7 +781,8 @@ function HandleEdit($pagename) {
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
   $FmtV['$EditBaseTime'] = $page['time'];
-  SDV($HandleEditFmt,array(&$PageStartFmt,&$PageEditFmt,&$PageEndFmt));
+  SDV($HandleEditFmt,array(&$PageStartFmt,
+    &$PageEditFmt,&$PagePreviewFmt,&$PageEndFmt));
   PrintFmt($pagename,$HandleEditFmt);
 }
 
