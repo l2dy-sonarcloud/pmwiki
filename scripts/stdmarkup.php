@@ -158,7 +158,9 @@ Markup('^ ','block','/^(\\s)/','<:pre,1>');
 Markup('blank','<^ ','/^\\s*$/','<:vspace>');
 
 ## tables
+## ||cell||, ||!header cell||, ||!caption!||
 Markup('^||||','block','/^\\|\\|.*\\|\\|.*$/e',"FormatTableRow(PSS('$0'))");
+## ||table attributes
 Markup('^||','>^||||','/^\\|\\|(.*)$/e',
   "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))");
 
