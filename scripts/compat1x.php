@@ -39,7 +39,7 @@
     leaving the PmWiki 1 installation intact.
 
     For more details, see 
-        http://www.pmwiki.org/pmwiki2/pmwiki.php/PmWiki/Compat1x
+        http://www.pmwiki.org/pmwiki2/pmwiki.php/PmWiki/UpgradingFromPmWiki1
     
 */
 
@@ -51,7 +51,7 @@ SDVA($Compat1x,array(
   "/\\[\\[(include|redirect):(.*?)\\]\\]/" => '[:$1 $2:]',
 
   # table, cell, cellnr, endtable
-  "/\\[\\[(table|cell|cellnr|tableend)(\\s.*?)?\\]\\]/" => '[:$1$2:]',
+  "/\\[\\[(table|cell|cellnr|tableend)(\\s.*?)?\\]\\]\n?/" => "[:$1$2:]\n",
 
   # [[$Title]]
   "/\\[\\[\\\$Title\\]\\]/" => '{$Name}',
@@ -86,15 +86,23 @@ SDVA($Compat1x,array(
 
   # Group.{{free link|s}}ext
   "/($GroupPattern([\\/.]))?\\{\\{(~?\\w[-\\w\\s.\\/]*)\\|([-\\w\\s]*)\\}\\}([-\\w]*)/" => '[[$1$3($4)]]$5',
+
+  # :: lists
+  "/^(:+)(:[^:\n]*)$/m" => '$1 $2',
 ));
 
 class PageStore1x extends PageStore {
   function read($pagename) {
-    global $Compat1x;
+    global $Compat1x,$KeepToken;
     $page = parent::read($pagename);
-    if ($page) 
+    if ($page) {
+      $page['text'] = preg_replace('/(\\[([=@]).*?\\2\\])/se',"Keep(PSS('$1'))",
+        @$page['text']);
       $page['text'] = preg_replace(array_keys($Compat1x),
         array_values($Compat1x), $page['text']);
+      $page['text'] = preg_replace("/$KeepToken(\\d.*?)$KeepToken/e",
+        '$GLOBALS[\'KPV\'][\'$1\']',$page['text']);
+    }
     return $page;
   }
 }
