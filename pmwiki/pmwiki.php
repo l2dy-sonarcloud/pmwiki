@@ -81,8 +81,8 @@ $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
-$MarkupFrameBase = array('cs'=>array(), 'vs'=>'',
-  'posteval'=>array('block'=>"return Block('block');"));
+$MarkupFrameBase = array('cs' => array(), 'vs' => '', 'ref' => 0,
+  'posteval' => array('block' => "return Block('block');"));
 $WikiWordCountMax = 1000000;
 $WikiWordCount['PmWiki'] = 1;
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
@@ -865,7 +865,6 @@ function MarkupToHTML($pagename,$text) {
   StopWatch('MarkupToHTML begin');
   array_unshift($MarkupFrame,$MarkupFrameBase);
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
-  $MarkupFrame[0]['ref'] = 0;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
   $out = array();
