@@ -137,6 +137,7 @@ function HandleDiff($pagename) {
   Lock(1);
   $page = RetrieveAuthPage($pagename, 'read');
   if (!$page) { Abort("?cannot diff $pagename"); }
+  PCache($pagename, $page);
   SDV($HandleDiffFmt,array(&$PageStartFmt,
     &$PageDiffFmt,'function:PrintDiff',
     &$PageEndFmt));
