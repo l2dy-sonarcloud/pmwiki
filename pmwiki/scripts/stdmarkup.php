@@ -54,7 +54,7 @@ Markup('nl0','<split',"/([^\n])\\(:nl:\\)([^\n])/","$1\n$2");
 Markup('nl1','>nl0',"/\\(:nl:\\)/",'');
 
 ## \\$  (end of line joins)
-Markup('\\$','>nl1',"/(\\\\*)\\\\\n/e",
+Markup('\\$','>nl1',"/\\\\(?>(\\\\*))\n/e",
   "Keep(' '.str_repeat('<br />',strlen('$1')))");
 
 ## (:noheader:),(:nofooter:),(:notitle:)...
@@ -91,8 +91,8 @@ Markup('linkwikiwords','directives','/\\(:(no)?linkwikiwords:\\)/e',
 
 #### inline markups ####
 ## character entities
-Markup('&','directives','/&amp;([A-Za-z0-9]+;|#\\d+;|#[xX][A-Fa-f0-9]+;)/',
-  '&$1');
+Markup('&','directives','/&amp;(?>([A-Za-z0-9]+|#\\d+|#[xX][A-Fa-f0-9]+));/',
+  '&$1;');
 
 ## ''emphasis''
 Markup("''",'inline',"/''(.*?)''/",'<em>$1</em>');
@@ -128,7 +128,7 @@ Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 ## [[free links]]
-Markup('[[','links',"/\\[\\[\\s*?(\\S.*?)\\]\\]($SuffixPattern)/e",
+Markup('[[','links',"/(?>\\[\\[\\s*)(\\S.*?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'L')");
 
 ## [[!Category]]
@@ -138,26 +138,27 @@ Markup('[[!','<[[','/\\[\\[!(.*?)\\]\\]/e',
   "Keep(MakeLink(\$pagename,PSS('$CategoryGroup/$1'),NULL,'',\$GLOBALS['LinkCategoryFmt']),'L')");
 
 ## [[target | text]]
-Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|\\s*(.*?)\\s*\\]\\]($SuffixPattern)/e",
+Markup('[[|','<[[',
+  "/(?>\\[\\[([^|\\]]+)\\|\\s*)(.*?)\\s*\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'L')");
 
 ## [[text -> target ]]
-Markup('[[->',
-  '>[[|',"/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(\\S.+?)\\]\\]($SuffixPattern)/e",
+Markup('[[->','>[[|',
+  "/(?>\\[\\[([^\\]]+?)\\s*-+&gt;\\s*)(\\S.+?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'L')");
 
 ## [[#anchor]]
-Markup('[[#','<[[','/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e',
+Markup('[[#','<[[','/(?>\\[\\[#([A-Za-z][-.:\\w]*))\\]\\]/e',
   "Keep(\"<a name='$1' id='$1'></a>\",'L')");
 
 ## [[target |#]] reference links
 Markup('[[|#', '<[[|',
-  "/\\[\\[([^|\\]]+)\\|#\\]\\]/e",  
+  "/(?>\\[\\[([^|\\]]+))\\|#\\]\\]/e",  
   "Keep(MakeLink(\$pagename,PSS('$1'),'['.++\$MarkupFrame[0]['ref'].']'),'L')");
 
 ## bare urllinks 
 Markup('urllink','>[[',
-  "/\\b(\\L)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e",
+  "/\\b(?>(\\L))[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e",
   "Keep(MakeLink(\$pagename,'$0','$0'),'L')");
 
 ## mailto: links 
@@ -167,7 +168,7 @@ Markup('mailto','<urllink',
 
 ## inline images
 Markup('img','<urllink',
-  "/\\b(\\L)([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e",
+  "/\\b(?>(\\L))([^\\s$UrlExcludeChars]+$ImgExtPattern)(\"([^\"]*)\")?/e",
   "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename,'$1','$2','$4','$1$2',
     \$GLOBALS['ImgTagFmt']),'L')");
 
@@ -189,8 +190,8 @@ Markup('^*','block','/^(\\*+)/','<:ul,$1>');
 Markup('^#','block','/^(#+)/','<:ol,$1>');
 
 ## indented (->) /hanging indent (-<) text
-Markup('^->','block','/^(-+)&gt;/','<:indent,$1>');
-Markup('^-<','block','/^(-+)&lt;/','<:outdent,$1>');
+Markup('^->','block','/^(?>(-+))&gt;/','<:indent,$1>');
+Markup('^-<','block','/^(?>(-+))&lt;/','<:outdent,$1>');
 
 ## definition lists
 Markup('^::','block','/^(:+)([^:]+):/','<:dl,$1><dt>$2</dt><dd>');
