@@ -34,7 +34,7 @@ SDV($LastModFile,"$WorkDir/.lastmod");
 if (@$EnableIMSCaching && in_array($action,(array)$CacheActions)) {
   $v = @filemtime($LastModFile);
   if ($v) {
-    $HTTPLastMod=gmstrftime('%a, %d %b %Y %H:%M:%S GMT',$v);
+    $HTTPLastMod=gmdate('D, d M Y H:i:s \G\M\T',$v);
     $HTTPHeaders[] = "Cache-Control: no-cache";
     $HTTPHeaders[] = "Last-Modified: $HTTPLastMod";
     if (@$_SERVER['HTTP_IF_MODIFIED_SINCE']==$HTTPLastMod) 
