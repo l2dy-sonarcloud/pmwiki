@@ -37,6 +37,7 @@ $InterMapFiles = array("$FarmD/scripts/intermap.txt",
   "$FarmD/local/farmmap.txt", 'local/localmap.txt');
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
+$U8 = '';
 $Now=time();
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
@@ -231,8 +232,9 @@ if (IsEnabled($EnableLocalConfig,1)) {
 SDV($CurrentTime,strftime($TimeFmt,$Now));
 SDV($DefaultPage,"$DefaultGroup.$DefaultName");
 SDV($UrlPage,'{$UrlPage}');
-if ($pagename&&!preg_match("/^$GroupPattern([\/.])$NamePattern$/i",$pagename)) {
-  $UrlPage=$pagename;
+if ($pagename
+        && !preg_match("/^$GroupPattern([\/.])$NamePattern$/i$U8", $pagename)) {
+  $UrlPage = $pagename;
   $p = MakePageName($DefaultPage,$pagename);
   if (PageExists($p)) { Redirect($p); exit(); }
   SDV($PageNotFound,"$DefaultGroup.PageNotFound");
@@ -290,10 +292,11 @@ function StopWatch($x) {
 ## AsSpaced converts a string with WikiWords into a spaced version
 ## of that string.  (It can be overridden via $AsSpacedFunction.)
 function AsSpaced($text) {
-  $text = preg_replace('/([[:lower:]\\d])([[:upper:]])/','$1 $2',$text);
+  global $U8;
+  $text = preg_replace("/([[:lower:]\\d])([[:upper:]])/$U8", '$1 $2', $text);
   $text = preg_replace('/(?<![-\\d])(\\d+( |$))/',' $1',$text);
-  return preg_replace('/([[:upper:]])([[:upper:]][[:lower:]\\d])/',
-    '$1 $2',$text);
+  return preg_replace("/([[:upper:]])([[:upper:]][[:lower:]\\d])/$U8",
+    '$1 $2', $text);
 }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
@@ -349,17 +352,17 @@ function fixperms($fname, $add = 0) {
 ## for the page in other groups, or else uses the group of the
 ## pagename passed as an argument.
 function MakePageName($basepage,$x) {
-  global $MakePageNameFunction,$PageNameChars,$PagePathFmt;
+  global $MakePageNameFunction, $PageNameChars, $PagePathFmt, $U8;
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage,$x);
   SDV($PageNameChars,'-[:alnum:]');
   if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
-  $name=str_replace(' ','',
-    preg_replace('/\\b(\\w)/e',"strtoupper('$1')",
-      preg_replace("/[^$PageNameChars]+/",' ',$m[2])));
+  $name=str_replace(' ', '',
+    preg_replace("/\\b(\\w)/e$U8", "strtoupper('$1')",
+      preg_replace("/[^$PageNameChars]+/$U8", ' ', $m[2])));
   if ($m[1]) {
     $group = str_replace(' ','',
-      preg_replace('/\\b(\\w)/e',"strtoupper('$1')",
-        preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
+      preg_replace("/\\b(\\w)/e$U8", "strtoupper('$1')",
+        preg_replace("/[^$PageNameChars]+/$U8", ' ', $m[1])));
     return "$group.$name";
   }
   foreach((array)$PagePathFmt as $pg) {
@@ -384,13 +387,13 @@ function PCache($pagename,$page) {
 ## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
-  global $GroupPattern,$NamePattern,$EnablePathInfo,
-    $GCount,$UnsafeGlobals,$FmtV,$FmtP,$PCache,$AsSpacedFunction;
+  global $GroupPattern, $NamePattern, $EnablePathInfo,
+    $GCount, $UnsafeGlobals, $FmtV, $FmtP, $PCache, $AsSpacedFunction, $U8;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(.+?)\\]/e',"XL(PSS('$1'))",$fmt);
   $match = array('','$Group','$Name');
-  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$m))
+  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/$U8", $pagename, $m))
     $match = $m;
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   if (isset($EnablePathInfo) && !$EnablePathInfo)
@@ -498,8 +501,9 @@ class PageStore {
     @rename($pagefile,"$pagefile,$Now");
   }
   function ls($pats=NULL) {
-    global $GroupPattern,$NamePattern;
-    $pats=(array)$pats; array_unshift($pats,"/^$GroupPattern\.$NamePattern$/");
+    global $GroupPattern, $NamePattern, $U8;
+    $pats=(array)$pats; 
+    array_unshift($pats, "/^$GroupPattern\.$NamePattern$/$U8");
     $dir = FmtPageName($this->dirfmt,'');
     $dirlist = array(preg_replace('!/?[^/]*\$.*$!','',$dir));
     $out = array();
@@ -766,12 +770,12 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $QueryFragPattern,$LinkPageExistsFmt,$LinkPageSelfFmt,
-    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets;
+    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets, $U8;
   if (substr($path,0,1)=='#' && !$fmt) {
-    $path = preg_replace('/[^-.:\\w]/','',$path);
+    $path = preg_replace("/[^-.:\\w]/$U8", '', $path);
     return "<a href='#$path'>$txt</a>";
   }
-  if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
+  if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/$U8",$path,$match))
     return '';
   $tgtname = MakePageName($pagename,$match[1]); $qf=@$match[2];
   @$LinkTargets[$tgtname]++;

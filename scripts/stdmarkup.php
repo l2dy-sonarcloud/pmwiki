@@ -119,7 +119,7 @@ Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 ## [[free links]]
-Markup('[[','links',"/\\[\\[\\s*?(\\S.*?)\\]\\]($SuffixPattern)/e",
+Markup('[[', 'links', "/\\[\\[\\s*?(\\S.*?)\\]\\]($SuffixPattern)/e$U8",
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'L')");
 
 ## [[!Category]]
@@ -129,12 +129,13 @@ Markup('[[!','<[[','/\\[\\[!(.*?)\\]\\]/e',
   "Keep(MakeLink(\$pagename,PSS('$CategoryGroup/$1'),NULL,'',\$GLOBALS['LinkCategoryFmt']),'L')");
 
 ## [[target | text]]
-Markup('[[|','<[[',"/\\[\\[([^|\\]]+)\\|\\s*(.*?)\\s*\\]\\]($SuffixPattern)/e",
+Markup('[[|', '<[[', 
+  "/\\[\\[([^|\\]]+)\\|\\s*(.*?)\\s*\\]\\]($SuffixPattern)/e$U8",
   "Keep(MakeLink(\$pagename,PSS('$1'),PSS('$2'),'$3'),'L')");
 
 ## [[text -> target ]]
-Markup('[[->',
-  '>[[|',"/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(\\S.+?)\\]\\]($SuffixPattern)/e",
+Markup('[[->', '>[[|',
+  "/\\[\\[([^\\]]+?)\\s*-+&gt;\\s*(\\S.+?)\\]\\]($SuffixPattern)/e$U8",
   "Keep(MakeLink(\$pagename,PSS('$2'),PSS('$1'),'$3'),'L')");
 
 ## [[#anchor]]
@@ -158,11 +159,14 @@ Markup('img','<urllink',
     \$GLOBALS['ImgTagFmt']),'L')");
 
 ## bare wikilinks
-Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
+Markup('wikilink', '>urllink',
+  "/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e$U8",
   "Keep(WikiLink(\$pagename,'$0'),'L')");
 
 ## escaped `WikiWords
-Markup('`wikiword','<wikilink',"/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e","Keep('$1')");
+Markup('`wikiword', '<wikilink',
+  "/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e$U8",
+  "Keep('$1')");
 
 #### Block markups ####
 ## process any <:...> markup
