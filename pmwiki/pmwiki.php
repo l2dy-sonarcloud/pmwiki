@@ -195,8 +195,9 @@ $BlockMarkups = array(
 
 $CurrentTime = strftime($TimeFmt,$Now);
 
-foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:') 
-  as $m) { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
+foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
+    'file:') as $m) 
+  { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
 if (strpos(@$_SERVER['QUERY_STRING'],'?')!==false) {
