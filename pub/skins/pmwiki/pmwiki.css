@@ -14,7 +14,7 @@
 ** README file), or you can use pub/css/local.css to override the 
 ** settings here.
 ***********************************************************************/
-body { margin-left:20px; position:absolute; width:720px; }
+body { margin-left:20px; margin-right:20px; position:absolute; }
 .pagetitle { font-size:200%; font-weight:bold; }
 
 #wikilogo { border-bottom:2px solid #cccccc; }
