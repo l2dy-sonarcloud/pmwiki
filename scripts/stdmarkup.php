@@ -110,7 +110,7 @@ Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 ## [[free links]]
-Markup('[[','links',"/\\[\\[(.*?)\\]\\]($SuffixPattern)/e",
+Markup('[[','links',"/\\[\\[(.+?)\\]\\]($SuffixPattern)/e",
   "Keep(MakeLink(\$pagename,PSS('$1'),NULL,'$2'),'L')");
 
 ## [[target | text]]
