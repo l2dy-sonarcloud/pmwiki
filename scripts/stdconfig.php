@@ -79,6 +79,6 @@ SDV($MetaRobots,
     ? 'noindex,nofollow' : 'index,follow');
 if ($MetaRobots)
   $HTMLHeaderFmt['robots'] = 
-    "  <meta name='robots' content='$MetaRobots' />\n";
+    "  <meta name='robots' content='\$MetaRobots' />\n";
 
 ?>
