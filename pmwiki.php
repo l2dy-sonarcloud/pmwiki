@@ -84,7 +84,7 @@ $HTMLVSpace = "<p class='vspace'></p>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
 $MarkupFrameBase = array('cs' => array(), 'vs' => '', 'ref' => 0,
-  'posteval' => array('block' => "return Block('block');"));
+  'posteval' => array('block' => "\$out .= Block('block');"));
 $WikiWordCountMax = 1000000;
 $WikiWordCount['PmWiki'] = 1;
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
@@ -180,7 +180,7 @@ Markup('block','>links');
 Markup('style','>block');
 
 $ImgExtPattern="\\.(?:gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)";
-$ImgTagFmt="<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />";
+$ImgTagFmt="<img src='\$LinkUrl' style='border:0px;' alt='\$LinkAlt' />";
 
 $BlockMarkups = array(
   'block' => array('','','',0),
@@ -903,11 +903,11 @@ function MarkupToHTML($pagename,$text) {
     }
     if ($x>'') $out[] = "$x\n";
   }
-  foreach((array)($MarkupFrame[0]['posteval']) as $v) 
-    { $x = eval($v); if ($x>'') $out[] = "$x\n"; }
+  $out = implode('',(array)$out);
+  foreach((array)($MarkupFrame[0]['posteval']) as $v) eval($v);
   array_shift($MarkupFrame);
   StopWatch('MarkupToHTML end');
-  return implode('',(array)$out);
+  return $out;
 }
    
 function HandleBrowse($pagename) {
