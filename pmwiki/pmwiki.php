@@ -756,7 +756,7 @@ function WikiLink($pagename, $word) {
   
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap,$IMapLinkFmt,$UrlLinkFmt;
-  $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
+  $FmtV['$LinkUrl'] = Keep(PUE(str_replace('$1',$path,$IMap[$imap])));
   $FmtV['$LinkText'] = $txt;
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
   if (!$fmt) 
@@ -782,7 +782,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
-  $FmtV['$LinkUrl'] = FmtPageName("\$PageUrl$qf",$tgtname);
+  $FmtV['$LinkUrl'] = Keep(FmtPageName("\$PageUrl$qf",$tgtname));
   $FmtV['$LinkText'] = $txt;
   return FmtPageName($fmt,$tgtname);
 }
@@ -800,6 +800,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     if (is_null($txt)) {
       $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
       if ($m[1]=='<:page>') $txt = preg_replace('!^.*[^<]/!','',$txt);
+      $txt = Keep($txt);
     }
     $txt .= $suffix;
   }

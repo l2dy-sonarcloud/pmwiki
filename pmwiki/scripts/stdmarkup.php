@@ -144,7 +144,7 @@ Markup('[[#','<[[','/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/e',
 ## bare urllinks 
 Markup('urllink','>[[',
   "/\\b(\\L)[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]/e",
-  "Keep(MakeLink(\$pagename,'$0','$0'),'L')");
+  "Keep(MakeLink(\$pagename,'$0',Keep('$0')),'L')");
 
 ## mailto: links 
 Markup('mailto','<urllink',
