@@ -1093,10 +1093,15 @@ function HandleEdit($pagename) {
 }
 
 function HandleSource($pagename) {
+  global $HTTPHeaders;
   Lock(1);
   $page = RetrieveAuthPage($pagename,'read');
   if (!$page) Abort("?cannot source $pagename");
-  header("Content-type: text/plain");
+  foreach ($HTTPHeaders as $h) {
+    $h = preg_replace('!^Content-type:\\s+text/html!i',
+             'Content-type: text/plain', $h);
+    header($h);
+  }
   echo @$page['text'];
 }
 
