@@ -108,7 +108,6 @@ $HTMLDoctypeFmt =
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
 $HTMLTitleFmt = "  <title>\$WikiTitle - \$PageTitle</title>\n";
 $HTMLStylesFmt = array("
-  body { margin-left:20px; }
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
@@ -283,9 +282,13 @@ function MakePageName($pagename,$x) {
   if (@$MakePageNameFunction) return $MakePageNameFunction($pagename,$x);
   SDV($PageNameChars,'-[:alnum:]');
   if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
-  $name=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[2])));
+  $name=str_replace(' ','',
+    preg_replace('/\\b(\\w)/e',"strtoupper('$1')",
+      preg_replace("/[^$PageNameChars]+/",' ',$m[2])));
   if ($m[1]) {
-    $group = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
+    $group = str_replace(' ','',
+      preg_replace('/\\b(\\w)/e',"strtoupper('$1')",
+        preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
     return "$group.$name";
   }
   foreach((array)$PagePathFmt as $pg) {
