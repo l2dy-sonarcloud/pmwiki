@@ -29,21 +29,12 @@ $k = MakePageName($pagename,$Author);
 SDV($AuthorPage,"$AuthorGroup/$k");
 SDV($AuthorLink,"[[~$Author]]");
 
-if (IsEnabled($EnableAuthorSignature,1)) 
-  array_unshift($EditFunctions,'SignAuthor');
+if (IsEnabled($EnableAuthorSignature,1)) {
+  $ROSPatterns['/~~~~/'] = '[[~$Author]] $CurrentTime';
+  $ROSPatterns['/~~~/'] = '[[~$Author]]';
+}
 if (IsEnabled($EnableAuthorRequired,0))
   array_unshift($EditFunctions,'RequireAuthor');
-
-## SignAuthor converts "~~~~" ($AuthorSignatureMarkup) into an author's
-## signature ("--[[~$Author]]") as part of editing/posting a page.
-function SignAuthor($pagename,&$page,&$new) {
-  global $Author,$AuthorSignatureFmt;
-  if (!@$_POST['post']) return;
-  SDV($AuthorSignatureMarkup,'~~~~');
-  SDV($AuthorSignatureFmt,'--[[~$Author]]');
-  $new['text'] = str_replace($AuthorSignatureMarkup,
-    FmtPageName($AuthorSignatureFmt,$pagename),$new['text']);
-}
 
 ## RequireAuthor forces an author to enter a name before posting.
 function RequireAuthor($pagename,&$page,&$new) {
