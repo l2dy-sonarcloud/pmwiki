@@ -45,7 +45,7 @@ $PageEditFmt = "<div id='wikiedit'>
   <h1 class='wikiaction'>$[Editing \$FullName]</h1>
   <form method='post' action='\$PageUrl?action=edit'>
   <input type='hidden' name='action' value='edit' />
-  <input type='hidden' name='p' value='\$FullName' />
+  <input type='hidden' name='n' value='\$FullName' />
   <input type='hidden' name='basetime' value='\$EditBaseTime' />
   \$EditMessageFmt
   <textarea name='text' rows='25' cols='60'
@@ -211,7 +211,7 @@ foreach(array('action','text') as $v) {
 }
 if ($action=='') $action='browse';
 
-$pagename = $_REQUEST['p'];
+$pagename = $_REQUEST['n'];
 if (!$pagename) $pagename = $_REQUEST['pagename'];
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
@@ -401,7 +401,7 @@ function FmtPageName($fmt,$pagename) {
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   if (@!$EnablePathInfo)
     $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e',
-      "'\$ScriptUrl?p='.str_replace('/','.','$1')",$fmt);
+      "'\$ScriptUrl?n='.str_replace('/','.','$1')",$fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
   if ($GCount != count($GLOBALS)+count($FmtV)) {
@@ -1096,7 +1096,7 @@ function PrintAttrForm($pagename) {
   global $PageAttributes;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
     <input type='hidden' name='action' value='postattr' />
-    <input type='hidden' name='p' value='\$FullName' />
+    <input type='hidden' name='n' value='\$FullName' />
     <table>",$pagename);
   $page = ReadPage($pagename);
   foreach($PageAttributes as $attr=>$p) {

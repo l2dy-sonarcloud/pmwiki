@@ -21,7 +21,7 @@ XLSDV('en',array(
 
 Markup('searchbox','>links','/\\(:searchbox:\\)/',
   FmtPageName("<form class='wikisearch' action='\$ScriptUrl' 
-    method='get'><input type='hidden' name='p' 
+    method='get'><input type='hidden' name='n' 
     value='$[Main/SearchWiki]' /><input class='wikisearchbox' 
     type='text' name='q' value='' size='40' /><input 
     class='wikisearchbutton' type='submit' value='$[Search]' /></form>",

@@ -23,7 +23,7 @@ $HTTPHeaders[] = 'Content-type: text/html; charset=utf-8';
 
 $Newline = "\xc0\x8a";
 $KeepToken = "\263\263\263";
-$pagename = $_REQUEST['p'];
+$pagename = $_REQUEST['n'];
 if (!$pagename) $pagename = $_REQUEST['pagename'];
 
 if (!$pagename &&
