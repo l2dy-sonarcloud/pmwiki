@@ -55,3 +55,5 @@ function MergeSimulEdits($pagename,&$page,&$new) {
   RestorePage($pagename,$page,$old,"diff:{$_POST['basetime']}");
   $new['text'] = Merge($new['text'],$old['text'],$page['text']);
 }
+
+?>
