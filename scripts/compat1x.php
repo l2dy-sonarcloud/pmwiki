@@ -89,5 +89,15 @@ class PageStore1x extends PageStore {
     return $page;
   }
 }
-   
+
+function UseV1WikiD($path) {
+    global $WikiLibDirs;
+    if (!is_dir($path)) {
+      Abort("?$path is not an accessible directory");
+      exit();
+    }
+    array_splice($WikiLibDirs,1,0,
+                 array(new PageStore1x("$path/\$Group.\$Name")));
+}
+
 ?>
