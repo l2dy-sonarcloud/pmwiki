@@ -72,6 +72,10 @@ Markup('title','directives','/\\[:title\\s(.*?):\\]/e',
 ## [:comment:]
 Markup('comment','directives','/\\[:comment .*?:\\]/','');
 
+## character entities
+Markup('&','directives','/&amp;([A-Za-z0-9]+;|#\\d+;|#[xX][A-Fa-f0-9]+;)/',
+  '&$1');
+
 ###### Links ######
 ## [[free links]]
 Markup('[[','links',"/\\[\\[(.*?)\\]\\]($SuffixPattern)/e",
