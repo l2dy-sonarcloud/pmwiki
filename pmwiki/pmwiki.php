@@ -239,11 +239,14 @@ function SDVA(&$var,$val)
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
 function StopWatch($x) { 
-  # $GLOBALS['StopWatch'][] = microtime()." $x"; 
-  if (!function_exists('getrusage')) return;
-  $dat = getrusage();
-  $GLOBALS['StopWatch'][] = 
-    ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
+  if (!function_exists('getrusage')) {
+    $dat = getrusage();
+    $GLOBALS['StopWatch'][] = 
+      ($dat['ru_utime.tv_sec']+$dat['ru_utime.tv_usec']/1000000)." $x";
+    return;
+  }
+  list($usec,$sec) = explode(' ',microtime());
+  $GLOBALS['StopWatch'][] = ($sec+$usec)." $x"; 
 }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
@@ -369,7 +372,7 @@ function XLPage($lang,$p) {
   foreach(explode("\n",$text) as $l)
     if (preg_match('/^\\s*[\'"](.+?)[\'"]\\s*=>\\s*[\'"](.+)[\'"]/',$l,$match))
       $xl[stripslashes($match[1])] = stripslashes($match[2]);
-  if ($xl) {
+  if (isset($xl)) {
     if (@$xl['xlpage-i18n']) {
       $i18n = preg_replace('/[^-\\w]/','',$xl['xlpage-i18n']);
       include_once("$FarmD/scripts/xlpage-$i18n.php");
@@ -467,7 +470,7 @@ function ReadPage($pagename,$defaulttext=NULL) {
     $page = $dir->read($pagename);
     if ($page) break;
   }
-  if ($page['text']=='') 
+  if (!isset($page['text'])) 
     $page['text']=FmtPageName($defaulttext,$pagename);
   if (@!$page['time']) $page['time']=$Now;
   return $page;
