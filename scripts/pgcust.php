@@ -35,7 +35,7 @@ for($p=$pagename;$p;$p=preg_replace('/\\.*[^.]*$/','',$p)) {
   if (file_exists("local/$p.php")) { include_once("local/$p.php"); $f=0; }
 }
 
-if ($v && IsEnabled($EnablePGCust,1) && file_exists('local/default.php'))
+if ($f && IsEnabled($EnablePGCust,1) && file_exists('local/default.php'))
   include_once('local/default.php');
 
 ?>
