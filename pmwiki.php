@@ -78,6 +78,8 @@ $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
+$GroupHeaderFmt = '$Group.GroupHeader';
+$GroupFooterFmt = '$Group.GroupFooter';
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -130,7 +132,7 @@ if ($action=='') $action='browse';
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
-  $pagename = $match[1];
+  $pagename = MakePageName('',$match[1]);
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -410,7 +412,7 @@ function ProcessIncludes($pagename,$text) {
   SDV($MaxIncludes,10);
   SDV($IncludeBadAnchorFmt,"include:\$PageName - #\$BadAnchor \$[not found]\n");
   for($i=0;$i<$MaxIncludes;$i++) {
-    $text = preg_replace("/\\[([=@)(.*?)\\1\\]/se",
+    $text = preg_replace("/\\[([=@])(.*?)\\1\\]/se",
       "Keep(\$K0['$1'].htmlentities(PSS('$2'),ENT_NOQUOTES).\$K1['$1'])",$text);
     if (!preg_match("/\\[:include\\s+([^#]+?)(#(\\w[-.:\\w]*)?(#(\\w[-.:\\w]*)?)?)?:\\]/",$text,$match)) break;
     @list($inclrepl,$inclname,$a,$aa,$b,$bb) = $match;
@@ -435,6 +437,15 @@ function ProcessIncludes($pagename,$text) {
     elseif ($aa)      
       $incltext=preg_replace("/^.*?([^\\n]*\\[\\[#$aa\\]\\]( *\\n)?[^\\n]*).*/s",'$1',$incltext,1);
     $text = str_replace($inclrepl,$incltext,$text);
+  }
+  while (preg_match("/(.?)\\[:HF (\\S+) (\\S+):\\](.?)/",$text,$match)) {
+    if (strpos("[:{$match[2]}:]",$text)===false && $pagename!=$match[3]) {
+      $inclpage = ReadPage($match[3],'');
+      $incltext = $inclpage['text'];
+      if ($match[1] && $match[1]!="\n") $incltext = "\n".$incltext;
+      if ($match[4] && $match[4]!="\n") $incltext .= "\n";
+    } else $incltext='';
+    $text = str_replace($match[0],$match[1].$incltext.$match[4],$text);
   }
   return $text;
 }
@@ -588,7 +599,11 @@ function HandleBrowse($pagename) {
     $HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
-  $text = ProcessIncludes($pagename,$page['text']);
+  $hdname = FmtPageName($GroupHeaderFmt,$pagename);
+  $ftname = FmtPageName($GroupFooterFmt,$pagename);
+  $text = ProcessIncludes($pagename,
+    "[:HF nogroupheader $hdname:]".$page['text'].
+    "[:HF nogroupfooter $ftname:]");
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,'$PageText',&$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
