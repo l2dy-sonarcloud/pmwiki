@@ -34,7 +34,7 @@ if (IsEnabled($EnableAuthorSignature,1)) {
   Markup('~~~~','<links','/~~~~/',"[[~$Author]] $CurrentTime");
   Markup('~~~','>~~~~','/~~~/',"[[~$Author]]");
 }
-if (IsEnabled($EnableAuthorRequired,0))
+if (IsEnabled($EnablePostAuthorRequired,0))
   array_unshift($EditFunctions,'RequireAuthor');
 
 ## RequireAuthor forces an author to enter a name before posting.
