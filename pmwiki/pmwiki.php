@@ -52,7 +52,7 @@ $PageEditFmt = "<div id='wikiedit'>
   <input type='checkbox' name='diffclass' value='minor' \$DiffClassMinor />
     $[This is a minor edit]<br />
   <input type='submit' name='post' value=' $[Save] ' />
-  <input type='submit' name='preview' value=' $[Preview] ' />
+  <!--<input type='submit' name='preview' value=' $[Preview] ' />-->
   <input type='reset' value=' $[Reset] ' /></form></div>";
 $EditMessageFmt = '';
 $EditFields = array('text');
@@ -80,6 +80,7 @@ $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
 $GroupHeaderFmt = '$Group.GroupHeader';
 $GroupFooterFmt = '$Group.GroupFooter';
+$PagePathFmt = array('$Group.$1','$1.$1');
 
 $WikiTitle = 'PmWiki';
 $HTTPHeaders = array(
@@ -93,7 +94,7 @@ $HTMLDoctypeFmt =
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
-$HTMLTitleFmt = "  <title>\$WikiTitle - \$HTMLTitle</title>\n";
+$HTMLTitleFmt = "  <title>\$WikiTitle - \$PageTitle</title>\n";
 $HTMLStylesFmt = array("
   body { margin-left:20px; }
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
@@ -169,17 +170,21 @@ $MarkupPatterns[1000]["\n"] =
   '$lines = array_merge($lines,explode("\n",$x)); return NULL;';
 $MarkupPatterns[1050]["/\{\\$(Group|Name)}/e"] =
   "FmtPageName('$$1',\$pagename)";
-$MarkupPatterns[1100]["/\{\$(Version|Author)}/e"] =
+$MarkupPatterns[1100]["/\{\$(Version|Author|LastModified|LastModifiedBy|LastModifiedHost)}/e"] =
   "\$GLOBALS['$1']";
 $MarkupPatterns[1500]['/\\[:title\\s(.*?):\\]/e'] =
-  "PZZ(\$GLOBALS['HTMLTitle']=PSS('$1'))";
-$MarkupPatterns[1550]['/\\[:nogroup(header|footer):\\]/'] = '';
+  "PZZ(\$GLOBALS['PageTitle']=PSS('$1'))";
+$MarkupPatterns[1505]['/\\[:keywords\\s(.*?):\\]/e'] =
+  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='keywords' content='\".
+    str_replace(\"'\",'&#039;',PSS('$1')).\"' />\")";
 $MarkupPatterns[1600]['[:noheader:]'] = 
   "\$GLOBALS['PageHeaderFmt']='';";
 $MarkupPatterns[1605]['[:nofooter:]'] =
   "\$GLOBALS['PageFooterFmt']='';";
 $MarkupPatterns[1610]['[:notitle:]'] =
   "\$GLOBALS['PageTitleFmt']='';";
+$MarkupPatterns[1615]['/\\[:nogroup(header|footer):\\]/'] = '';
+$MarkupPatterns[1620]['/\\[:comments .*?:\\]/'] = '';
 $MarkupPatterns[3000]['/\\[\\[#([A-Za-z][-.:\\w]*)\\]\\]/'] =
   "<a name='$1' id='$1'></a>";
 $MarkupPatterns[3100]["/\\[\\[([^|]+)\\|(.*?)\\]\\]($SuffixPattern)/e"] =
@@ -256,25 +261,43 @@ function IsEnabled(&$var,$f=0)
 function XL($x)  { return $x; }
 
 ## Lock is used to make sure only one instance of PmWiki is running when
-## files are being written.
-function Lock($t) { return; }
+## files are being written.  It does not "lock pages" for editing.
+function Lock($op) { 
+  global $LockFile;
+  SDV($LockFile,"wiki.d/.flock");
+  static $lockfp,$curop;
+    if (!$lockfp) {
+    $lockfp=fopen($LockFile,"w") or
+      Abort("Cannot acquire lockfile","Lockfile");
+  }
+  if ($op<0) { flock($lockfp,LOCK_UN); fclose($lockfp); $lockfp=0; $curop=0; }
+  elseif ($op==0) { flock($lockfp,LOCK_UN); $curop=0; }
+  elseif ($op==1 && $curop<1) { flock($lockfp,LOCK_SH); $curop=1; }
+  elseif ($op==2 && $curop<2) { flock($lockfp,LOCK_EX); $curop=2; }
+}
 
 ## mkgiddir creates a directory, ensuring appropriate permissions
 function mkgiddir($dir) { if (!file_exists($dir)) mkdir($dir); }
 
 ## MakePageName is used to convert a string into a valid pagename.
-## If no group is supplied, then it uses the group of the pagename
-## passed as an argument.
+## If no group is supplied, then it uses $PagePathFmt to look
+## for the page in other groups, or else uses the group of the
+## pagename passed as an argument.
 function MakePageName($pagename,$x) {
-  global $MakePageNameFunction,$PageNameChars;
+  global $MakePageNameFunction,$PageNameChars,$PagePathFmt;
   if (@$MakePageNameFunction) return $MakePageNameFunction($pagename,$x);
   SDV($PageNameChars,'-[:alnum:]');
   if (!preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$x,$m)) return '';
-  if (!$m[1]) $group=preg_replace('/[\\/.].*$/','',$pagename);
-  else $group =
-    str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
-  $name = 
-    str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
+  $name=str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[3])));
+  if ($m[1]) {
+    $group = str_replace(' ','',ucwords(preg_replace("/[^$PageNameChars]+/",' ',$m[1])));
+    return "$group.$name";
+  }
+  foreach((array)$PagePathFmt as $pg) {
+    $pn = FmtPageName(str_replace('$1',$name,$pg),$pagename);
+    if (PageExists($pn)) return $pn;
+  }
+  $group=preg_replace('/[\\/.].*$/','',$pagename);
   return "$group.$name";
 }
   
@@ -384,6 +407,14 @@ function PageExists($pagename) {
     if ($dir->exists($pagename)) return true;
   return false;
 }
+
+function SetPage($pagename,$page) {
+  global $PageTitle,$TimeFmt,$LastModified,$LastModifiedBy,$LastModifiedHost;
+  $PageTitle = FmtPageName('$Name',(@$page['name'])?$page['name']:$pagename);
+  $LastModified = strftime($TimeFmt,$page['time']);
+  $LastModifiedBy = @$page['author'];
+  $LastModifiedHost = @$page['host'];
+}
   
 function Abort($msg) {
   # exit pmwiki with an abort message
@@ -407,6 +438,36 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
       <title>Redirect</title></head><body></body></html>";
   } else echo "<a href='$pageurl'>Redirect to $pageurl</a>";
   exit;
+}
+
+function PrintFmt($pagename,$fmt) {
+  global $HTTPHeaders,$FmtV;
+  if (is_array($fmt)) 
+    { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
+  $x = FmtPageName($fmt,$pagename);
+  if (preg_match("/^headers:/",$x)) {
+    foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
+    return;
+  }
+  if (preg_match('/^function:(\S+)\s*(.*)$/s',$x,$match) &&
+      function_exists($match[1]))
+    { $match[1]($pagename,$match[2]); return; }
+  if (preg_match('/^wiki:(.+)$/',$x,$match)) 
+    { PrintWikiPage($pagename,$match[1]); return; }
+  echo $x;
+}
+
+function PrintWikiPage($pagename,$wikilist=NULL) {
+  if (is_null($wikilist)) $wikilist=$pagename;
+  $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
+  foreach($pagelist as $p) {
+    if (PageExists($p)) {
+      $page = ReadPage($p,'');
+      if ($page['text']) 
+        echo MarkupToHTML($pagename,ProcessIncludes($pagename,$page['text']));
+      return;
+    }
+  }
 }
 
 function Keep($x) {
@@ -572,43 +633,15 @@ function MarkupToHTML($pagename,$text) {
   array_shift($BlockCS); array_shift($BlockVS);
   return implode('',(array)$out);
 }
-
-function PrintFmt($pagename,$fmt) {
-  global $HTTPHeaders,$FmtV;
-  if (is_array($fmt)) 
-    { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
-  $x = FmtPageName($fmt,$pagename);
-  if (preg_match("/^headers:/",$x)) {
-    foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
-    return;
-  }
-  if (preg_match('/^function:(\S+)\s*(.*)$/s',$x,$match) &&
-      function_exists($match[1]))
-    { $match[1]($pagename,$match[2]); return; }
-  if (preg_match('/^wiki:(.+)$/',$x,$match)) 
-    { PrintWikiPage($pagename,$match[1]); return; }
-  echo $x;
-}
-
-function PrintWikiPage($pagename,$wikilist=NULL) {
-  if (is_null($wikilist)) $wikilist=$pagename;
-  $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
-  foreach($pagelist as $p) {
-    if (PageExists($p)) {
-      $page = ReadPage($p,'');
-      if ($page['text']) 
-        echo MarkupToHTML($pagename,ProcessIncludes($pagename,$page['text']));
-      return;
-    }
-  }
-}
    
 function HandleBrowse($pagename) {
   # handle display of a page
   global $FmtV,$GroupHeaderFmt,$GroupFooterFmt,
     $HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
+  Lock(1);
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
+  SetPage($pagename,$page);
   $hdname = FmtPageName($GroupHeaderFmt,$pagename);
   $ftname = FmtPageName($GroupFooterFmt,$pagename);
   $text = ProcessIncludes($pagename,
@@ -721,6 +754,7 @@ function HandleEdit($pagename) {
   $IsPagePosted = false;
   Lock(2);
   $page = ReadPage($pagename);
+  SetPage($pagename,$page);
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
@@ -733,6 +767,7 @@ function HandleEdit($pagename) {
 }
 
 function HandleSource($pagename) {
+  Lock(1);
   header("Content-type: text/plain");
   $page = ReadPage($pagename);
   echo $page['text'];
