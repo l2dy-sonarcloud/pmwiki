@@ -206,7 +206,7 @@ Markup('blank','<^ ','/^\\s*$/','<:vspace>');
 Markup('^||||','block','/^\\|\\|.*\\|\\|.*$/e',"FormatTableRow(PSS('$0'))");
 ## ||table attributes
 Markup('^||','>^||||','/^\\|\\|(.*)$/e',
-  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PSS('<table $1>'))");
+  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PQA(PSS('<table $1>')))");
 
 ## headers
 Markup('^!','block','/^(!{1,6})(.*)$/e',
