@@ -34,8 +34,13 @@ function HTTPBasicAuth($pagename,$level,$authprompt=true) {
   }
   if ($passwd=='') return $page;
   if (crypt($AllowPassword,$passwd)==$passwd) return $page;
-  foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) as $pw)
-    if (@crypt($_SERVER['PHP_AUTH_PW'],$pw)==$pw) return $page;
+  @session_start();
+  if (@$_SERVER['PHP_AUTH_PW']) @$_SESSION['authpw'][$_SERVER['PHP_AUTH_PW']]++;
+  $authpw = array_keys((array)@$_SESSION['authpw']);
+  foreach(array_merge((array)$DefaultPasswords['admin'],(array)$passwd)
+      as $pwchal)
+    foreach($authpw as $pwresp)
+      if (@crypt($pwresp,$pwchal)==$pwchal) return $page;
   if (!$authprompt) return false;
   $realm=FmtPageName($AuthRealmFmt,$pagename);
   header("WWW-Authenticate: Basic realm=\"$realm\"");
