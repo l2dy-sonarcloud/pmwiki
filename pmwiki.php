@@ -44,7 +44,7 @@ $InterMapFiles = array("$FarmD/scripts/intermap.txt",
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
-define('PAGEREAD_SKIP_HISTORY', $Now+604800);
+define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
 $PageEditFmt = "<div id='wikiedit'>
@@ -485,7 +485,7 @@ function XLSDV($lang,$a) {
 }
 function XLPage($lang,$p) {
   global $TimeFmt,$XLLangs,$FarmD;
-  $page = ReadPage($p);
+  $page = ReadPage($p, READPAGE_CURRENT);
   if (!$page) return;
   $text = preg_replace("/=>\\s*\n/",'=> ',@$page['text']);
   foreach(explode("\n",$text) as $l)
@@ -707,7 +707,7 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
   $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
   foreach($pagelist as $p) {
     if (PageExists($p)) {
-      $page = RetrieveAuthPage($p,'read',false);
+      $page = RetrieveAuthPage($p, 'read', false, READPAGE_CURRENT);
       if ($page['text']) 
         echo MarkupToHTML($pagename,$page['text']);
       return;
@@ -744,7 +744,7 @@ function IncludeText($pagename,$inclspec) {
     @list($inclstr,$inclname,$opts) = $match;
     $inclname = MakePageName($pagename,$inclname);
     if ($inclname==$pagename) return '';
-    $inclpage=RetrieveAuthPage($inclname,'read',false);
+    $inclpage = RetrieveAuthPage($inclname, 'read', false, READPAGE_CURRENT);
     $itext=@$inclpage['text'];
     foreach(preg_split('/\\s+/',$opts) as $o) {
       if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/",$o,$match)) {
@@ -983,7 +983,7 @@ function HandleBrowse($pagename) {
   global $DefaultPageTextFmt,$FmtV,$HandleBrowseFmt,$PageStartFmt,
     $PageEndFmt,$PageRedirectFmt;
   Lock(1);
-  $page = RetrieveAuthPage($pagename,'read');
+  $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
@@ -1010,12 +1010,14 @@ function EditTemplate($pagename, &$page, &$new) {
   global $EditTemplatesFmt;
   if ($new['text'] > '') return;
   if (@$_REQUEST['template'] && PageExists($_REQUEST['template'])) {
-    $p = RetrieveAuthPage($_REQUEST['template'], 'read', 'false');
+    $p = RetrieveAuthPage($_REQUEST['template'], 'read', false,
+             READPAGE_CURRENT);
     if ($p['text'] > '') $new['text'] = $p['text']; 
     return;
   }
   foreach((array)$EditTemplatesFmt as $t) {
-    $p = RetrieveAuthPage(FmtPageName($t,$pagename), 'read', false);
+    $p = RetrieveAuthPage(FmtPageName($t,$pagename), 'read', false,
+             READPAGE_CURRENT);
     if (@$p['text'] > '') { $new['text'] = $p['text']; return; }
   }
 }
@@ -1157,7 +1159,7 @@ function HandleEdit($pagename) {
 function HandleSource($pagename) {
   global $HTTPHeaders;
   Lock(1);
-  $page = RetrieveAuthPage($pagename,'read');
+  $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot source $pagename");
   foreach ($HTTPHeaders as $h) {
     $h = preg_replace('!^Content-type:\\s+text/html!i',
@@ -1175,11 +1177,12 @@ function BasicAuth($pagename, $level, $authprompt=true, $since=0) {
     $HTMLStartFmt,$HTMLEndFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
-  $page = ReadPage($pagename);
+  $page = ReadPage($pagename, $since);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
   if ($passwd=="") { 
-    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt,$pagename));
+    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt, $pagename), 
+                   READPAGE_CURRENT);
     $passwd = @$grouppg["passwd$level"];
     if ($passwd=='') $passwd = @$DefaultPasswords[$level];
     if ($passwd=='') $passwd = @$page["passwdread"];
@@ -1201,7 +1204,7 @@ function BasicAuth($pagename, $level, $authprompt=true, $since=0) {
   foreach($_POST as $k=>$v) {
     if ($k == 'authpw') continue;
     $v = str_replace('$', '&#036;', 
-      htmlspecialchars(stripmagic($v), ENT_COMPAT));
+             htmlspecialchars(stripmagic($v), ENT_COMPAT));
     $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
   }
   SDV($SessionAuthFmt,array(&$HTMLStartFmt,
@@ -1222,7 +1225,7 @@ function PrintAttrForm($pagename) {
     <input type='hidden' name='action' value='postattr' />
     <input type='hidden' name='n' value='\$FullName' />
     <table>",$pagename);
-  $page = ReadPage($pagename);
+  $page = ReadPage($pagename, READPAGE_CURRENT);
   foreach($PageAttributes as $attr=>$p) {
     $value = (strncmp($attr, 'passwd', 6) == 0) ? '' : $page[$attr];
     $prompt = FmtPageName($p,$pagename);
@@ -1234,7 +1237,7 @@ function PrintAttrForm($pagename) {
 
 function HandleAttr($pagename) {
   global $PageAttrFmt,$PageStartFmt,$PageEndFmt;
-  $page = RetrieveAuthPage($pagename,'attr');
+  $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   PCache($pagename,$page);
   SDV($PageAttrFmt,"<div class='wikiattr'>
@@ -1249,7 +1252,7 @@ function HandleAttr($pagename) {
 
 function HandlePostAttr($pagename) {
   global $PageAttributes, $EnablePostAttrClearSession;
-  $page = RetrieveAuthPage($pagename,'attr');
+  $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
     $newpw = @$_POST[$attr];
