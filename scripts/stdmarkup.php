@@ -269,9 +269,9 @@ Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/ie',
 #### special stuff ####
 ## (:markup:) for displaying markup examples
 Markup('markup', '<[=',
-  "/^\\(:markup:\\)[^\\S\n]*\\[([=@])(.*?)\\1\\]/seim",
-  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
-    '</pre>').PSS('\n$2\n<:block,0></div>\n')");
+  "/^\\(:markup:\\)[^\\S\n]*\\[=(.*?)=\\]/seim",
+  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
+    '</pre>').PSS('\n$1\n<:block,0></div>\n')");
 Markup('markupend', '>markup',
   "/^\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
