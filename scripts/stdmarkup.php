@@ -76,6 +76,10 @@ Markup('comment','directives','/\\(:comment .*?:\\)/','');
 Markup('keywords', 'directives', "/\\(:keywords?\\s+([^'\n]+?):\\)/e",
   "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = 
     \"<meta name='keywords' content='$1' />\")");
+Markup('description', 'directives',
+  "/\\(:description\\s+(.+?):\\)/e",
+  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='description' content='\".
+    str_replace('\\'','&#39;',PSS('$1')).\"' />\")"); 
 
 ## (:spacewikiwords:)
 Markup('spacewikiwords','directives','/\\(:(no)?spacewikiwords:\\)/e',
