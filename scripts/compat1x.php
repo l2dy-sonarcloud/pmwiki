@@ -27,6 +27,9 @@
 */
 
 SDVA($Compat1x,array(
+  # [[para:]] markup from cookbook recipe
+  '/\\[\\[para:(.*?)\\]\\]/' => '(:para $1:)',
+
   # noheader, nofooter, etc.
   "/\\[\\[(noheader|nofooter|nogroupheader|nogroupfooter|notitle|spacewikiwords)\\]\\]/" => '(:$1:)',
 
