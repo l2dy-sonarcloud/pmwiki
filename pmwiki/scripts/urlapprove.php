@@ -29,7 +29,9 @@ $HandleActions['approveurls'] = 'HandleApprove';
 $HandleActions['approvesites'] = 'HandleApprove';
 
 function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $IMap,$WhiteUrlPatterns,$FmtV,$UnapprovedLinkFmt;
+  global $EnableUrlApproval,$IMap,$WhiteUrlPatterns,$FmtV,$UnapprovedLinkFmt;
+  if (!IsEnabled($EnableUrlApproval,1))
+    return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   static $havereadpages;
   if (!$havereadpages) { ReadApprovedUrls($pagename); $havereadpages=true; }
   $p = str_replace(' ','%20',$path);
