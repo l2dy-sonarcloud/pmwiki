@@ -9,8 +9,6 @@
     is included by default from the stdconfig.php script.
 */
 
-$LinkFunctions['http:'] = 'LinkSuppress';
-$LinkFunctions['https:'] = 'LinkSuppress';
 function LinkSuppress($pagename,$imap,$path,$title,$txt,$fmt=NULL) 
   { return $txt; }
 
@@ -65,11 +63,14 @@ $HTMLStylesFmt[] = "
 
 function PrintDiff($pagename) {
   global $DiffShow,$DiffStartFmt,$TimeFmt,$DiffDelFmt,$DiffAddFmt,
-    $DiffEndDelAddFmt,$DiffEndFmt,$DiffRestoreFmt,$FmtV;
+    $DiffEndDelAddFmt,$DiffEndFmt,$DiffRestoreFmt,$FmtV, $LinkFunctions;
   $page = ReadPage($pagename);
   if (!$page) return;
   Lock(0); 
   krsort($page); reset($page);
+  $lf = $LinkFunctions;
+  $LinkFunctions['http:'] = 'LinkSuppress';
+  $LinkFunctions['https:'] = 'LinkSuppress';
   foreach($page as $k=>$v) {
     if (!preg_match("/^diff:(\d+):(\d+):?([^:]*)/",$k,$match)) continue;
     $diffclass = $match[3];
@@ -128,6 +129,7 @@ function PrintDiff($pagename) {
     echo FmtPageName($DiffEndFmt,$pagename);
     echo FmtPageName($DiffRestoreFmt,$pagename);
   }
+  $LinkFunctions = $lf;
 }
 
 function HandleDiff($pagename) {
