@@ -69,6 +69,8 @@ if (IsEnabled($EnableDiag,0))
   include_once("$FarmD/scripts/diag.php");
 if (IsEnabled($EnableVarMarkup,1))
   include_once("$FarmD/scripts/vardoc.php");
+if (!function_exists(@$DiffFunction)) 
+  include_once("$FarmD/scripts/phpdiff.php");
 if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");
 

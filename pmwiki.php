@@ -862,29 +862,10 @@ function ReplaceOnSave($pagename,&$page,&$new) {
       preg_replace($pat,FmtPageName($repfmt,$pagename),$new['text']);
 }
 
-function Diff($oldtext,$newtext) {
-  global $WorkDir,$SysDiffCmd;
-  SDV($SysDiffCmd,"/usr/bin/diff");
-  if (!$SysDiffCmd) return '';
-  $tempold = tempnam($WorkDir,'old');
-  if ($oldfp=fopen($tempold,'w')) { fputs($oldfp,$oldtext); fclose($oldfp); }
-  $tempnew = tempnam($WorkDir,'new');
-  if ($newfp=fopen($tempnew,'w')) { fputs($newfp,$newtext); fclose($newfp); }
-  $diff = '';
-  $diff_handle = popen("$SysDiffCmd $tempold $tempnew",'r');
-  if ($diff_handle) {
-    while (!feof($diff_handle)) $diff .= fread($diff_handle,4096);
-    pclose($diff_handle);
-  }
-  @unlink($tempold); @unlink($tempnew);
-  return $diff;
-} 
-
 function PostPage($pagename,&$page,&$new) {
   global $DiffKeepDays,$DiffFunction,$DeleteKeyPattern,
     $Now,$Author,$WikiDir,$IsPagePosted;
   SDV($DiffKeepDays,3650);
-  SDV($DiffFunction,'Diff');
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if (@$_REQUEST['post']) {
@@ -893,7 +874,7 @@ function PostPage($pagename,&$page,&$new) {
     $new["author:$Now"] = @$Author;
     $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
     $diffclass = preg_replace('/\\W/','',@$_POST['diffclass']);
-    if ($page["time"]>0) 
+    if ($page["time"]>0 && function_exists(@$DiffFunction)) 
       $new["diff:$Now:{$page['time']}:$diffclass"] =
         $DiffFunction($new['text'],@$page['text']);
     $keepgmt = $Now-$DiffKeepDays * 86400;
