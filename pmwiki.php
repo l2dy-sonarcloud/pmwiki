@@ -327,12 +327,13 @@ function mkdirp($dir) {
 
 ## fixperms attempts to correct permissions on a file or directory
 ## so that both PmWiki and the account (current dir) owner can manipulate it
-function fixperms($fname) {
+function fixperms($fname, $add = 0) {
   clearstatcache();
   if (!file_exists($fname)) Abort('no such file');
   $bp = 0;
   if (fileowner($fname)!=fileowner('.')) $bp = (is_dir($fname)) ? 007 : 006;
   if (filegroup($fname)==filegroup('.')) $bp <<= 3;
+  $bp |= $add;
   if ($bp && (fileperms($fname) & $bp) != $bp)
     @chmod($fname,fileperms($fname)|$bp);
 }
