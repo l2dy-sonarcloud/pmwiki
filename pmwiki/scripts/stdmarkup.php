@@ -59,11 +59,11 @@ Markup('\\$','>nl1',"/\\\\(?>(\\\\*))\n/e",
 
 ## (:noheader:),(:nofooter:),(:notitle:)...
 Markup('noheader','directives','/\\(:noheader:\\)/e',
-  "PZZ(\$GLOBALS['PageHeaderFmt']='')");
+  "SetTmplDisplay('PageHeaderFmt',0)");
 Markup('nofooter','directives','/\\(:nofooter:\\)/e',
-  "PZZ(\$GLOBALS['PageFooterFmt']='')");
+  "SetTmplDisplay('PageFooterFmt',0)");
 Markup('notitle','directives','/\\(:notitle:\\)/e',
-  "PZZ(\$GLOBALS['PageTitleFmt']='')");
+  "SetTmplDisplay('PageTitleFmt',0)");
 
 ## (:title:)
 Markup('title','directives','/\\(:title\\s(.*?):\\)/e',

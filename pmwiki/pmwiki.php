@@ -288,6 +288,7 @@ function SDVA(&$var,$val)
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
+function SetTmplDisplay($var, $val) { $GLOBALS['TmplDisplay'][$var] = $val; }
 function StopWatch($x) { 
   global $StopWatch, $EnableStopWatch;
   if (!$EnableStopWatch) return;
