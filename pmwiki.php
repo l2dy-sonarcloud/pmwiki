@@ -49,7 +49,7 @@ $DiffFunction = 'Diff';
 $SysDiffCmd = '/usr/bin/diff';
 $DiffKeepDays = 0;
 $HTMLVSpace = "<p class='vspace'></p>";
-$BlockCS = array();
+$BlockCS = array(); $BlockVS = array();
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
 $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl'>\$LinkText</a>";
@@ -78,13 +78,12 @@ foreach(array('pagename','action','text','restore','preview') as $v) {
 }
 if ($action=='') $action='browse';
 
-
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
   $pagename = $match[1];
 
-@include_once('local/config.php');
+include_once('local/config.php');
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 
@@ -155,7 +154,7 @@ function stripmagic($x)
   { return get_magic_quotes_gpc() ? stripslashes($x) : $x; }
 function PSS($x) 
   { return str_replace('\\"','"',$x); }
-function PZZ($x) { return ''; }
+function PZZ($x,$y='') { return ''; }
 function SDV(&$v,$x) { if (!isset($v)) $v=$x; }
 function SDVA(&$var,$val) 
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
@@ -273,16 +272,17 @@ function Abort($msg) {
 
 function Redirect($pagename,$urlfmt='$PageUrl') {
   # redirect the browser to $pagename
-  global $RedirectDelay;
+  global $EnableRedirect,$RedirectDelay;
   clearstatcache();
   if (!PageExists($pagename)) $pagename=$DefaultPage;
   $pageurl = FmtPageName($urlfmt,$pagename);
-  #header("Location: $pageurl");
-  #header("Content-type: text/html");
-  #echo "<html><head>
-  #  <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$pageurl' />
-  #  <title>Redirect</title></head><body></body></html>";
-  echo "<a href='$pageurl'>Redirect to $pageurl</a>";
+  if (!isset($EnableRedirect) || $EnableRedirect) {
+    header("Location: $pageurl");
+    header("Content-type: text/html");
+    echo "<html><head>
+      <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$pageurl' />
+      <title>Redirect</title></head><body></body></html>";
+  } else echo "<a href='$pageurl'>Redirect to $pageurl</a>";
   exit;
 }
   
@@ -294,10 +294,8 @@ function Keep($x) {
 }
 
 function Block($b) {
-  global $BlockMarkups,$HTMLVSpace,$BlockCS;
-  static $vspaces;
-  SDV($BlockCS[0],array());
-  $cs = &$BlockCS[0];
+  global $BlockMarkups,$HTMLVSpace,$BlockCS,$BlockVS;
+  $cs = &$BlockCS[0];  $vspaces = &$BlockVS[0];
   $out = '';
   if (!$b) $b='p,1';
   @list($code,$depth) = explode(',',$b);
@@ -381,9 +379,9 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
 
 function MarkupToHTML($pagename,$text) {
   # convert wiki markup text to HTML output
-  global $MarkupPatterns,$BlockCS,$K0,$K1;
+  global $MarkupPatterns,$BlockCS,$BlockVS,$K0,$K1;
 
-  array_unshift($BlockCS,array());
+  array_unshift($BlockCS,array()); array_unshift($BlockVS,'');
   ksort($MarkupPatterns);
   foreach($MarkupPatterns as $n=>$a)
     foreach($a as $p=>$r) $markpats[$p]=$r;
@@ -399,7 +397,7 @@ function MarkupToHTML($pagename,$text) {
   }
   $x = Block('block');
   if ($x>'') $out[] = "$x\n";
-  array_shift($BlockCS);
+  array_shift($BlockCS); array_shift($BlockVS);
   return implode('',(array)$out);
 }
 
