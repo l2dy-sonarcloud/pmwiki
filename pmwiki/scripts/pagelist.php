@@ -37,7 +37,8 @@ SDVA($FPLFunctions,array('bygroup'=>'FPLByGroup','simple'=>'FPLSimple',
   'group'=>'FPLGroup'));
 
 function FmtPageList($fmt,$pagename,$opt) {
-  global $GroupPattern,$SearchPatterns,$FmtV,$FPLFunctions;
+  global $GroupPattern, $SearchPatterns, $FmtV, $FPLFunctions,
+    $EnablePageListProtect;
   if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
   $opt = array_merge($opt,@$_REQUEST);
   $rq = htmlspecialchars(stripmagic(@$_REQUEST['q']), ENT_NOQUOTES);
@@ -68,8 +69,11 @@ function FmtPageList($fmt,$pagename,$opt) {
   } else $pagelist = ListPages($pats);
   $matches = array();
   $searchterms = count($excl)+count($incl);
+  $plprotect = IsEnabled($EnablePageListProtect, 0);
   foreach($pagelist as $pagefile) {
-    $page = ReadPage($pagefile);  Lock(0);  if (!$page) continue;
+    if ($plprotect) $page = RetrieveAuthPage($pagefile, 'read', false);
+    else $page = ReadPage($pagefile);
+    Lock(0);  if (!$page) continue;
     if ($searchterms) {
       $text = $pagefile."\n".@$page['text']."\n".@$page['targets'];
       foreach($excl as $t) if (stristr($text,$t)) continue 2;
