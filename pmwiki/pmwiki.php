@@ -949,15 +949,14 @@ function HandleSource($pagename) {
   echo $page['text'];
 }
 
-## BasicAuth provides password-protection of pages using HTTP Basic
-## Authentication.  It is normally called from RetrieveAuthPage.
+
+## BasicAuth provides password-protection of pages using PHP sessions.
+## It is normally called from RetrieveAuthPage.
 function BasicAuth($pagename,$level,$authprompt=true) {
-  global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
-    $AllowPassword,$GroupAttributesFmt;
+  global $DefaultPasswords,$AllowPassword,$GroupAttributesFmt,$SessionAuthFmt,
+    $HTMLStartFmt,$HTMLEndFmt;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
-  SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
-  SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
   $page = ReadPage($pagename);
   if (!$page) { return false; }
   $passwd = @$page["passwd$level"];
@@ -971,16 +970,23 @@ function BasicAuth($pagename,$level,$authprompt=true) {
   }
   if ($passwd=='') return $page;
   if (crypt($AllowPassword,$passwd)==$passwd) return $page;
-  foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) as $pw)
-    if (@crypt($_SERVER['PHP_AUTH_PW'],$pw)==$pw) return $page;
+  session_start();
+  if (@$_POST['authpw']) @$_SESSION['authpw'][$_POST['authpw']]++;
+  $authpw = array_keys((array)@$_SESSION['authpw']);
+  foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) 
+      as $pwchal)
+    foreach($authpw as $pwresp)
+      if (@crypt($pwresp,$pwchal)==$pwchal) return $page;
   if (!$authprompt) return false;
-  $realm=FmtPageName($AuthRealmFmt,$pagename);
-  header("WWW-Authenticate: Basic realm=\"$realm\"");
-  header("Status: 401 Unauthorized");
-  header("HTTP-Status: 401 Unauthorized");
-  PrintFmt($pagename,$AuthDeniedFmt);
+  SDV($SessionAuthFmt,array(&$HTMLStartFmt,
+    "<p><b>Password required</b></p>
+      <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
+        Password: <input tabindex='1' type='password' name='authpw' value='' />
+        <input type='submit' value='OK' /></form>", &$HTMLEndFmt));
+  PrintFmt($pagename,$SessionAuthFmt);
   exit;
 }
+
 
 function PrintAttrForm($pagename) {
   global $PageAttributes;
@@ -998,7 +1004,7 @@ function PrintAttrForm($pagename) {
 }
 
 function HandleAttr($pagename) {
-  global $PageAttrFmt;
+  global $PageAttrFmt,$PageStartFmt,$PageEndFmt;
   $page = RetrieveAuthPage($pagename,'attr');
   if (!$page) { Abort("?unable to read $pagename"); }
   SetPage($pagename,$page);
