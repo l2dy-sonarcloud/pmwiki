@@ -41,6 +41,8 @@ if (IsEnabled($EnableMailPosts,0))
   include_once("$FarmD/scripts/mailposts.php");
 if (IsEnabled($EnableUpload,0))
   include_once("$FarmD/scripts/upload.php");
+if (IsEnabled($EnablePageList,1))
+  include_once("$FarmD/scripts/pagelist.php");
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
 if (IsEnabled($EnableVarMarkup,1))
