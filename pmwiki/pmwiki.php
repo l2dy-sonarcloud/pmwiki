@@ -622,25 +622,27 @@ function PrintFmt($pagename,$fmt) {
   global $HTTPHeaders,$FmtV;
   if (is_array($fmt)) 
     { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
-  $x = FmtPageName($fmt,$pagename);
-  if (preg_match("/^markup:(.*)$/",$x,$match))
-    { print MarkupToHTML($pagename,$match[1]); return; }
-  if (preg_match("/^headers:/",$x)) {
+  if ($fmt == 'headers:') {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
-  if (preg_match('/^function:(\S+)\s*(.*)$/s',$x,$match) &&
+  $x = FmtPageName($fmt,$pagename);
+  if (substr($fmt, 0, 9) == 'function:' &&
+      preg_match('/^function:(\S+)\s*(.*)$/s', $x, $match) &&
       function_exists($match[1]))
     { $match[1]($pagename,$match[2]); return; }
-  if (preg_match('/^wiki:(.+)$/',$x,$match)) 
-    { PrintWikiPage($pagename,$match[1]); return; }
-  if (preg_match("/^file:(.+)/s",$x,$match)) {
+  if (substr($fmt, 0, 5) == 'file:' && preg_match("/^file:(.+)/s",$x,$match)) {
     $filelist = preg_split('/[\\s]+/',$match[1],-1,PREG_SPLIT_NO_EMPTY);
     foreach($filelist as $f) {
       if (file_exists($f)) { include($f); return; }
     }
     return;
   }
+  Lock(0);
+  if (preg_match("/^markup:(.*)$/",$x,$match))
+    { print MarkupToHTML($pagename,$match[1]); return; }
+  if (preg_match('/^wiki:(.+)$/',$x,$match)) 
+    { PrintWikiPage($pagename,$match[1]); return; }
   echo $x;
 }
 
@@ -929,7 +931,6 @@ function HandleBrowse($pagename) {
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
   $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
-  Lock(0);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
@@ -1056,7 +1057,6 @@ function HandleEdit($pagename) {
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
-  Lock(0);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$DiffClassMinor'] = 
     (@$_POST['diffclass']=='minor') ?  "checked='checked'" : '';
