@@ -89,8 +89,8 @@ SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
 SDV($DefaultPasswords['upload'],'*');
 
 Markup('attachlist', '<block', 
-  '/\\(:attachlist:\\)/ei',
-  "Keep('<ul>'.FmtUploadList('$pagename','$1').'</ul>')");
+  '/\\(:attachlist\\s*(.*?):\\)/ei',
+  "Keep('<ul>'.FmtUploadList('$pagename',PSS('$1')).'</ul>')");
 SDV($GUIButtons['attach'], array(220, 'Attach:', '', '$[file.ext]',
   '$GUIButtonDirUrlFmt/attach.gif"$[Attach file]"'));
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
@@ -109,6 +109,10 @@ function MakeUploadName($pagename,$x) {
 function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
   global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt, $UploadUrlFmt,
     $UploadPrefixFmt;
+  if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
+    $pagename = MakePageName($pagename, $match[1]);
+    $path = $match[2];
+  }
   $upname = MakeUploadName($pagename, $path);
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
   $FmtV['$LinkUpload'] = 
@@ -166,7 +170,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     $UploadDirQuota,$UploadDir;
   if (!$EnableUploadOverwrite && file_exists($filepath)) 
     return 'upresult=exists';
-  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=@$match[1];
+  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=strtolower(@$match[1]);
   $maxsize = $UploadExtSize[$ext];
   if ($maxsize<=0) return "upresult=badtype&upext=$ext";
   if ($uploadfile['size']>$maxsize) 
@@ -204,6 +208,14 @@ function dirsize($dir) {
 function FmtUploadList($pagename,$opt) {
   global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $EnableUploadOverwrite,
     $TimeFmt;
+
+  $opt = ParseArgs($opt);
+  if (@$opt['page']) $pagename = MakePageName($pagename, $opt['page']);
+  if (@$opt['ext']) 
+    $matchext = '/\\.(' 
+      . implode('|', preg_split('/\\W+/', $opt['ext'], -1, PREG_SPLIT_NO_EMPTY))
+      . ')$/i';
+
   $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
   $uploadurl = FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename);
 
@@ -211,7 +223,8 @@ function FmtUploadList($pagename,$opt) {
   if (!$dirp) return '';
   $filelist = array();
   while (($file=readdir($dirp)) !== false) {
-    if (substr($file,0,1)=='.') continue;
+    if ($file{0} == '.') continue;
+    if ($matchext && !preg_match($matchext, $file)) continue;
     $filelist[$file] = $file;
   }
   closedir($dirp);
