@@ -59,7 +59,7 @@ function FmtPageList($fmt,$pagename,$opt) {
   foreach($pagelist as $pagefile) {
     $page = ReadPage($pagefile);  Lock(0);  if (!$page) continue;
     if ($searchterms) {
-      $text = $pagefile."\n".@$page['text'];
+      $text = $pagefile."\n".@$page['text']."\n".@$page['targets'];
       foreach($excl as $t) if (stristr($text,$t)) continue 2;
       foreach($incl as $t) if (!stristr($text,$t)) continue 2;
     }
@@ -108,4 +108,5 @@ function FPLSimple($pagename,&$pagelist,$opt) {
   return FmtPageName($FPLSimpleStartFmt,$pagename).implode('',$out).
     FmtPageName($FPLSimpleEndFmt,$pagename);
 }
-     
+
+?>
