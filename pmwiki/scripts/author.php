@@ -14,7 +14,6 @@ SDV($AuthorGroup,'Profiles');
 SDV($AuthorRequiredFmt,
   "<h3 class='wikimessage'>$[An author name is required.]</h3>");
 Markup('[[~','<[[','/\\[\\[~(.*?)\\]\\]/',"[[$AuthorGroup/$1]]");
-  "[[$AuthorGroup/$1]]";
 
 if (!isset($Author)) {
   if (isset($_POST['author'])) {
