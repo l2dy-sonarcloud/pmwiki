@@ -18,7 +18,7 @@ SDV($Skin, 'pmwiki');
 SDV($ActionSkin['print'], 'print');
 SDV($FarmPubDirUrl, $PubDirUrl);
 SDV($PageLogoUrl, "$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
-SDVA($SkinDisplay, array('PageEditFmt' => 0));
+SDVA($TmplDisplay, array('PageEditFmt' => 0));
 
 # $PageTemplateFmt is deprecated
 if (isset($PageTemplateFmt)) LoadPageTemplate($pagename,$PageTemplateFmt);
@@ -79,12 +79,12 @@ function SetSkin($pagename, $skin) {
 # LoadPageTemplate loads a template into $TmplFmt
 function LoadPageTemplate($pagename,$tfilefmt) {
   global $PageStartFmt, $PageEndFmt, $HTMLHeaderFmt,
-    $IsTemplateLoaded, $TmplFmt, $SkinDisplay;
+    $IsTemplateLoaded, $TmplFmt, $TmplDisplay;
 
   # $BasicLayoutVars is deprecated
   global $BasicLayoutVars;
   if (isset($BasicLayoutVars)) 
-    foreach($BasicLayoutVars as $sw) $SkinDisplay[$sw] = 1;
+    foreach($BasicLayoutVars as $sw) $TmplDisplay[$sw] = 1;
 
   $sddef = array('PageEditFmt' => 0);
   $k = implode('',file(FmtPageName($tfilefmt,$pagename)));
@@ -113,21 +113,16 @@ function LoadPageTemplate($pagename,$tfilefmt) {
   $PageStartFmt = 'function:PrintSkin Start';
   $PageEndFmt = 'function:PrintSkin End';
   $IsTemplateLoaded = 1;
-  SDVA($SkinDisplay, $sddef);
+  SDVA($TmplDisplay, $sddef);
 }
 
 # This function is called to print a portion of the skin template
-# according to the settings in $SkinDisplay.
+# according to the settings in $TmplDisplay.
 function PrintSkin($pagename, $arg) {
-  global $TmplFmt, $SkinDisplay;
+  global $TmplFmt, $TmplDisplay;
   foreach ($TmplFmt[$arg] as $k => $v) 
-    if (!isset($SkinDisplay[$k]) || $SkinDisplay[$k])
+    if (!isset($TmplDisplay[$k]) || $TmplDisplay[$k])
       PrintFmt($pagename, $v);
 }
-
-# This is a short helper function that makes it easy to turn off
-# various skin components (e.g., callable from markup)
-function SkinDisplay($var, $val) 
-  { $GLOBALS['SkinDisplay'][$var] = $val; }
 
 ?>
