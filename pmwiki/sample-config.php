@@ -64,4 +64,11 @@ $WikiTitle = 'PmWiki';
 ##  provides RSS feeds for a site based on WikiTrails.  See PmWiki.RSS.
 # include_once('scripts/rss.php');
 
+##  PmWiki allows a great deal of flexibility for creating custom markup.
+##  To add support for '*bold*' and '~italic~' markup (the single quotes
+##  are part of the markup), uncomment the following lines. 
+##  (See PmWiki.CustomMarkup and the Cookbook for details and examples.)
+# Markup("'~", "inline", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
+# Markup("'*", "inline", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
+
 ?>
