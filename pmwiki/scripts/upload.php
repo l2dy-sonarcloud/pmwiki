@@ -125,7 +125,7 @@ function HandleUpload($pagename) {
   PCache($pagename,$page);
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $upresult = @$_REQUEST['upresult'];
-  $uprname = @_$REQUEST['uprname'];
+  $uprname = @$_REQUEST['uprname'];
   $FmtV['$upext'] = @$_REQUEST['upext'];
   $FmtV['$upmax'] = @$_REQUEST['upmax'];
   $FmtV['$UploadResult'] = ($upresult) ?
