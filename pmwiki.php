@@ -49,7 +49,6 @@ $RecentChangesFmt = array(
     '* [[$Group.$Name]] . . . $CurrentTime by $AuthorLink',
   '$Group.RecentChanges' =>
     '* [[$Group/$Name]] . . . $CurrentTime by $AuthorLink');
-
 $DefaultPageTextFmt = 'Describe [[$PageName]] here.';
 $ScriptUrl = $_SERVER['SCRIPT_NAME'];
 $RedirectDelay = 0;
@@ -65,6 +64,33 @@ $LinkPageCreateFmt =
   "\$LinkText<a class='createlink' href='\$PageUrl?action=edit'>?</a>";
 $LinkPageCreateSpaceFmt = &$LinkPageCreateFmt;
 umask(0);
+
+$HTTPHeaders = array(
+  "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
+  "Last-Modified: ".gmstrftime('%a, %d %b %Y %H:%M:%S GMT'),
+  "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+  "Pragma: no-cache",
+  "Content-type: text/html; charset=utf-8;");
+$HTMLDoctypeFmt = 
+  "<!DOCTYPE html 
+    PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
+    \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+  <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en><head>\n";
+$HTMLTitleFmt = "  <title>\$WikiTitle - \$HTMLTitle</title>\n";
+$HTMLStylesFmt = array("
+  body { margin-left:20px; }
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  p.vspace { margin-top:1.33em; }
+  div.indent { margin-left:40px; }
+  textarea#editbox { width:98%; }");
+$HTMLHeaderFmt = array(
+  "<style type='text/css'><!--",&$HTMLStylesFmt,"--></style>");
+$HTMLBodyFmt = "</head>\n<body>";
+$HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
+  &$HTMLTitleFmt,&$HTMLBodyFmt);
+$HTMLEndFmt = "\n</body>\n</html>";
+$PageStartFmt = array(&$HTMLStartFmt,"\n<div id='contents'>\n");
+$PageEndFmt = array('</div>',&$HTMLEndFmt);
 
 $HandleActions = array(
   'browse' => 'HandleBrowse',
@@ -178,7 +204,7 @@ function mkgiddir($dir) { if (!file_exists($dir)) mkdir($dir); }
 
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
-  global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals;
+  global $GroupPattern,$NamePattern,$GCount,$UnsafeGlobals,$FmtV;
   if (strpos($fmt,'$')===false) return $fmt;                  
   if (!is_null($pagename) && !preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/",$pagename,$match)) return '';
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
@@ -192,14 +218,15 @@ function FmtPageName($fmt,$pagename) {
   static $g;
   if (count($GLOBALS)!=$GCount) {
     foreach($GLOBALS as $n=>$v) {
-      if (is_array($v) || is_object($v)) { continue; }
-      if (in_array($n,$UnsafeGlobals)) continue;
+      if (is_array($v) || is_object($v) ||
+         isset($FmtV[$n]) || in_array($n,$UnsafeGlobals)) continue;
       $g["\$$n"] = $v;
     }
     $GCount = count($GLOBALS);
     krsort($g); reset($g);
   }
   $fmt = str_replace(array_keys($g),array_values($g),$fmt);
+  $fmt = str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
   return $fmt;
 }
 
@@ -298,7 +325,7 @@ function Redirect($pagename,$urlfmt='$PageUrl') {
   } else echo "<a href='$pageurl'>Redirect to $pageurl</a>";
   exit;
 }
-  
+
 function Keep($x) {
   # Keep preserves a string from being processed by wiki markups
   global $KeepToken,$KPV,$KPCount;
@@ -363,7 +390,7 @@ function LinkIMap($pagename,$match,$txt) {
 }
 
 function LinkPage($pagename,$match,$txt) {
-  global $LinkPageExistsFmt,$LinkPageCreateSpaceFmt,$LinkPageCreateFmt;
+  global $LinkPageExistsFmt,$LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV;
   $PageNameChars = '-[:alnum:]';
   @list($tgt,$imap,$path,$q,$title) = $match;
   preg_match('/^(?:(.*)([.\\/]))?([^.\\/]+)$/',$path,$m);
@@ -374,7 +401,8 @@ function LinkPage($pagename,$match,$txt) {
   if (PageExists($tgtname)) $fmt=$LinkPageExistsFmt;
   elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
   else $fmt=$LinkPageCreateFmt;
-  return str_replace('$LinkText',$txt,FmtPageName($fmt,$tgtname));
+  $FmtV['$LinkText'] = $txt;
+  return FmtPageName($fmt,$tgtname);
 }
 
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL) {
@@ -414,14 +442,26 @@ function MarkupToHTML($pagename,$text) {
   return implode('',(array)$out);
 }
 
+function PrintFmt($pagename,$fmt) {
+  global $HTTPHeaders;
+  if (is_array($fmt)) 
+    { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
+  $x = FmtPageName($fmt,$pagename);
+  if (preg_match("/^headers:/",$x)) {
+    foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
+    return;
+  }
+  print $x;
+}
+
 function HandleBrowse($pagename) {
+  global $FmtV,$HandleBrowseFmt,$PageStartFmt,$PageEndFmt;
   # handle display of a page
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
-  $PageText = MarkupToHTML($pagename,$page['text']);
-  echo FmtPageName("<p><a href='\$PageUrl?action=edit'>Edit \$PageName</a></p>",
-    $pagename);
-  print $PageText;
+  $FmtV['$PageText'] = MarkupToHTML($pagename,$page['text']);
+  SDV($HandleBrowseFmt,array(&$PageStartFmt,'$PageText',&$PageEndFmt));
+  PrintFmt($pagename,$HandleBrowseFmt);
 }
 
 function Diff($oldtext,$newtext) {
@@ -481,7 +521,7 @@ function RecentChanges($pagename,&$page,&$new) {
 }
     
 function HandleEdit($pagename) {
-  global $PageEditFmt,$EditText,$EditFields,$EditFunctions,$IsPagePosted;
+  global $PageEditFmt,$EditFields,$EditFunctions,$IsPagePosted,$FmtV;
   $IsPagePosted = false;
   $page = ReadPage($pagename);
   $new = $page;
@@ -489,7 +529,7 @@ function HandleEdit($pagename) {
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   if ($IsPagePosted) { Redirect($pagename); return; }
-  $EditText = htmlspecialchars($new['text'],ENT_NOQUOTES);
+  $FmtV['$EditText'] = htmlspecialchars($new['text'],ENT_NOQUOTES);
   print FmtPageName($PageEditFmt,$pagename);
 }
 
