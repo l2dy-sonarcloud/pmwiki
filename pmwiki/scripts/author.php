@@ -24,9 +24,9 @@ if (!isset($Author)) {
   }
   $Author = preg_replace('/(^[^[:alpha:]]+)|[^-\\w ]/','',$Author);
 }
-$k = MakePageName($pagename,$Author);
-SDV($AuthorPage,"$AuthorGroup/$k");
-SDV($AuthorLink,"[[~$Author]]");
+if (!isset($AuthorPage)) $AuthorPage = 
+    FmtPageName('$AuthorGroup/$Name', MakePageName($pagename, $Author));
+SDV($AuthorLink,($Author) ? "[[~$Author]]" : '?');
 
 if (IsEnabled($EnableAuthorSignature,1)) {
   $ROSPatterns['/~~~~/'] = '[[~$Author]] $CurrentTime';
