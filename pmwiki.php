@@ -419,9 +419,10 @@ function FmtPageName($fmt,$pagename) {
   if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/", $pagename, $m))
     $match = $m;
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
-  if (@!$EnablePathInfo)
-    $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e',
-      "'\$ScriptUrl?n='.str_replace('/','.','$1')",$fmt);
+  $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e', 
+    (@$EnablePathInfo) ? "'\$ScriptUrl/'.PUE('$1')" :
+        "'\$ScriptUrl?n='.str_replace('/','.',PUE('$1'))",
+    $fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
   if ($GCount != count($GLOBALS)+count($FmtV)) {
@@ -601,6 +602,7 @@ function Abort($msg) {
 function Redirect($pagename,$urlfmt='$PageUrl') {
   # redirect the browser to $pagename
   global $EnableRedirect,$RedirectDelay;
+  Lock(0);
   SDV($RedirectDelay,0);
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
@@ -927,6 +929,7 @@ function HandleBrowse($pagename) {
   } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
   $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
+  Lock(0);
   SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
     &$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
@@ -1053,6 +1056,7 @@ function HandleEdit($pagename) {
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
+  Lock(0);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$DiffClassMinor'] = 
     (@$_POST['diffclass']=='minor') ?  "checked='checked'" : '';
