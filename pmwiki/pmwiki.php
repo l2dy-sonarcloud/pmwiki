@@ -262,6 +262,8 @@ SDV($ImgTagFmt,"<img src='\$LinkUrl' border='0' alt='\$LinkAlt' />");
   $MarkupPatterns[6300]["/\\[(([-+])+)(.*?)\\1\\]/e"] =
     "'<span style=\'font-size:'.(round(pow(1.2,$2strlen('$1'))*100,0)).'%\'>'.PSS('$3</span>')";
 #### 7000: wikistyles
+  $MarkupPatterns[7300]['%'] =
+    'return ApplyStyles($x);';
 #### 8000: restore keeps
   $MarkupPatterns[8500]["/$KeepToken(\\d+?)$KeepToken/e"] =
     '$GLOBALS[\'KPV\'][\'$1\']';
@@ -629,6 +631,34 @@ function FormatTableRow($x) {
   return "<:table,1><tr>$y</tr>";
 }
 
+function ApplyStyles($x) {
+  global $WikiStylePattern,$WikiStyle;
+  SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"]*%');
+  $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
+  $out = array();
+  $style = array();
+  while ($parts) {
+    $WikiStyle['curr']=$style; $style=array();
+    if (preg_match("/^$WikiStylePattern\$/",$parts[0])) {
+      preg_match_all('/\\b([a-zA-Z][-\\w]*)(=([-#,\\w]+))?/',
+        array_shift($parts),$match,PREG_SET_ORDER);
+      while ($match) {
+        $m = array_shift($match);
+        if (@$m[2]) $style[$m[1]]=$m[3];
+        else if (!isset($WikiStyles[$m[1]])) $style['class']=$m[1];
+        else $style=array_merge($style,(array)$WikiStyle[$m[1]]);
+      }
+      if (@$style['define']) {
+        $d = $style['define']; unset($style['define']);
+        $WikiStyle[$d] = $style;
+      }
+    }
+    $p = array_shift($parts);
+    $out[] = $p;
+  }
+  return implode('',$out);
+}
+        
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $IMap;
   $path = str_replace(' ','%20',$path);
