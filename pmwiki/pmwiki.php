@@ -904,9 +904,10 @@ function SaveAttributes($pagename,&$page,&$new) {
   global $LinkTargets;
   if (!@$_REQUEST['post']) return;
   unset($new['title']);
-  if (preg_match('/\\[:title\\s(.+?):\\]/',$new['text'],$match))
+  $text = preg_replace('/\\[([=@]).*?\\1\\]/s',' ',$new['text']);
+  if (preg_match('/\\[:title\\s(.+?):\\]/',$text,$match))
     $new['title'] = $match[1];
-  MarkupToHTML($pagename,$new['text']);
+  MarkupToHTML($pagename,preg_replace('/\\[:(.*?):\\]/s',' ',$text));
   $new['targets'] = implode(',',array_keys((array)$LinkTargets));
 }
 
