@@ -686,7 +686,8 @@ function Block($b) {
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
   if ($depth>0 && $depth==count($cs) && $cs[$depth-1]!=$code)
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
-  while (count($cs)>0 && @$BlockMarkups[$cs[count($cs)-1]][3]==0)
+  while (count($cs)>0 && $cs[count($cs)-1]!=$code &&
+      @$BlockMarkups[$cs[count($cs)-1]][3]==0)
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
   if ($vspaces) { 
     $out .= (@$cs[0]=='pre') ? $vspaces : $HTMLVSpace; 
