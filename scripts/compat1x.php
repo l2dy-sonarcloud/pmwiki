@@ -23,7 +23,7 @@
     from a 1.x wiki.d/ into the 2.0 directory all at once.
 
     Details on this are being maintained at the UpgradingFromPmWiki1 page 
-    http://www.pmwiki.org/pmwiki2/pmwiki.php/PmWiki/UpgradingFromPmWiki1 .
+    http://www.pmwiki.org/wiki/PmWiki/UpgradingFromPmWiki1 .
 */
 
 SDVA($Compat1x,array(
@@ -53,6 +53,9 @@ SDVA($Compat1x,array(
   "/\\[\\[\\\$Search\\]\\]/" => '(:searchbox:)',
   "/\\[\\[\\\$Searchresults\\]\\]/" => '(:searchresults:)',
   "/\\[\\[\\\$Attachlist(\\s.*?)?\\]\\]/" => '(:attachlist$1:)',
+
+  # [[Drawing:]] from PmWikiDraw (javajunky on #pmwiki)
+  "/\\[\\[Drawing:(.*?)\\]\\]/" => '(:drawing $1:)',
 
   # [[target linktext]]
   "/\\[\\[((\\w|\\#)[^$UrlExcludeChars\\s]*)\\s(.*?)\\]\\]/" => '[[$1 |$3]]',
