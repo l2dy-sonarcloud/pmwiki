@@ -38,6 +38,7 @@ if (IsEnabled($EnableAuthorRequired,0))
 ## signature ("--[[~$Author]]") as part of editing/posting a page.
 function SignAuthor($pagename,&$page,&$new) {
   global $Author,$AuthorSignatureFmt;
+  if (!@$_POST['post']) return;
   SDV($AuthorSignatureMarkup,'~~~~');
   SDV($AuthorSignatureFmt,'--[[~$Author]]');
   $new['text'] = str_replace($AuthorSignatureMarkup,
