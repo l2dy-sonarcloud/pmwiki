@@ -221,7 +221,6 @@ class PageStore {
     $page['rev'] = @$page['rev']+1;
     $s = false;
     $pagefile = FmtPageName($this->dirfmt,$pagename);
-    echo "pagefile=$pagefile pagename=$pagename";
     mkgiddir(dirname($pagefile));
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
       $s = true && fputs($fp,"version=$Version\nnewline=$Newline\n");
@@ -406,6 +405,8 @@ function HandleBrowse($pagename) {
   $page = ReadPage($pagename);
   if (!$page) Abort('Invalid page name');
   $PageText = MarkupToHTML($pagename,$page['text']);
+  echo FmtPageName("<p><a href='\$PageUrl?action=edit'>Edit Page</a></p>",
+    $pagename);
   print $PageText;
 }
 
