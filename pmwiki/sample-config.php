@@ -19,7 +19,7 @@ $WikiTitle = 'PmWiki';
 
 ## $PageLogoUrl is the URL for a logo image -- you can change this
 ## to your own logo if you wish.
-# $PageLogoUrl = '$PubDirUrl/skins/pmwiki/pmwiki-32.gif';
+# $PageLogoUrl = "$PubDirUrl/skins/pmwiki/pmwiki-32.gif";
 
 ## If you want to have a custom skin, then set $Skin to the name
 ## of the directory (in pub/skins/) that contains your skin files.
