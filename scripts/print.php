@@ -7,7 +7,6 @@
 
     This script defines the ?action=print action to give a printable
     view of a page.  Essentially it performs the following modifications:
-      - Changes the page skin to 'print' (locally defined by $PrintSkin)
       - Redefines the standard layout to a format suitable for printing
       - Redefines internal links to keep ?action=print
       - Changes the display of URL and mailto: links
@@ -15,18 +14,29 @@
         of GroupHeader and GroupFooter
 */
 
-if ($action=='print') {
-  SDV($PrintTemplateFmt,"$FarmD/pub/skins/print/print.tmpl");
-  $PageTemplateFmt = $PrintTemplateFmt;
-  $LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl?action=print\$Fragment'>\$LinkText</a>";
-  $UrlLinkTextFmt = "<cite class='urllink'>\$LinkText</cite> [<a class='urllink' href='\$Url'>\$Url</a>]";
-  SDV($GroupPrintHeaderFmt,'(:include $Group.GroupPrintHeader:)(:nl:)');
-  SDV($GroupPrintFooterFmt,'(:nl:)(:include $Group.GroupPrintFooter:)');
-  $GroupHeaderFmt = $GroupPrintHeaderFmt;
-  $GroupFooterFmt = $GroupPrintFooterFmt;
-  #$DoubleBrackets["/\\[\\[mailto:($UrlPathPattern)(.*?)\\]\\]/"] = 
-  #  "''\$2'' [mailto:\$1]";
-  $action='browse';
+if ($action!='print') return;
+
+SDV($PageSkinFmt,'pmwiki');
+$k = FmtPageName("pub/skins/$PageSkinFmt/print.tmpl",$pagename);
+if (file_exists($k)) {
+  SDV($PrintTemplateFmt,$k);
+  SDV($SkinDirUrl,FmtPageName("\$PubDirUrl/skins/$PageSkinFmt",$pagename));
+} else if (file_exists("$FarmD/$k")) {
+  SDV($PrintTemplateFmt,"$FarmD/$k");
+  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/$PageSkinFmt",$pagename));
+} else {
+  SDV($PrintTemplateFmt,"$FarmD/pub/skins/pmwiki/print.tmpl");
+  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/pmwiki",$pagename));
 }
+
+$PageTemplateFmt = $PrintTemplateFmt;
+$LinkPageExistsFmt = "<a class='wikilink' href='\$PageUrl?action=print\$Fragment'>\$LinkText</a>";
+$UrlLinkTextFmt = "<cite class='urllink'>\$LinkText</cite> [<a class='urllink' href='\$Url'>\$Url</a>]";
+SDV($GroupPrintHeaderFmt,'(:include $Group.GroupPrintHeader:)(:nl:)');
+SDV($GroupPrintFooterFmt,'(:nl:)(:include $Group.GroupPrintFooter:)');
+$GroupHeaderFmt = $GroupPrintHeaderFmt;
+$GroupFooterFmt = $GroupPrintFooterFmt;
+#$DoubleBrackets["/\\[\\[mailto:($UrlPathPattern)(.*?)\\]\\]/"] = 
+#  "''\$2'' [mailto:\$1]";
 
 ?>

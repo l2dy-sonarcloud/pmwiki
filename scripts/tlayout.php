@@ -27,7 +27,15 @@
 */
 
 SDV($FarmPubDirUrl,$PubDirUrl);
-SDV($PageTemplateFmt,"$FarmD/pub/skins/pmwiki/pmwiki.tmpl");
+SDV($PageSkinFmt,'pmwiki');
+$k = FmtPageName("pub/skins/$PageSkinFmt/screen.tmpl",$pagename);
+if (file_exists($k)) {
+  SDV($PageTemplateFmt,$k);
+  SDV($SkinDirUrl,FmtPageName("\$PubDirUrl/skins/$PageSkinFmt",$pagename));
+} else if (file_exists("$FarmD/$k")) {
+  SDV($PageTemplateFmt,"$FarmD/$k");
+  SDV($SkinDirUrl,FmtPageName("\$FarmPubDirUrl/skins/$PageSkinFmt",$pagename));
+}
 SDV($PageLogoUrl,"$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 SDV($PageLogoFmt,"<div id='wikilogo'><a href='$ScriptUrl'><img 
   src='$PageLogoUrl' alt='$WikiTitle' border='0' /></a></div>");
