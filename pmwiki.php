@@ -376,17 +376,21 @@ function fixperms($fname, $add = 0) {
 ## for the page in other groups, or else uses the group of the
 ## pagename passed as an argument.
 function MakePageName($basepage,$x) {
-  global $MakePageNameFunction, $PageNameChars, $PagePathFmt;
+  global $MakePageNameFunction, $PageNameChars, $PagePathFmt,
+    $MakePageNamePatterns;
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage,$x);
   SDV($PageNameChars,'-[:alnum:]');
+  SDV($MakePageNamePatterns, array(
+    "/'/" => '',			   # strip single-quotes
+    "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
+    "/((^|[^-\\w])\\w)/e" => "strtoupper('$1')",
+    "/ /" => ''));
   if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
-  $name=str_replace(' ', '',
-    preg_replace("/\\b(\\w)/e", "strtoupper('$1')",
-      preg_replace("/[^$PageNameChars]+/", ' ', $m[2])));
+  $name = preg_replace(array_keys($MakePageNamePatterns),
+            array_values($MakePageNamePatterns), $m[2]);
   if ($m[1]) {
-    $group = str_replace(' ','',
-      preg_replace("/\\b(\\w)/e", "strtoupper('$1')",
-        preg_replace("/[^$PageNameChars]+/", ' ', $m[1])));
+    $group = preg_replace(array_keys($MakePageNamePatterns),
+               array_values($MakePageNamePatterns), $m[1]);
     return "$group.$name";
   }
   foreach((array)$PagePathFmt as $pg) {
