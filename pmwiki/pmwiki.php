@@ -867,6 +867,7 @@ function PostPage($pagename,&$page,&$new) {
   SDV($DiffKeepDays,3650);
   SDV($DiffFunction,'Diff');
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
+  $IsPagePosted = false;
   if (@$_REQUEST['post']) {
     if ($new['text']==$page['text']) { Redirect($pagename); return; }
     $new["author"]=@$Author;
@@ -884,7 +885,7 @@ function PostPage($pagename,&$page,&$new) {
     if (preg_match("/$DeleteKeyPattern/",$new['text']))
       $WikiDir->delete($pagename);
     else WritePage($pagename,$new);
-    $IsPagePosted=true;
+    $IsPagePosted = true;
   }
 }
 
