@@ -570,7 +570,8 @@ class PageStore {
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
       $s = true && fputs($fp,"version=$Version ordered=1\nnewline=$Newline\n");
       foreach($page as $k=>$v) 
-        if ($k>'') $s = $s&&fputs($fp,str_replace("\n",$Newline,"$k=$v")."\n");
+        if ($k > '' && $k{0} != '=') 
+          $s = $s && fputs($fp, str_replace("\n", $Newline, "$k=$v") . "\n");
       $s = fclose($fp) && $s;
       if (file_exists($pagefile)) $s = $s && unlink($pagefile);
       $s = $s && rename("$pagefile,new",$pagefile);
