@@ -547,7 +547,7 @@ class PageStore {
             continue;
           }
         }
-        $page[$k] = str_replace($newline,"\n",$v);
+        if ($k) $page[$k] = str_replace($newline,"\n",$v);
       }
       fclose($fp);
     }
@@ -656,7 +656,7 @@ function ListPages($pat=NULL) {
 
 function RetrieveAuthPage($pagename, $level, $authprompt=true, $since=0) {
   global $AuthFunction;
-  SDV($AuthFunction,'BasicAuth');
+  SDV($AuthFunction,'PmWikiAuth');
   if (!function_exists($AuthFunction)) return ReadPage($pagename, $since);
   return $AuthFunction($pagename, $level, $authprompt, $since);
 }
@@ -1182,36 +1182,61 @@ function HandleSource($pagename) {
   echo @$page['text'];
 }
 
-
-## BasicAuth provides password-protection of pages using PHP sessions.
+## PmWikiAuth provides password-protection of pages using PHP sessions.
 ## It is normally called from RetrieveAuthPage.
-function BasicAuth($pagename, $level, $authprompt=true, $since=0) {
-  global $DefaultPasswords,$AllowPassword,$GroupAttributesFmt,$SessionAuthFmt,
-    $HTMLStartFmt,$HTMLEndFmt;
+function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
+  global $DefaultPasswords, $AllowPassword, $GroupAttributesFmt,
+    $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, $AuthId;
+  static $grouppasswd;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
   $page = ReadPage($pagename, $since);
   if (!$page) { return false; }
-  $passwd = @$page["passwd$level"];
-  if ($passwd=="") { 
-    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt, $pagename), 
-                   READPAGE_CURRENT);
-    $passwd = @$grouppg["passwd$level"];
-    if ($passwd=='') $passwd = @$DefaultPasswords[$level];
-    if ($passwd=='') $passwd = @$page["passwdread"];
-    if ($passwd=='') $passwd = @$grouppg["passwdread"];
-    if ($passwd=='') $passwd = @$DefaultPasswords['read'];
+  $groupattr = FmtPageName($GroupAttributesFmt, $pagename);
+  if (!isset($grouppasswd[$groupattr])) {
+    $grouppasswd[$groupattr] = array();
+    $gp = ReadPage($groupattr, READPAGE_CURRENT);
+    foreach($DefaultPasswords as $k=>$v) 
+      if (isset($gp["passwd$k"])) 
+        $grouppasswd[$groupattr][$k] = explode(' ', $gp["passwd$k"]);
   }
-  if ($passwd=='') return $page;
-  foreach((array)$passwd as $p)
-    if (crypt($AllowPassword, $p) == $p) return $page;
+  foreach ($DefaultPasswords as $k=>$v) {
+    if (isset($page["passwd$k"])) {
+      $passwd[$k] = explode(' ', $page["passwd$k"]); 
+      $page['=pwsource'][$k] = 'page';
+    } else if (isset($grouppasswd[$groupattr]["passwd$k"])) {
+      $passwd[$k] = $grouppasswd[$groupattr]["passwd$k"];
+      $page['=pwsource'][$k] = 'group';
+    } else {
+      $passwd[$k] = $v;
+      if ($v) $page['=pwsource'][$k] = 'site';
+    }
+  }
+  $page['=passwd'] = $passwd;
   @session_start();
   if (@$_POST['authpw']) @$_SESSION['authpw'][$_POST['authpw']]++;
   $authpw = array_keys((array)@$_SESSION['authpw']);
-  foreach (array_merge((array)$DefaultPasswords['admin'],(array)$passwd) 
-      as $pwchal)
-    foreach($authpw as $pwresp)
-      if (@crypt($pwresp,$pwchal)==$pwchal) return $page;
+  if (!isset($AuthId)) $AuthId = @$_SESSION['authid'];
+  foreach($passwd as $lv => $a) {
+    if (!$a) { $page['=auth'][$lv]++; continue; }
+    foreach((array)$a as $pwchal) {
+      if ($AuthId && strncmp($pwchal, 'id:', 3) == 0) {
+        $idlist = explode(',', substr($pwchal, 3));
+        foreach($idlist as $id) {
+          if ($id == $AuthId || $id == '*') 
+            { $page['=auth'][$lv]++; continue 3; }
+          if ($id == "-$AuthId") { continue 3; }
+        }
+      }
+      if ($pwchal == '' || crypt($AllowPassword, $pwchal) == $pwchal) 
+        { $page['=auth'][$lv]++; continue 2; }
+      foreach ($authpw as $pwresp)
+        if (crypt($pwresp, $pwchal) == $pwchal)
+          { $page['=auth'][$lv]++; continue 3; }
+    }
+  }
+  if ($page['=auth']['admin']) return $page;
+  if ($page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
   $postvars = '';
   foreach($_POST as $k=>$v) {
@@ -1220,14 +1245,15 @@ function BasicAuth($pagename, $level, $authprompt=true, $since=0) {
              htmlspecialchars(stripmagic($v), ENT_COMPAT));
     $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
   }
-  SDV($SessionAuthFmt,array(&$HTMLStartFmt,
+  $FmtV['$PostVars'] = $postvars;
+  SDV($AuthPromptFmt,array(&$PageStartFmt,
     "<p><b>Password required</b></p>
       <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
         Password: <input tabindex='1' type='password' name='authpw' value='' />
-        <input type='submit' value='OK' />$postvars</form>
+        <input type='submit' value='OK' />\$PostVars</form>
         <script language='javascript'><!--
-          document.authform.authpw.focus() //--></script>", &$HTMLEndFmt));
-  PrintFmt($pagename,$SessionAuthFmt);
+          document.authform.authpw.focus() //--></script>", &$PageEndFmt));
+  PrintFmt($pagename,$AuthPromptFmt);
   exit;
 }
 
@@ -1268,13 +1294,22 @@ function HandlePostAttr($pagename) {
   $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
-    $newpw = @$_POST[$attr];
-    if ($newpw=='clear') unset($page[$attr]);
-    else if ($newpw>'') $page[$attr]=crypt($newpw);
+    $v = @$_POST[$attr];
+    if ($v == '') continue;
+    if ($v=='clear') unset($page[$attr]);
+    else if (strncmp($attr, 'passwd', 6) != 0) $page[$attr] = $v;
+    else {
+      $a = array();
+      foreach(preg_split('/\\s+/', $v, -1, PREG_SPLIT_NO_EMPTY) as $pw) 
+        $a[] = preg_match('/^\\w+:/', $pw) ? $pw : crypt($pw);
+      if ($a) $page[$attr] = implode(' ',$a);
+    }
   }
   WritePage($pagename,$page);
-  if (IsEnabled($EnablePostAttrClearSession, 1)) 
+  if (IsEnabled($EnablePostAttrClearSession, 1)) {
+    unset($_SESSION['authid']);
     $_SESSION['authpw'] = array();
+  }
   Redirect($pagename);
   exit;
 } 
