@@ -10,39 +10,33 @@
     in PmWiki 1).
 */
 
-$AuthFunction = 'HTTPBasicAuth';
+## If the webserver has already authenticated someone, then use
+## that identifier for our authorization id.  We also disable
+## the use of the browser's Basic Auth form later, since it tends
+## to confuse webservers.
+if (IsEnabled($EnableRemoteUserAuth, 1) && @$_SERVER['REMOTE_USER']) {
+  SDV($EnableHTTPBasicAuth, 0);
+  SDV($AuthId, $_SERVER['REMOTE_USER']);
+}
 
-## HTTPBasicAuth provides password-protection of pages using HTTP Basic
-## Authentication.  It is normally called from RetrieveAuthPage.
-function HTTPBasicAuth($pagename, $level, $authprompt=true, $since=0) {
-  global $AuthRealmFmt,$AuthDeniedFmt,$DefaultPasswords,
-    $AllowPassword,$GroupAttributesFmt;
-  SDV($GroupAttributesFmt,'$Group/GroupAttributes');
-  SDV($AllowPassword,'nopass');
+## If the browser supplied a password, add that password to the
+## list of passwords used for authentication
+if (@$_SERVER['PHP_AUTH_PW']) {
+  @session_start();
+  @$_SESSION['authpw'][$_SERVER['PHP_AUTH_PW']]++;
+}
+
+## $EnableHTTPBasicAuth tells PmWikiAuth to use the browser's
+## HTTP Basic protocol prompt instead of a form-based prompt.
+if (IsEnabled($EnableHTTPBasicAuth, 1)) 
+  SDV($AuthPromptFmt, 'function:HTTPBasicAuthPrompt');
+
+## HTTPBasicAuthPrompt replaces PmWikiAuth's form-based password
+## prompt with the browser-based HTTP Basic prompt.
+function HTTPBasicAuthPrompt($pagename) {
+  global $AuthRealmFmt, $AuthDeniedFmt;
   SDV($AuthRealmFmt,$GLOBALS['WikiTitle']);
   SDV($AuthDeniedFmt,'A valid password is required to access this feature.');
-  $page = ReadPage($pagename, $since);
-  if (!$page) { return false; }
-  $passwd = @$page["passwd$level"];
-  if ($passwd=="") { 
-    $grouppg = ReadPage(FmtPageName($GroupAttributesFmt, $pagename),
-                   READPAGE_CURRENT);
-    $passwd = @$grouppg["passwd$level"];
-    if ($passwd=='') $passwd = @$DefaultPasswords[$level];
-    if ($passwd=='') $passwd = @$page["passwdread"];
-    if ($passwd=='') $passwd = @$grouppg["passwdread"];
-    if ($passwd=='') $passwd = @$DefaultPasswords['read'];
-  }
-  if ($passwd=='') return $page;
-  if (crypt($AllowPassword,$passwd)==$passwd) return $page;
-  @session_start();
-  if (@$_SERVER['PHP_AUTH_PW']) @$_SESSION['authpw'][$_SERVER['PHP_AUTH_PW']]++;
-  $authpw = array_keys((array)@$_SESSION['authpw']);
-  foreach(array_merge((array)$DefaultPasswords['admin'],(array)$passwd)
-      as $pwchal)
-    foreach($authpw as $pwresp)
-      if (@crypt($pwresp,$pwchal)==$pwchal) return $page;
-  if (!$authprompt) return false;
   $realm=FmtPageName($AuthRealmFmt,$pagename);
   header("WWW-Authenticate: Basic realm=\"$realm\"");
   header("Status: 401 Unauthorized");
