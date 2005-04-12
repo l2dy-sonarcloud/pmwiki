@@ -1280,7 +1280,7 @@ function PrintAttrForm($pagename) {
       $setting = implode(' ', 
         preg_replace('/^(?!\\w+:).+$/', '****', (array)$page['=passwd'][$a]));
       if ($page['=pwsource'][$a]=='group' || $page['=pwsource'][$a]=='site')
-        $setting .= " (set by {$page['=pwsource'][$a]})";
+        $setting = "(set by {$page['=pwsource'][$a]}) $setting";
      }
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
