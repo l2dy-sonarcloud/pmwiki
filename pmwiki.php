@@ -365,7 +365,6 @@ function Lock($op) {
 ## permissions accordingly.
 function mkdirp($dir) {
   global $ScriptUrl;
-  $safemode = ini_get('safe_mode');
   if (file_exists($dir)) return;
   if (!file_exists(dirname($dir))) mkdirp(dirname($dir));
   if (mkdir($dir, 0777)) {
@@ -380,6 +379,7 @@ function mkdirp($dir) {
     by executing the following commands on your server:
     <pre>    mkdir $parent/$dir\n    chmod 777 $parent/$dir</pre>
     Then, <a href='$ScriptUrl'>reload this page</a>.";
+  $safemode = ini_get('safe_mode');
   if (!$safemode) $msg .= "<br /><br />Or, for a slightly more 
     secure installation, try executing <pre>    chmod 2777 $parent</pre> 
     on your server and following <a target='_blank' href='$ScriptUrl'>
