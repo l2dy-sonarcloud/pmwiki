@@ -177,6 +177,9 @@ $Conditions['true'] = 'true';
 $Conditions['group'] = "FmtPageName('\$Group',\$pagename)==\$condparm";
 $Conditions['name'] = "FmtPageName('\$Name',\$pagename)==\$condparm";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
+$Conditions['auth'] =
+  '@$GLOBALS["PCache"][$GLOBALS["pagename"]]["=auth"][trim($condparm)]';
+$Conditions['authid'] = '@$GLOBALS["AuthId"] > ""';
 
 $MarkupTable['_begin']['seq'] = 'B';
 $MarkupTable['_end']['seq'] = 'E';
@@ -1204,8 +1207,8 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     if (isset($page["passwd$k"])) {
       $passwd[$k] = explode(' ', $page["passwd$k"]); 
       $page['=pwsource'][$k] = 'page';
-    } else if (isset($grouppasswd[$groupattr]["passwd$k"])) {
-      $passwd[$k] = $grouppasswd[$groupattr]["passwd$k"];
+    } else if (isset($grouppasswd[$groupattr][$k])) {
+      $passwd[$k] = $grouppasswd[$groupattr][$k];
       $page['=pwsource'][$k] = 'group';
     } else {
       $passwd[$k] = $v;
@@ -1235,9 +1238,11 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
           { $page['=auth'][$lv]++; continue 3; }
     }
   }
-  if ($page['=auth']['admin']) return $page;
+  if ($page['=auth']['admin']) 
+    foreach($passwd as $lv=>$a) $page['=auth'][$lv]++;
   if ($page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
+  PCache($pagename, $page);
   $postvars = '';
   foreach($_POST as $k=>$v) {
     if ($k == 'authpw') continue;
@@ -1259,17 +1264,28 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
 
 
 function PrintAttrForm($pagename) {
-  global $PageAttributes;
+  global $PageAttributes, $PCache;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
     <input type='hidden' name='action' value='postattr' />
     <input type='hidden' name='n' value='\$FullName' />
     <table>",$pagename);
-  $page = ReadPage($pagename, READPAGE_CURRENT);
+  $page = $PCache[$pagename];
   foreach($PageAttributes as $attr=>$p) {
-    $value = (strncmp($attr, 'passwd', 6) == 0) ? '' : $page[$attr];
+    $prompt = FmtPageName($p, $pagename);
+    $setting = $page[$attr];
+    $value = $page[$attr];
+    if (strncmp($attr, 'passwd', 6) == 0) {
+      $a = substr($attr, 6);
+      $value = '';
+      $setting = implode(' ', 
+        preg_replace('/^(?!\\w+:).+$/', '****', (array)$page['=passwd'][$a]));
+      if ($page['=pwsource'][$a]=='group' || $page['=pwsource'][$a]=='site')
+        $setting .= " (set by {$page['=pwsource'][$a]})";
+     }
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
-      <td><input type='text' name='$attr' value='$value' /></td></tr>";
+      <td><input type='text' name='$attr' value='$value' /></td>
+      <td>$setting</td></tr>";
   }
   echo "</table><input type='submit' /></form>";
 }
