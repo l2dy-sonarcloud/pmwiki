@@ -79,12 +79,16 @@ function SetSkin($pagename, $skin) {
 # LoadPageTemplate loads a template into $TmplFmt
 function LoadPageTemplate($pagename,$tfilefmt) {
   global $PageStartFmt, $PageEndFmt, $HTMLHeaderFmt,
-    $IsTemplateLoaded, $TmplFmt, $TmplDisplay;
+    $IsTemplateLoaded, $TmplFmt, $TmplDisplay,
+    $PageTextStartFmt, $PageTextEndFmt;
 
   # $BasicLayoutVars is deprecated
   global $BasicLayoutVars;
   if (isset($BasicLayoutVars)) 
     foreach($BasicLayoutVars as $sw) $TmplDisplay[$sw] = 1;
+
+  SDV($PageTextStartFmt, "\n<div id='wikitext'>\n");
+  SDV($PageTextEndFmt, "</div>\n");
 
   $sddef = array('PageEditFmt' => 0);
   $k = implode('',file(FmtPageName($tfilefmt,$pagename)));
@@ -93,7 +97,7 @@ function LoadPageTemplate($pagename,$tfilefmt) {
   $TmplFmt['Start'] = array_merge(array('headers:'),
     preg_split('/[[<]!--((?:wiki|file|function|markup):.*?)--[]>]/s',
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE));
-  $TmplFmt['End'] = array("</div>\n");
+  $TmplFmt['End'] = array($PageTextEndFmt);
   $ps = 'Start';
   while (count($sect)>0) {
     $k = array_shift($sect);
@@ -109,7 +113,7 @@ function LoadPageTemplate($pagename,$tfilefmt) {
     if ($var == 'HeaderText') { $TmplFmt[$ps][] = &$HTMLHeaderFmt; }
     $TmplFmt[$ps][$var] =& $GLOBALS[$var];
   }
-  array_push($TmplFmt['Start'],"\n<div id='wikitext'>\n");
+  array_push($TmplFmt['Start'], $PageTextStartFmt);
   $PageStartFmt = 'function:PrintSkin Start';
   $PageEndFmt = 'function:PrintSkin End';
   $IsTemplateLoaded = 1;
