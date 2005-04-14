@@ -66,7 +66,6 @@ function PrintDiff($pagename) {
     $DiffEndDelAddFmt,$DiffEndFmt,$DiffRestoreFmt,$FmtV, $LinkFunctions;
   $page = ReadPage($pagename);
   if (!$page) return;
-  Lock(0); 
   krsort($page); reset($page);
   $lf = $LinkFunctions;
   $LinkFunctions['http:'] = 'LinkSuppress';
@@ -134,7 +133,6 @@ function PrintDiff($pagename) {
 
 function HandleDiff($pagename) {
   global $HandleDiffFmt, $PageStartFmt, $PageDiffFmt, $PageEndFmt;
-  Lock(1);
   $page = RetrieveAuthPage($pagename, 'read');
   if (!$page) { Abort("?cannot diff $pagename"); }
   PCache($pagename, $page);

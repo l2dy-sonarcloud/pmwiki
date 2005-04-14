@@ -90,7 +90,7 @@ function HandleRss($pagename) {
   for($i=0;$i<count($t) && count($r)<$RssMaxItems;$i++) {
     if (!PageExists($t[$i]['pagename'])) continue;
     $page = RetrieveAuthPage($t[$i]['pagename'],'read',false,READPAGE_CURRENT); 
-    Lock(0); if (!$page) continue;
+    if (!$page) continue;
     $text = 
       MarkupToHTML($t[$i]['pagename'],substr($page['text'],0,$RssSourceSize));
     $text = entityencode(preg_replace("/<.*?>/s","",$text)); 

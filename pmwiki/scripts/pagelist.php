@@ -69,7 +69,7 @@ function FmtPageList($fmt,$pagename,$opt) {
     if ($plprotect) 
       $page = RetrieveAuthPage($pagefile, 'read', false, READPAGE_CURRENT);
     else $page = ReadPage($pagefile, READPAGE_CURRENT);
-    Lock(0);  if (!$page) continue;
+    if (!$page) continue;
     if ($searchterms) {
       $text = $pagefile."\n".@$page['text']."\n".@$page['targets'];
       foreach($excl as $t) if (stristr($text,$t)) continue 2;

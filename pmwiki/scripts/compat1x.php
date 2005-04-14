@@ -116,6 +116,7 @@ function UseV1WikiD($path) {
 
 function ConvertV1WikiD($path) {
   global $WikiDir;
+  Lock(2);
   if (!is_dir($path)) {
     Abort("?$path is not an accessible directory");
     exit();
