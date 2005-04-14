@@ -357,8 +357,10 @@ function Lock($op) {
   }
   if ($op<0) { flock($lockfp,LOCK_UN); fclose($lockfp); $lockfp=0; $curop=0; }
   elseif ($op==0) { flock($lockfp,LOCK_UN); $curop=0; }
-  elseif ($op==1 && $curop<1) { flock($lockfp,LOCK_SH); $curop=1; }
-  elseif ($op==2 && $curop<2) { flock($lockfp,LOCK_EX); $curop=2; }
+  elseif ($op==1 && $curop<1) 
+    { session_write_close(); flock($lockfp,LOCK_SH); $curop=1; }
+  elseif ($op==2 && $curop<2) 
+    { session_write_close(); flock($lockfp,LOCK_EX); $curop=2; }
 }
 
 ## mkdirp creates a directory and its parents as needed, and sets
@@ -623,7 +625,6 @@ class PageStore {
 function ReadPage($pagename, $since=0) {
   # read a page from the appropriate directories given by $WikiReadDirsFmt.
   global $WikiLibDirs,$Now;
-  Lock(1);
   foreach ($WikiLibDirs as $dir) {
     $page = $dir->read($pagename, $since);
     if ($page) break;
@@ -674,7 +675,6 @@ function Abort($msg) {
 function Redirect($pagename,$urlfmt='$PageUrl') {
   # redirect the browser to $pagename
   global $EnableRedirect,$RedirectDelay;
-  Lock(0);
   SDV($RedirectDelay,0);
   clearstatcache();
   #if (!PageExists($pagename)) $pagename=$DefaultPage;
@@ -710,7 +710,6 @@ function PrintFmt($pagename,$fmt) {
     }
     return;
   }
-  Lock(0);
   if (preg_match("/^markup:(.*)$/",$x,$match))
     { print MarkupToHTML($pagename,$match[1]); return; }
   if (preg_match('/^wiki:(.+)$/',$x,$match)) 
@@ -998,7 +997,6 @@ function HandleBrowse($pagename) {
   # handle display of a page
   global $DefaultPageTextFmt,$FmtV,$HandleBrowseFmt,$PageStartFmt,
     $PageEndFmt,$PageRedirectFmt;
-  Lock(1);
   $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
@@ -1151,8 +1149,8 @@ function PreviewPage($pagename,&$page,&$new) {
 function HandleEdit($pagename) {
   global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,$Now,
     $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PagePreviewFmt,$PageEndFmt;
-  $IsPagePosted = false;
   Lock(2);
+  $IsPagePosted = false;
   $page = RetrieveAuthPage($pagename,'edit');
   if (!$page) Abort("?cannot edit $pagename"); 
   PCache($pagename,$page);
@@ -1160,6 +1158,7 @@ function HandleEdit($pagename) {
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
+  Lock(0);
   if ($IsPagePosted) { Redirect($pagename); return; }
   $FmtV['$DiffClassMinor'] = 
     (@$_POST['diffclass']=='minor') ?  "checked='checked'" : '';
@@ -1174,7 +1173,6 @@ function HandleEdit($pagename) {
 
 function HandleSource($pagename) {
   global $HTTPHeaders;
-  Lock(1);
   $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot source $pagename");
   foreach ($HTTPHeaders as $h) {
@@ -1186,11 +1184,14 @@ function HandleSource($pagename) {
 }
 
 ## PmWikiAuth provides password-protection of pages using PHP sessions.
-## It is normally called from RetrieveAuthPage.
+## It is normally called from RetrieveAuthPage.  Since RetrieveAuthPage
+## can be called a lot within a single page execution (i.e., for every
+## page accessed), we do a lot of caching of intermediate results here
+## to be able to speed up subsequent calls.
 function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   global $DefaultPasswords, $AllowPassword, $GroupAttributesFmt,
     $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, $AuthId;
-  static $grouppasswd;
+  static $grouppasswd, $authpw;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
   $page = ReadPage($pagename, $since);
@@ -1216,10 +1217,14 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     }
   }
   $page['=passwd'] = $passwd;
-  @session_start();
-  if (@$_POST['authpw']) @$_SESSION['authpw'][$_POST['authpw']]++;
-  $authpw = array_keys((array)@$_SESSION['authpw']);
-  if (!isset($AuthId)) $AuthId = @$_SESSION['authid'];
+  if (!isset($authpw)) {
+    $sid = session_id();
+    @session_start();
+    if (@$_POST['authpw']) @$_SESSION['authpw'][$_POST['authpw']]++;
+    $authpw = array_keys((array)@$_SESSION['authpw']);
+    if (!isset($AuthId)) $AuthId = @$_SESSION['authid'];
+    if (!$sid) session_write_close();
+  }
   foreach($passwd as $lv => $a) {
     if (!$a) { $page['=auth'][$lv]++; continue; }
     foreach((array)$a as $pwchal) {
@@ -1307,6 +1312,7 @@ function HandleAttr($pagename) {
 
 function HandlePostAttr($pagename) {
   global $PageAttributes, $EnablePostAttrClearSession;
+  Lock(2);
   $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
@@ -1322,7 +1328,9 @@ function HandlePostAttr($pagename) {
     }
   }
   WritePage($pagename,$page);
+  Lock(0);
   if (IsEnabled($EnablePostAttrClearSession, 1)) {
+    @session_start();
     unset($_SESSION['authid']);
     $_SESSION['authpw'] = array();
   }
