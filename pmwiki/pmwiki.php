@@ -856,8 +856,8 @@ function FormatTableRow($x) {
 function WikiLink($pagename, $word) {
   global $LinkWikiWords, $SpaceWikiWords, $AsSpacedFunction, 
     $MarkupFrame, $WikiWordCountMax;
+  if (!$LinkWikiWords) return $word;
   $text = ($SpaceWikiWords) ? $AsSpacedFunction($word) : $word;
-  if (!$LinkWikiWords) return $text;
   $text = preg_replace('!.*/!', '', $text);
   if (!isset($MarkupFrame[0]['wwcount'][$word]))
     $MarkupFrame[0]['wwcount'][$word] = $WikiWordCountMax;
