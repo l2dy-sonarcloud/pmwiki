@@ -160,6 +160,7 @@ function HandleDownload($pagename) {
   preg_match('/\\.([^.]+)$/',$filepath,$match); 
   if ($UploadExts[@$match[1]]) 
     header("Content-Type: {$UploadExts[@$match[1]]}");
+  header("Content-Length: ".filesize($filepath));
   readfile($filepath);
   exit();
 }  
