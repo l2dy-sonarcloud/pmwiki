@@ -253,9 +253,10 @@ $p = MakePageName($DefaultPage, $pagename);
 if (!$pagename) $pagename = $DefaultPage;
 else if (preg_match("/^$GroupPattern([\\/.])$NamePattern$/i", $pagename)) 
   { $pagename = $p; }
-else if ($p && (PageExists($p) || preg_match('/[\\/.]/', $pagename)))
-  { Redirect($p); exit(); }
-else {
+else if ($p && (PageExists($p) || preg_match('/[\\/.]/', $pagename))) { 
+  $pagename = $p;
+  if (IsEnabled($EnableFixedUrlRedirect,1)) { Redirect($p); exit(); }
+} else {
   $UrlPage = preg_replace('/^.*[\\/.]/', '', $p);
   SDV($PageNotFound, "$DefaultGroup.PageNotFound");
   $pagename = $PageNotFound;
