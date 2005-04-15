@@ -97,6 +97,7 @@ SDV($LinkFunctions['Attach:'], 'LinkUpload');
 SDV($IMap['Attach:'], '$1');
 SDV($HandleActions['upload'], 'HandleUpload');
 SDV($HandleActions['postupload'], 'HandlePostUpload');
+SDV($HandleActions['download'], 'HandleDownload');
 SDV($ActionTitleFmt['upload'], '| $[Uploads]');
 SDV($UploadVerifyFunction, 'UploadVerifyBasic');
 
@@ -109,7 +110,7 @@ function MakeUploadName($pagename,$x) {
 
 function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
   global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt, $UploadUrlFmt,
-    $UploadPrefixFmt;
+    $UploadPrefixFmt, $EnableDirectDownload;
   if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
     $pagename = MakePageName($pagename, $match[1]);
     $path = $match[2];
@@ -121,7 +122,10 @@ function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
   $FmtV['$LinkText'] = $txt;
   if (!file_exists($filepath)) 
     return FmtPageName($LinkUploadCreateFmt, $pagename);
-  $path = FmtPageName("$UploadUrlFmt$UploadPrefixFmt/$upname", $pagename);
+  $path = FmtPageName(IsEnabled($EnableDirectDownload, 1) 
+                          ? "$UploadUrlFmt$UploadPrefixFmt/$upname"
+                          : "\$PageUrl?action=download&amp;upname=$upname",
+                      $pagename);
   return LinkIMap($pagename, $imap, $path, $title, $txt, $fmt);
 }
 
@@ -142,6 +146,24 @@ function HandleUpload($pagename) {
   PrintFmt($pagename,$HandleUploadFmt);
 }
 
+function HandleDownload($pagename) {
+  global $UploadFileFmt, $UploadExts;
+  $page = RetrieveAuthPage($pagename, 'read');
+  if (!$page) Abort("?cannot read $pagename");
+  $upname = MakeUploadName($pagename, @$_REQUEST['upname']);
+  $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
+  if (!$upname || !file_exists($filepath)) {
+    header("HTTP/1.0 404 Not Found");
+    Abort("?requested file not found");
+    exit();
+  }
+  preg_match('/\\.([^.]+)$/',$filepath,$match); 
+  if ($UploadExts[@$match[1]]) 
+    header("Content-Type: {$UploadExts[@$match[1]]}");
+  readfile($filepath);
+  exit();
+}  
+ 
 function HandlePostUpload($pagename) {
   global $UploadVerifyFunction,$UploadFileFmt,$LastModFile;
   $page = RetrieveAuthPage($pagename,'upload');
@@ -208,7 +230,7 @@ function dirsize($dir) {
 
 function FmtUploadList($pagename,$opt) {
   global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $EnableUploadOverwrite,
-    $TimeFmt;
+    $TimeFmt, $EnableDirectDownload;
 
   $opt = ParseArgs($opt);
   if (@$opt[''][0]) $pagename = MakePageName($pagename, $opt[''][0]);
@@ -218,7 +240,10 @@ function FmtUploadList($pagename,$opt) {
       . ')$/i';
 
   $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
-  $uploadurl = FmtPageName("$UploadUrlFmt$UploadPrefixFmt", $pagename);
+  $uploadurl = FmtPageName(IsEnabled($EnableDirectDownload, 1) 
+                          ? "$UploadUrlFmt$UploadPrefixFmt/"
+                          : "\$PageUrl?action=download&amp;upname=",
+                      $pagename);
 
   $dirp = @opendir($uploaddir);
   if (!$dirp) return '';
@@ -233,7 +258,7 @@ function FmtUploadList($pagename,$opt) {
   asort($filelist);
   $overwrite = '';
   foreach($filelist as $file=>$x) {
-    $name = PUE("$uploadurl/$file");
+    $name = PUE("$uploadurl$file");
     $stat = stat("$uploaddir/$file");
     if ($EnableUploadOverwrite) 
       $overwrite = FmtPageName("<a class='createlink'
