@@ -1121,7 +1121,7 @@ function PostPage($pagename, &$page, &$new) {
 }
 
 function PostRecentChanges($pagename,&$page,&$new) {
-  global $IsPagePosted,$RecentChangesFmt,$RCDelimPattern;
+  global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax;
   if (!$IsPagePosted) return;
   foreach($RecentChangesFmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
@@ -1134,8 +1134,11 @@ function PostRecentChanges($pagename,&$page,&$new) {
       $rcpage['text'] .= "$pgtext\n";
     else
       $rcpage['text'] = preg_replace("/([^\n]*$RCDelimPattern.*\n)/",
-        "$pgtext\n$1",$rcpage['text'],1);
-    WritePage($rcname,$rcpage);
+        "$pgtext\n$1", $rcpage['text'], 1);
+    if (@$RCLinesMax > 0) 
+      $rcpage['text'] = implode("\n", array_slice(
+          explode("\n", $rcpage['text'], $RCLinesMax + 1), 0, $RCLinesMax));
+    WritePage($rcname, $rcpage);
   }
 }
 
