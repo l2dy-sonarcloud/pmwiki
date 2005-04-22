@@ -458,8 +458,8 @@ function FmtPageName($fmt,$pagename) {
     $match = $m;
   $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
   $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e', 
-    (@$EnablePathInfo) ? "'\$ScriptUrl/'.PUE('$1')" :
-        "'\$ScriptUrl?n='.str_replace('/','.',PUE('$1'))",
+    (@$EnablePathInfo) ? "'$ScriptUrl/'.PUE('$1')" :
+        "'$ScriptUrl?n='.str_replace('/','.',PUE('$1'))",
     $fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
@@ -618,6 +618,7 @@ class PageStore {
         }
         $out[] = $pagefile;
       }
+      closedir($dfp);
     }
     return $out;
   }
@@ -895,8 +896,8 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     elseif (preg_match('/\\s/',$txt)) $fmt=$LinkPageCreateSpaceFmt;
     else $fmt=$LinkPageCreateFmt;
   }
-  $FmtV['$LinkUrl'] = PUE(FmtPageName("\$PageUrl$qf",$tgtname));
-  $FmtV['$LinkText'] = $txt;
+  $fmt = str_replace(array('$LinkUrl', '$LinkText'),
+           array(PUE(FmtPageName("\$PageUrl$qf",$tgtname)), $txt), $fmt);
   return FmtPageName($fmt,$tgtname);
 }
 
@@ -918,7 +919,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     $txt .= $suffix;
   }
   $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
-  return $out;
+  Return $out;
 }
 
 function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
