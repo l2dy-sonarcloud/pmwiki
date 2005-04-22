@@ -448,7 +448,7 @@ function PCache($pagename,$page) {
 ## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt,$pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
-  global $GroupPattern, $NamePattern, $EnablePathInfo,
+  global $GroupPattern, $NamePattern, $EnablePathInfo, $ScriptUrl,
     $GCount, $UnsafeGlobals, $FmtV, $FmtP, $PCache, $AsSpacedFunction;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
