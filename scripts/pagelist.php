@@ -150,7 +150,7 @@ function MakePageList($pagename, $opt) {
     } else $page = array();
     $page['pagename'] = $page['name'] = $pn;
     PCache($pn, $page);
-    $matches[$pn] = & $PCache[$pn];
+    $matches[] = & $PCache[$pn];
   }
   SortPageList($matches, $order);
   StopWatch('MakePageList end');
@@ -184,7 +184,7 @@ function FPLByGroup($pagename, &$matches, $opt) {
   $matches = MakePageList($pagename, array_merge($FPLByGroupOpt, $opt));
   if (@$opt['count']) array_splice($matches, $opt['count']);
   $out = array();
-  foreach($matches as $pn => $pc) {
+  foreach($matches as $pc) {
     $pgroup = FmtPageName($FPLByGroupGFmt, $pc['pagename']);
     if ($pgroup != @$lgroup) { $out[] = $pgroup; $lgroup = $pgroup; }
     $out[] = FmtPageName($FPLByGroupIFmt, $pc['pagename']);
@@ -205,7 +205,7 @@ function FPLSimple($pagename, &$matches, $opt) {
   $matches = MakePageList($pagename, array_merge($topt, $FPLSimpleOpt, $opt));
   if (@$opt['count']) array_splice($matches, $opt['count']);
   $out = array();
-  foreach($matches as $pn => $pc) 
+  foreach($matches as $pc) 
     $out[] = FmtPageName($FPLSimpleIFmt, $pc['pagename']);
   return FmtPageName($FPLSimpleStartFmt, $pagename) . implode('', $out) .
              FmtPageName($FPLSimpleEndFmt, $pagename);
@@ -221,7 +221,7 @@ function FPLGroup($pagename, &$matches, $opt) {
   SDVA($FPLGroupOpt, array('readf' => 0, 'order' => 'name'));
   $matches = MakePageList($pagename, array_merge($FPLGroupOpt, $opt));
   $out = array();
-  foreach($matches as $pn => $pc) {
+  foreach($matches as $pc) {
     $group = preg_replace('/\\.[^.]+$/', '', $pc['pagename']);
     if (@!$seen[$group]++) {
       $out[] = FmtPageName($FPLGroupIFmt, $pc['pagename']);
