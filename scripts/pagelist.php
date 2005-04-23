@@ -32,9 +32,18 @@ $SearchPatterns['normal'][] = '!\.Group(Print)?(Header|Footer|Attributes)$!';
 SDV($SearchResultsFmt, "<div class='wikisearch'>\$[SearchFor]
   $HTMLVSpace\$MatchList
   $HTMLVSpace\$[SearchFound]$HTMLVSpace</div>");
+SDV($SearchBoxFmt, 
+  "<form class='wikisearch' action='$ScriptUrl'
+    method='get'><input type='hidden' name='n'
+    value='$[Main/SearchWiki]' /><input class='wikisearchbox'
+    type='text' name='q' value='\$SearchQuery' size='40' /><input
+    class='wikisearchbutton' type='submit' value='$[Search]' /></form>");
+SDV($SearchQuery, str_replace('$', '&#036;', 
+  htmlspecialchars(stripmagic(@$_REQUEST['q']), ENT_NOQUOTES)));
 XLSDV('en', array(
   'SearchFor' => 'Results of search for <em>$Needle</em>:',
-  'SearchFound' => '$MatchCount pages found.'));
+  'SearchFound' => 
+    '$MatchCount pages found out of $MatchSearched pages searched.'));
 
 ## $FPLFunctions is a list of functions associated with fmt= options
 SDVA($FPLFunctions, array(
@@ -50,13 +59,8 @@ Markup('searchresults', 'directives',
   "FmtPageList(\$GLOBALS['SearchResultsFmt'], \$pagename,
        array('o' => PSS('$1'), 'req' => 1))");
 Markup('searchbox', '>links',
-  '/\\(:searchbox:\\)/i',
-  FmtPageName("<form class='wikisearch' action='\$ScriptUrl'
-    method='get'><input type='hidden' name='n'
-    value='$[Main/SearchWiki]' /><input class='wikisearchbox'
-    type='text' name='q' value='' size='40' /><input
-    class='wikisearchbutton' type='submit' value='$[Search]' /></form>",
-    $pagename));
+  '/\\(:searchbox:\\)/ie',
+  "FmtPageName(\$GLOBALS['SearchBoxFmt'], \$pagename)");
 
 
 ## FmtPageList combines options from markup, request form, and url,
@@ -64,22 +68,21 @@ Markup('searchbox', '>links',
 ## (calling Keep() or PRR() as appropriate).
 function FmtPageList($fmt, $pagename, $opt) {
   global $GroupPattern, $FmtV, $FPLFunctions;
-  if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
+  # if (isset($_REQUEST['q']) && $_REQUEST['q']=='') $_REQUEST['q']="''";
   $rq = htmlspecialchars(stripmagic(@$_REQUEST['q']), ENT_NOQUOTES);
+  $FmtV['$Needle'] = $opt['o'] . ' ' . $rq;
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i", $rq, $match)) {
     $opt['group'] = @$match[1];
-    $rq = substr($rq, strlen(@$match[1]+1));
+    $rq = substr($rq, strlen(@$match[1])+1);
   }
-  $needle = $opt['o'] . ' ' . $rq;
-  $opt = array_merge($opt, ParseArgs($needle), @$_REQUEST);
-  if ($opt['req'] && @!$opt['-'] && @!$opt[''] && @!$opt['+'] &&
-      !isset($_REQUEST['q'])) return;
+  $opt = array_merge($opt, ParseArgs($opt['o'] . ' ' . $rq), @$_REQUEST);
+  if (@($opt['req'] && !$opt['-'] && !$opt[''] && !$opt['+'] && !$opt['q']))
+    return;
   $matches = array();
   $fmtfn = @$FPLFunctions[$opt['fmt']];
   if (!function_exists($fmtfn)) $fmtfn = 'FPLByGroup';
   $out = $fmtfn($pagename, $matches, $opt);
   $FmtV['$MatchCount'] = count($matches);
-  $FmtV['$Needle'] = $needle;
   $GLOBALS['SearchIncl'] = array_merge((array)@$opt[''], (array)@$opt['+']);
   $GLOBALS['SearchExcl'] = array_merge((array)$opt['-']);
   $GLOBALS['SearchGroup'] = @$opt['group'];
@@ -102,7 +105,7 @@ function MakePageList($pagename, $opt) {
   $order = $opt['order'];
   $readf |= $order && ($order!='name') && ($order!='-name');
 
-  $pats = $SearchPatterns[$opt['list']];
+  $pats = (array)$SearchPatterns[$opt['list']];
   if ($opt['group']) array_unshift($pats, "/^({$opt['group']})\./i");
 
   # inclp/exclp contain words to be included/excluded.  
