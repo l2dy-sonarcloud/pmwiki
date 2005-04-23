@@ -272,4 +272,3 @@ function FmtUploadList($pagename,$opt) {
   return implode("\n",$out);
 }
 
-?>

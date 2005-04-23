@@ -125,4 +125,3 @@ function ApplyStyles($x) {
   return implode('',$out);
 }
 
-?>

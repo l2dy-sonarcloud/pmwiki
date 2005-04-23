@@ -383,4 +383,3 @@ SDVA($EntitiesTable, array(
   '&hearts;' => '&#9829;', 
   '&diams;' => '&#9830;'));
 
-?>

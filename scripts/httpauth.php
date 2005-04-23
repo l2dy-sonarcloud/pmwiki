@@ -45,4 +45,3 @@ function HTTPBasicAuthPrompt($pagename) {
   exit;
 }
 
-?>

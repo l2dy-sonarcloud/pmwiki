@@ -116,4 +116,3 @@ function HandleRefCount($pagename) {
   PrintFmt($pagename,$HandleRefCountFmt);
 }
 
-?>

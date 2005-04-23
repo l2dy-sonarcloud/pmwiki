@@ -285,4 +285,3 @@ $HTMLStylesFmt['markup'] = "
   p.question { font-weight:bold; }
   ";
 
-?>

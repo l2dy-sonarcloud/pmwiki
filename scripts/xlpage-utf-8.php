@@ -74,4 +74,3 @@ function MakeUTF8PageName($basepage,$x) {
   return "$group.$name";
 }
 
-?>

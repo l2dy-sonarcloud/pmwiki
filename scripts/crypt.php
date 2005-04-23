@@ -35,4 +35,3 @@ function HandleCrypt($pagename) {
   PrintFmt($pagename,$HTMLEndFmt);
 }
 
-?>

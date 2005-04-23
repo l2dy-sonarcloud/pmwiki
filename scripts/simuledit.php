@@ -56,4 +56,3 @@ function MergeSimulEdits($pagename,&$page,&$new) {
   $new['text'] = Merge($new['text'],$old['text'],$page['text']);
 }
 
-?>
