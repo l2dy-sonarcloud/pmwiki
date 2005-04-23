@@ -45,4 +45,3 @@ function RequireAuthor($pagename,&$page,&$new) {
     $_POST['post'] = '';
   }
 }
-?>

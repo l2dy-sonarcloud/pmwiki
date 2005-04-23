@@ -101,4 +101,3 @@ function PHPDiff($old,$new)
 
 $DiffFunction = 'PHPDiff';
 
-?>

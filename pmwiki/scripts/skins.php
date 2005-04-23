@@ -129,4 +129,3 @@ function PrintSkin($pagename, $arg) {
       PrintFmt($pagename, $v);
 }
 
-?>

@@ -112,4 +112,3 @@ function BlockUnapprovedPosts($pagename, &$page, &$new) {
   $EditMessageFmt .= $BlockMessageFmt;
 }
     
-?>

@@ -75,4 +75,3 @@ function VarIndexList($pagename) {
   return $out;
 }
 
-?>

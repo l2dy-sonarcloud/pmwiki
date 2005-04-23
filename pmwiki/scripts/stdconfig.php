@@ -81,4 +81,3 @@ if ($MetaRobots)
   $HTMLHeaderFmt['robots'] = 
     "  <meta name='robots' content='\$MetaRobots' />\n";
 
-?>

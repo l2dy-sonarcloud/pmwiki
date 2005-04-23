@@ -73,4 +73,3 @@ function GUIEdit($pagename, &$page, &$new) {
   $EditMessageFmt .= implode('', $out);
 }
 
-?>

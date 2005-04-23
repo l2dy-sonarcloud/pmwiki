@@ -104,4 +104,3 @@ function MakeTrailPath($pagename,$trailname) {
   return $trailname;
 }
 
-?>

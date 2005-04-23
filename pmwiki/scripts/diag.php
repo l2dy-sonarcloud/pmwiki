@@ -50,4 +50,3 @@ function DisplayStopWatch() {
 
 $FmtP['/\\$StopWatch/e'] = 'DisplayStopWatch()';
 
-?>

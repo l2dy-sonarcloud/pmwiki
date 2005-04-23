@@ -216,5 +216,3 @@ function ConvertV1WikiD($path) {
   exit();
 }
 
-    
-?>

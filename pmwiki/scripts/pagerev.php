@@ -142,4 +142,3 @@ function HandleDiff($pagename) {
   PrintFmt($pagename,$HandleDiffFmt);
 }
 
-?>

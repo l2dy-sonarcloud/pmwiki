@@ -105,4 +105,3 @@ function MailPostsSendmail($to,$subject,$msg,$headers) {
   pclose($mailer);
 }
 
-?>

@@ -1343,4 +1343,3 @@ function HandlePostAttr($pagename) {
   exit;
 } 
 
-?> 
