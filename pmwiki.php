@@ -919,7 +919,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     $txt .= $suffix;
   }
   $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
-  Return $out;
+  return $out;
 }
 
 function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
