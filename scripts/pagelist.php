@@ -100,6 +100,7 @@ function MakePageList($pagename, $opt) {
   StopWatch('MakePageList begin');
   SDVA($MakePageListOpt, array('list' => 'default'));
 
+  $opt = array_merge($MakePageListOpt, $opt);
   $readf = $opt['readf'];
   # we have to read the page if order= is anything but name
   $order = $opt['order'];
@@ -228,7 +229,7 @@ function FPLGroup($pagename, &$matches, $opt) {
     $group = preg_replace('/\\.[^.]+$/', '', $pc['pagename']);
     if (@!$seen[$group]++) {
       $out[] = FmtPageName($FPLGroupIFmt, $pc['pagename']);
-      if (count($out) >= $opt['count']) break;
+      if ($opt['count'] && count($out) >= $opt['count']) break;
     }
   }
   return FmtPageName($FPLGroupStartFmt, $pagename) . implode('', $out) .

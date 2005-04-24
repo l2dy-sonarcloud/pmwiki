@@ -33,4 +33,3 @@ $GroupFooterFmt = $GroupPrintFooterFmt;
 
 LoadPageTemplate($pagename, "$SkinDir/print.tmpl");
 
-?>
