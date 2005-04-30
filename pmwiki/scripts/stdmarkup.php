@@ -226,7 +226,9 @@ Markup('blank','<^ ','/^\\s*$/','<:vspace>');
 
 ## tables
 ## ||cell||, ||!header cell||, ||!caption!||
-Markup('^||||','block','/^\\|\\|.*\\|\\|.*$/e',"FormatTableRow(PSS('$0'))");
+Markup('^||||', 'block', 
+  '/^(\\|\\|.*\\|\\|.*?)\\s*$/e',
+  "FormatTableRow(PSS('$1'))");
 ## ||table attributes
 Markup('^||','>^||||','/^\\|\\|(.*)$/e',
   "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PQA(PSS('<table $1>')))
