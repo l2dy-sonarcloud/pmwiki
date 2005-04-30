@@ -113,7 +113,7 @@ function MakePageList($pagename, $opt) {
   $inclp = array(); $exclp = array();
   foreach((array)@$opt[''] as $i)  { $inclp[] = '/'.preg_quote($i, '/').'/i'; }
   foreach((array)@$opt['+'] as $i) { $inclp[] = '/'.preg_quote($i, '/').'/i'; }
-  foreach((array)@$opt['-'] as $i) { $exclp[] = '!'.preg_quote($i, '!').'/i'; }
+  foreach((array)@$opt['-'] as $i) { $exclp[] = '/'.preg_quote($i, '/').'/i'; }
   $searchterms = count($inclp) + count($exclp);
   $readf += $searchterms;                         # forced read if incl/excl
 
