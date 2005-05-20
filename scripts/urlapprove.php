@@ -57,7 +57,9 @@ function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     if (preg_match("!^$pat(/|$)!",$url))
       return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   }
+  $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
+  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
   @$UnapprovedLinkCount++;
   return FmtPageName($UnapprovedLinkFmt,$pagename);
 }
