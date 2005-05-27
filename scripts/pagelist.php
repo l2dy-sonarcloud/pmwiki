@@ -84,7 +84,7 @@ function FmtPageList($fmt, $pagename, $opt) {
   $out = $fmtfn($pagename, $matches, $opt);
   $FmtV['$MatchCount'] = count($matches);
   $GLOBALS['SearchIncl'] = array_merge((array)@$opt[''], (array)@$opt['+']);
-  $GLOBALS['SearchExcl'] = array_merge((array)$opt['-']);
+  $GLOBALS['SearchExcl'] = (array)$opt['-'];
   $GLOBALS['SearchGroup'] = @$opt['group'];
   if ($fmt != '$MatchList') 
     { $FmtV['$MatchList'] = $out; $out = FmtPageName($fmt, $pagename); }
