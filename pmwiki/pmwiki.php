@@ -574,13 +574,17 @@ class PageStore {
     if (!file_exists("$dir/.htaccess") && $fp = @fopen("$dir/.htaccess", "w")) 
       { fwrite($fp, "Order Deny,Allow\nDeny from all\n"); fclose($fp); }
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
-      $s = true && fputs($fp,"version=$Version ordered=1\nnewline=$Newline\n");
+      $x = "version=$Version ordered=1\nnewline=$Newline\n";
+      $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
-        if ($k > '' && $k{0} != '=') 
-          $s = $s && fputs($fp, str_replace("\n", $Newline, "$k=$v") . "\n");
+        if ($k > '' && $k{0} != '=') {
+          $x = str_replace("\n", $Newline, "$k=$v") . "\n";
+          $s = $s && fputs($fp, $x); $sz += strlen($x);
+        }
       $s = fclose($fp) && $s;
+      $s = $s && (filesize("$pagefile,new") > $sz * 0.95);
       if (file_exists($pagefile)) $s = $s && unlink($pagefile);
-      $s = $s && rename("$pagefile,new",$pagefile);
+      $s = $s && rename("$pagefile,new", $pagefile);
     }
     $s && fixperms($pagefile);
     if (!$s)
