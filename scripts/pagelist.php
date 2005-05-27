@@ -78,14 +78,14 @@ function FmtPageList($fmt, $pagename, $opt) {
   $opt = array_merge($opt, ParseArgs($opt['o'] . ' ' . $rq), @$_REQUEST);
   if (@($opt['req'] && !$opt['-'] && !$opt[''] && !$opt['+'] && !$opt['q']))
     return;
+  $GLOBALS['SearchIncl'] = array_merge((array)@$opt[''], (array)@$opt['+']);
+  $GLOBALS['SearchExcl'] = (array)$opt['-'];
+  $GLOBALS['SearchGroup'] = @$opt['group'];
   $matches = array();
   $fmtfn = @$FPLFunctions[$opt['fmt']];
   if (!function_exists($fmtfn)) $fmtfn = 'FPLByGroup';
   $out = $fmtfn($pagename, $matches, $opt);
   $FmtV['$MatchCount'] = count($matches);
-  $GLOBALS['SearchIncl'] = array_merge((array)@$opt[''], (array)@$opt['+']);
-  $GLOBALS['SearchExcl'] = (array)$opt['-'];
-  $GLOBALS['SearchGroup'] = @$opt['group'];
   if ($fmt != '$MatchList') 
     { $FmtV['$MatchList'] = $out; $out = FmtPageName($fmt, $pagename); }
   if ($out{0} == '<') return '<div>'.Keep($out).'</div>';
