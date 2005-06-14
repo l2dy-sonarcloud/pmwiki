@@ -526,6 +526,7 @@ class PageStore {
   function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
   function pagefile($pagename) {
     global $FarmD;
+    if ($pagename == '') return $this->dirfmt;
     $pagename = str_replace('/', '.', $pagename);
     $dfmt = $this->dirfmt;
     if ($dfmt == 'wiki.d/$FullName')                   # optimizations for
