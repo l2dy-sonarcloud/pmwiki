@@ -526,15 +526,16 @@ class PageStore {
   function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
   function pagefile($pagename) {
     global $FarmD;
-    if ($pagename == '') return $this->dirfmt;
-    $pagename = str_replace('/', '.', $pagename);
     $dfmt = $this->dirfmt;
-    if ($dfmt == 'wiki.d/$FullName')                   # optimizations for
-      return "wiki.d/$pagename";                       # standard locations
-    if ($dfmt == '$FarmD/wikilib.d/$FullName')         # 
-      return "$FarmD/wikilib.d/$pagename";             #
-    if ($dfmt == 'wiki.d/$Group/$FullName')
-      return preg_replace('/([^.]+).*/', 'wiki.d/$1/$0', $pagename);
+    if ($pagename > '') {
+      $pagename = str_replace('/', '.', $pagename);
+      if ($dfmt == 'wiki.d/$FullName')                 # optimizations for
+        return "wiki.d/$pagename";                     # standard locations
+      if ($dfmt == '$FarmD/wikilib.d/$FullName')       # 
+        return "$FarmD/wikilib.d/$pagename";           #
+      if ($dfmt == 'wiki.d/$Group/$FullName')
+        return preg_replace('/([^.]+).*/', 'wiki.d/$1/$0', $pagename);
+    }
     return FmtPageName($dfmt, $pagename);
   }
   function read($pagename, $since=0) {
@@ -606,11 +607,11 @@ class PageStore {
     $pats=(array)$pats; 
     array_unshift($pats, "/^$GroupPattern\.$NamePattern$/");
     $dir = $this->pagefile('');
-    $dirlist = array(preg_replace('!/?[^/]*\$.*$!','',$dir));
+    $dirlist = array(preg_replace('!/*[^/]*\\$.*$!','',$dir));
     $out = array();
     while (count($dirlist)>0) {
       $dir = array_shift($dirlist);
-      $dfp = opendir($dir); if (!$dfp) continue;
+      $dfp = opendir($dir); if (!$dfp) { continue; }
       while ( ($pagefile = readdir($dfp)) !== false) {
         if ($pagefile{0} == '.') continue;
         if (is_dir("$dir/$pagefile"))
@@ -832,7 +833,7 @@ function FormatTableRow($x) {
   global $Block, $TableCellAttrFmt, $MarkupFrame, $TableRowAttrFmt, 
     $TableRowIndexMax, $FmtV;
   static $rowcount;
-  $x = preg_replace('/\\|\\|$/','',$x);
+  $x = preg_replace('/\\|\\|\\s*$/','',$x);
   $td = explode('||',$x); $y='';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
