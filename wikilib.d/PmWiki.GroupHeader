@@ -1,10 +1,10 @@
-version=pmwiki-2.0.beta1
+version=pmwiki-2.0.beta37 ordered=1
 newline=²
-text=%define=trail bgcolor=#eee block%²%define=note font-style=italic color=green%²%define=important block bgcolor=#fcc border='1px solid black' padding=5px%²
-time=1101510696
+agent=Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.8) Gecko/20050511 Firefox/1.0.4 WebWasher 3.4
+author=
+host=84.56.114.91
 name=PmWiki.GroupHeader
-host=24.1.28.47
-agent=Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20041107 Firefox/1.0
-rev=4
+rev=6
 targets=
-author=Pm
+text=%define=trail bgcolor=#eee block%²%define=note font-style=italic color=green%²%define=important block bgcolor=#fcc border='1px solid black' padding=5px%
+time=1118391186
