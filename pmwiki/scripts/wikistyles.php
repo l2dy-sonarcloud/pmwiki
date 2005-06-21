@@ -12,7 +12,7 @@ Markup('%%','style','%','return ApplyStyles($x);');
 Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
   '$GLOBALS[\'KPV\'][\'$1\']');
 ## Place a closing %% at the end of any line with a (possible) WikiStyle in it
-Markup('%%$','<block','/([^%]%[^%]+?)$/','$1 %%');
+#Markup('%%$','<block','/([^%]%[^%]+?)$/','$1 %%');
 
 # define PmWiki's standard/default wikistyles
 if (IsEnabled($EnableStdWikiStyles,1)) {
@@ -105,7 +105,7 @@ function ApplyStyles($x) {
       $classv=array(); $stylev=array();
       foreach((array)$s as $k=>$v) {
         if (@$WikiStyleAttr[$k]) 
-          $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=))([^>]*)>/",
+          $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=))([^>]*)>/s",
             "<$1 $k='$v' $2>",$p);
         elseif ($k=='class') $classv[]=$v;
         elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
@@ -113,10 +113,13 @@ function ApplyStyles($x) {
       $spanattr=''; 
       if ($classv) $spanattr="class='".implode(' ',$classv)."' ";
       if ($stylev) $spanattr.="style='".implode(' ',$stylev)."' ";
-      if ($spanattr) 
-        if (!@$WikiStyleApply[$a]) $p="<span $spanattr>$p</span>";
-        elseif (!preg_match('/^(\\s*<[^>]+>)*$/',$p))
+      if ($spanattr) {
+        if (!@$WikiStyleApply[$a]) {
+          $p = preg_replace("!^(.*?)($|</?(form|div|table|tr|td|th|p|ul|ol|dl|li|dt|dd|h[1-6]|blockquote|pre|hr))!s", "<span $spanattr>$1</span>$2", $p, 1);
+}
+        elseif (!preg_match('/^(\\s*<[^>]+>)*$/s',$p)) 
           $p = preg_replace("/<({$WikiStyleApply[$a]})\\b/","<$1 $spanattr",$p);
+      }
       if ($s['color'])
         $p = preg_replace('/<a\\b/', "<a style='color: {$s['color']}'", $p);
     }

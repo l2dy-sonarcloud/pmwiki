@@ -31,5 +31,3 @@ $GroupFooterFmt = $GroupPrintFooterFmt;
 #$DoubleBrackets["/\\[\\[mailto:($UrlPathPattern)(.*?)\\]\\]/"] = 
 #  "''\$2'' [mailto:\$1]";
 
-LoadPageTemplate($pagename, "$SkinDir/print.tmpl");
-
