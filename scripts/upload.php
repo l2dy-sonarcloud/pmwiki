@@ -194,7 +194,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     $UploadDirQuota,$UploadDir;
   if (!$EnableUploadOverwrite && file_exists($filepath)) 
     return 'upresult=exists';
-  preg_match('/\\.([^.]+)$/',$filepath,$match); $ext=@$match[1];
+  preg_match('/\\.([^.\\/]+)$/',$filepath,$match); $ext=@$match[1];
   $maxsize = $UploadExtSize[$ext];
   if ($maxsize<=0) return "upresult=badtype&upext=$ext";
   if ($uploadfile['size']>$maxsize) 
