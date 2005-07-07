@@ -43,7 +43,7 @@ function DisplayStopWatch() {
   foreach((array)$StopWatch as $k => $x) {
     $out[] = "$x\n";
   }
-  array_pop($StopWatch);
+  if (is_array($StopWatch)) array_pop($StopWatch);
   $out[] = '</pre>';
   return implode('',$out);
 }
