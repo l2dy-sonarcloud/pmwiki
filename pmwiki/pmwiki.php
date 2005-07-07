@@ -738,11 +738,12 @@ function PrintWikiPage($pagename,$wikilist=NULL) {
   }
 }
 
-function Keep($x,$level='') {
+function Keep($x,$pool='') {
   # Keep preserves a string from being processed by wiki markups
   global $KeepToken,$KPV,$KPCount;
-  $KPCount++; $KPV[$KPCount.$level]=$x;
-  return $KeepToken.$KPCount.$level.$KeepToken;
+  $x = preg_replace("/$KeepToken(\\d.*?)$KeepToken/e", "\$KPV['\$1']", $x);
+  $KPCount++; $KPV[$KPCount.$pool]=$x;
+  return $KeepToken.$KPCount.$pool.$KeepToken;
 }
 
 function CondText($pagename,$condspec,$condtext) {
