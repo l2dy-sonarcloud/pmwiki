@@ -265,9 +265,9 @@ function FmtUploadList($pagename,$opt) {
       $overwrite = FmtPageName("<a class='createlink'
         href='\$PageUrl?action=upload&amp;upname=$file'>&nbsp;&Delta;</a>", 
         $pagename);
-    $out[] = "<li> <a href='$name'>$file</a>$overwrite ... 
-      {$stat['size']} bytes ... " . strftime($TimeFmt, $stat['mtime']) 
-      . "</li>";
+    $out[] = "<li> <a href='$name'>$file</a>$overwrite ... ".
+      number_format($stat['size']) . " bytes ... " . 
+      strftime($TimeFmt, $stat['mtime']) . "</li>";
   }
   return implode("\n",$out);
 }

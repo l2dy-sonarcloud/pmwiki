@@ -54,6 +54,7 @@ SDVA($WikiStyleAttr,array(
   'vspace' => 'img',
   'hspace' => 'img',
   'align' => 'img',
+  'value' => 'li',
   'target' => 'a',
   'rel' => 'a'));
 
