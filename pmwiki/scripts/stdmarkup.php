@@ -249,24 +249,34 @@ function Cells($name,$attr) {
   $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
   $tattr = @$MarkupFrame[0]['tattr'];
   $name = strtolower($name);
-  if ($name == 'cell' || $name == 'cellnr') {
-    if (!@$MarkupFrame[0]['posteval']['cells']) {
-      $MarkupFrame[0]['posteval']['cells'] = "\$out .= '</td></tr></table>';";
-      return "<:block><table $tattr><tr><td $attr>";
-    } else if ($name == 'cellnr') return "<:block></td></tr><tr><td $attr>";
-    return "<:block></td><td $attr>";
+  $out = array('<:block>');
+  if (strncmp($name, 'cell', 4) != 0 || @$MarkupFrame[0]['closeall']['div']) {
+    $out[] = @$MarkupFrame[0]['closeall']['div']; 
+    unset($MarkupFrame[0]['closeall']['div']);
+    $out[] = @$MarkupFrame[0]['closeall']['table']; 
+    unset($MarkupFrame[0]['closeall']['table']);
   }
-  $MarkupFrame[0]['tattr'] = $attr;
-  if (@$MarkupFrame[0]['posteval']['cells']) {
-    unset($MarkupFrame[0]['posteval']['cells']);
-    return '<:block></td></tr></table>';
+  if ($name == 'div') {
+    $MarkupFrame[0]['closeall']['div'] = "</div>";
+    $out[] = "<div $attr>";
   }
-  return '<:block>';
+  if ($name == 'table') $MarkupFrame[0]['tattr'] = $attr;
+  if (strncmp($name, 'cell', 4) == 0) {
+    if (!@$MarkupFrame[0]['closeall']['table']) {
+       $MarkupFrame[0]['closeall']['table'] = "</td></tr></table>";
+       $out[] = "<table $tattr><tr><td $attr>";
+    } else if ($name == 'cellnr') $out[] = "</td></tr><tr><td $attr>";
+    else $out[] = "</td><td $attr>";
+  }
+  return implode('', $out);
 }
 
-Markup('^table','<block','/^\\(:(table|cell|cellnr|tableend)(\\s.*?)?:\\)/ie',
+Markup('^table', '<block',
+  '/^\\(:(table|cell|cellnr|tableend|div|divend)(\\s.*?)?:\\)/ie',
   "Cells('$1',PSS('$2'))");
-
+Markup('^>>', '<table',
+  '/^&gt;&gt;(.*?)&lt;&lt;(.*)$/',
+  '(:div:)%div $1%$2 ');
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
