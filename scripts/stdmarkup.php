@@ -276,18 +276,18 @@ Markup('^table', '<block',
   "Cells('$1',PSS('$2'))");
 Markup('^>>', '<table',
   '/^&gt;&gt;(.*?)&lt;&lt;(.*)$/',
-  '(:div:)%div $1%$2 ');
+  '(:div:)%div $1 apply=div%$2 ');
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
 Markup('markup', '<[=',
   "/^\\(:markup:\\)[^\\S\n]*\\[=(.*?)=\\]/seim",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
-    '</pre>').PSS('\n$1\n<:block,0></div>\n')");
+    '</pre>').PSS('\n$1\n(:divend:)</div>\n')");
 Markup('markupend', '>markup',
   "/^\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
   "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
-    '</pre>').PSS('\n$1\n<:block,0></div>\n')");
+    '</pre>').PSS('\n$1\n(:divend:)</div>\n')");
 $HTMLStylesFmt['markup'] = "
   div.markup { border:2px dotted #ccf; 
     margin-left:30px; margin-right:30px; 
