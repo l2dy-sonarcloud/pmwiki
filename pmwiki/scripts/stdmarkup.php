@@ -25,8 +25,12 @@ Markup('restore','<_end',"/$KeepToken(\\d.*?)$KeepToken/e",
 ## remove carriage returns before preserving text
 Markup('\\r','<[=','/\\r/','');
 
+# $[phrase] substitutions
+Markup('$[phrase]', '>[=',
+  '/\\$\\[(?>([^\\]]+))\\]/e', "XL(PSS('$1'))");
+
 # {$var} substitutions
-Markup('{$fmt}','>[=',
+Markup('{$fmt}','>$[phrase]',
   '/{\\$((Group|Name|Title)(spaced)?|LastModified(By|Host)?|FullName)}/e',
   "FmtPageName('$$1',\$pagename)");
 Markup('{$var}','>{$fmt}',
@@ -73,6 +77,12 @@ Markup('nofooter', 'directives',
 Markup('notitle', 'directives',
   '/\\(:notitle:\\)/ei',
   "SetTmplDisplay('PageTitleFmt',0)");
+Markup('noleft', 'directives',
+  '/\\(:noleft:\\)/ei',
+  "SetTmplDisplay('PageLeftFmt',0)");
+Markup('noright', 'directives',
+  '/\\(:noright:\\)/ei',
+  "SetTmplDisplay('PageRightFmt',0)");
 
 ## (:title:)
 Markup('title','directives',
