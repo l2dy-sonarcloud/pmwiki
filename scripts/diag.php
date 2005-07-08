@@ -13,6 +13,7 @@
 ini_set('track_errors','1');
 
 if ($action=='diag') {
+  session_start();
   header('Content-type: text/plain');
   print_r($GLOBALS);
   exit();
