@@ -91,7 +91,7 @@ $HTMLVSpace = "<p class='vspace'></p>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
 $MarkupFrameBase = array('cs' => array(), 'vs' => '', 'ref' => 0,
-  'posteval' => array('block' => "\$out .= Block('block');"));
+  'closeall' => array('block' => '<:block>'));
 $WikiWordCountMax = 1000000;
 $WikiWordCount['PmWiki'] = 1;
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
@@ -191,6 +191,9 @@ Markup('inline','>directives');
 Markup('links','>inline');
 Markup('block','>links');
 Markup('style','>block');
+Markup('closeall', '_begin',
+  '/^\\(:closeall:\\)$/e', 
+  "implode('', (array)\$GLOBALS['MarkupFrame'][0]['closeall'])");
 
 $ImgExtPattern="\\.(?:gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)";
 $ImgTagFmt="<img src='\$LinkUrl' style='border:0px;' alt='\$LinkAlt' />";
@@ -983,6 +986,7 @@ function MarkupToHTML($pagename,$text) {
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
+  $lines[] = '(:closeall:)';
   $out = array();
   while (count($lines)>0) {
     $x = array_shift($lines);
