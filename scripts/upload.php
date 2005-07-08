@@ -272,3 +272,19 @@ function FmtUploadList($pagename,$opt) {
   return implode("\n",$out);
 }
 
+# this adds (:if [!]attachments:) to the markup
+$Conditions['attachments'] = "AttachExist(\$pagename)";
+function AttachExist($pagename) {
+  global $UploadDir, $UploadPrefixFmt;
+  $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
+  $count = 0;
+  $dirp = @opendir($uploaddir);
+  if ($dirp) {
+    while (($file = readdir($dirp)) !== false) 
+      if ($file{0} != '.') $count++;
+    closedir($dirp);
+  }
+  return $count;
+}
+
+
