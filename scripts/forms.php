@@ -96,17 +96,20 @@ SDVA($InputTags['e_minorcheckbox'], array(
   'name' => 'diffclass', 'value' => 'minor'));
 SDVA($InputTags['e_savebutton'], array(
   ':html' => "<input type='submit' \$InputFormArgs />",
-  'name' => 'post', 'value' => XL('Save'), 
+  'name' => 'post', 'value' => ' '.XL('Save').' ', 
   'accesskey' => XL('ak_save')));
 SDVA($InputTags['e_saveeditbutton'], array(
   ':html' => "<input type='submit' \$InputFormArgs />",
-  'name' => 'postedit', 'value' => XL('Save and edit'),
+  'name' => 'postedit', 'value' => ' '.XL('Save and edit').' ',
   'accesskey' => XL('ak_saveedit')));
 SDVA($InputTags['e_previewbutton'], array(
   ':html' => "<input type='submit' \$InputFormArgs />",
-  'name' => 'preview', 'value' => XL('Preview'), 
+  'name' => 'preview', 'value' => ' '.XL('Preview').' ', 
   'accesskey' => XL('ak_preview')));
+SDVA($InputTags['e_cancelbutton'], array(
+  ':html' => "<input type='submit' \$InputFormArgs />",
+  'name' => 'cancel', 'value' => ' '.XL('Cancel').' ' ));
 SDVA($InputTags['e_resetbutton'], array(
   ':html' => "<input type='reset' \$InputFormArgs />",
-  'value' => XL('Reset')));
+  'value' => ' '.XL('Reset').' '));
 
