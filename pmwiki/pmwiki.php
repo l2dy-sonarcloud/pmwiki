@@ -1144,6 +1144,7 @@ function HandleEdit($pagename) {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, $FmtV, 
     $Now, $EditFormPage, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
     $PageEndFmt;
+  if ($_POST['cancel']) { Redirect($pagename); return; }
   Lock(2);
   $IsPagePosted = false;
   $page = RetrieveAuthPage($pagename,'edit');
