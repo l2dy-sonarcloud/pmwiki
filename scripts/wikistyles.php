@@ -57,6 +57,7 @@ SDVA($WikiStyleAttr,array(
   'align' => 'img',
   'value' => 'li',
   'target' => 'a',
+  'accesskey' => 'a',
   'rel' => 'a'));
 
 SDVA($WikiStyleRepl,array('/\\bbgcolor([:=])/' => 'background-color$1'));

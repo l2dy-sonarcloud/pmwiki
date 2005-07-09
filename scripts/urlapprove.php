@@ -107,10 +107,10 @@ function HandleApprove($pagename) {
 
 function BlockUnapprovedPosts($pagename, &$page, &$new) {
   global $EnableUrlApprovalRequired, $UnapprovedLinkCount, 
-    $UnapprovedLinkCountMax, $EditMessageFmt, $BlockMessageFmt;
+    $UnapprovedLinkCountMax, $MessagesFmt, $BlockMessageFmt;
   if (!IsEnabled($EnableUrlApprovalRequired, 1)) return;
   if ($UnapprovedLinkCount <= $UnapprovedLinkCountMax) return;
   unset($_POST['post']);
-  $EditMessageFmt .= $BlockMessageFmt;
+  $MessagesFmt[] = $BlockMessageFmt;
 }
     

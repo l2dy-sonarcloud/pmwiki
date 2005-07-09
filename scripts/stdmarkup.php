@@ -89,6 +89,12 @@ Markup('title','directives',
   '/\\(:title\\s(.*?):\\)/ei',
   "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
 
+## (:messages:)
+Markup('messages', 'directives',
+  '/^\\(:messages:\\)/ei',
+  "'<:block>'.Keep(
+    FmtPageName(implode('',(array)\$GLOBALS['MessagesFmt']), \$pagename))");
+
 ## (:comment:)
 Markup('comment', 'directives', '/\\(:comment .*?:\\)/i', '');
 
@@ -208,7 +214,7 @@ Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
 
 # unblocked lines w/block markup become anonymous <:block>
 Markup('^!<:', '<^<:',
-  '/^(?!<:)(?=.*<(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr)\\b)/',
+  '/^(?!<:)(?=.*<(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
   '<:block>');
 
 ## bullet lists
