@@ -30,10 +30,13 @@
           <div class='pagegroup'><a href='$ScriptUrl/$Group'>$Group</a> /</div>
           <div class='pagetitle'><a href='$PageUrl'>$Title</a></div></td>
         <td id='wikicmds'>
-          <a href='$ScriptUrl/$[$Group/RecentChanges]'>$[Recent Changes]</a>
+          <a href='$ScriptUrl/$[$Group/RecentChanges]'
+            accesskey='$[ak_recentchanges]'>$[Recent Changes]</a>
           <a href='$PageUrl?action=print' target='_blank'>$[Printable View]</a>
-          <a href='$PageUrl?action=diff'>$[Page History]</a>
-          <a href='$PageUrl?action=edit'>$[Edit Page]</a></td></tr></table>
+          <a href='$PageUrl?action=diff'
+            accesskey='$[ak_history]'>$[Page History]</a>
+          <a href='$PageUrl?action=edit'
+            accesskey='$[ak_edit]'>$[Edit Page]</a></td></tr></table>
 <!--PageText-->
       </td>
     </tr></table>
