@@ -47,30 +47,7 @@ $Now=time();
 define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
 $Newline="\262";
-$PageEditFmt = "<div id='wikiedit'>
-  <a id='top' name='top'></a>
-  <h1 class='wikiaction'>$[Editing \$FullName]</h1>
-  <form method='post' action='\$PageUrl?action=edit'>
-  <input type='hidden' name='action' value='edit' />
-  <input type='hidden' name='n' value='\$FullName' />
-  <input type='hidden' name='basetime' value='\$EditBaseTime' />
-  \$EditMessageFmt
-  <textarea id='text' name='text' rows='25' cols='60'
-    onkeydown='if (event.keyCode==27) event.returnValue=false;'
-    >\$EditText</textarea><br />
-  $[Author]: <input type='text' name='author' value='\$Author' />
-  <input type='checkbox' name='diffclass' value='minor' \$DiffClassMinor />
-    $[This is a minor edit]<br />
-  <input type='submit' name='post' value=' $[Save] ' />
-  <input type='submit' name='preview' value=' $[Preview] ' />
-  <input type='reset' value=' $[Reset] ' /></form></div>";
-$PagePreviewFmt = "<div id='wikipreview'>
-  <h2 class='wikiaction'>$[Preview \$FullName]</h2>
-  <p><b>$[Page is unsaved]</b></p>
-  \$PreviewText
-  <hr /><p><b>$[End of preview -- remember to save]</b><br />
-  <a href='#top'>$[Top]</a></p></div>";
-$EditMessageFmt = '';
+$MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
 $EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
@@ -105,6 +82,7 @@ $LinkPageCreateFmt =
 $UrlLinkFmt = 
   "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
 umask(002);
+$Site = 'Site';
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
 $GroupHeaderFmt = '(:include $Group.GroupHeader:)(:nl:)';
@@ -1112,7 +1090,7 @@ function PostPage($pagename, &$page, &$new) {
   $IsPagePosted = false;
   if (@$_POST['post']) {
     $new['text'] = str_replace($Newline, "\n", $new['text']);
-    if ($new['text']==@$page['text']) { Redirect($pagename); return; }
+    if ($new['text']==@$page['text']) { $IsPagePosted=true; return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
     $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
@@ -1155,16 +1133,17 @@ function PostRecentChanges($pagename,&$page,&$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved,$FmtV,$PagePreviewFmt;
+  global $IsPageSaved, $FmtV;
   if (!$IsPageSaved && @$_POST['preview']) {
     $text = '(:groupheader:)'.$new['text'].'(:groupfooter:)';
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
-  } else $PagePreviewFmt = '';
+  } 
 }
   
 function HandleEdit($pagename) {
-  global $IsPagePosted,$EditFields,$EditFunctions,$FmtV,$Now,
-    $HandleEditFmt,$PageStartFmt,$PageEditFmt,$PagePreviewFmt,$PageEndFmt;
+  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, $FmtV, 
+    $Now, $EditFormPage, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
+    $PageEndFmt;
   Lock(2);
   $IsPagePosted = false;
   $page = RetrieveAuthPage($pagename,'edit');
@@ -1173,18 +1152,34 @@ function HandleEdit($pagename) {
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
+  $ChangeSummary = @$_REQUEST['csum'];
+  if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
+  if (@$_POST['postedit']) $_POST['post']=1;
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   Lock(0);
-  if ($IsPagePosted) { Redirect($pagename); return; }
+  if ($IsPagePosted && !@$_POST['postedit']) { Redirect($pagename); return; }
   $FmtV['$DiffClassMinor'] = 
     (@$_POST['diffclass']=='minor') ?  "checked='checked'" : '';
   $FmtV['$EditText'] = 
     str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
-  SDV($HandleEditFmt,array(&$PageStartFmt,
-    &$PageEditFmt,'wiki:$[PmWiki.EditQuickReference]',&$PagePreviewFmt,
-    &$PageEndFmt));
-  PrintFmt($pagename,$HandleEditFmt);
+  if (@$EditFormPage) {
+    $form = ReadPage(FmtPageName($EditFormPage, $pagename), READPAGE_CURRENT);
+    $FmtV['$EditForm'] = MarkupToHTML($pagename, $form['text']);
+  }
+  SDV($PageEditFmt, "<div id='wikiedit'>
+    <h1 class='wikiaction'>$[Editing \$FullName]</h1>
+    <form method='post' action='\$PageUrl?action=edit'>
+    <input type='hidden' name='action' value='edit' />
+    <input type='hidden' name='n' value='\$FullName' />
+    <input type='hidden' name='basetime' value='\$EditBaseTime' />
+    \$EditMessageFmt
+    <textarea id='text' name='text' rows='25' cols='60'
+      onkeydown='if (event.keyCode==27) event.returnValue=false;'
+      >\$EditText</textarea><br />
+    <input type='submit' name='post' value=' $[Save] ' />");
+  SDV($HandleEditFmt, array(&$PageStartFmt, &$PageEditFmt, &$PageEndFmt));
+  PrintFmt($pagename, $HandleEditFmt);
 }
 
 function HandleSource($pagename) {

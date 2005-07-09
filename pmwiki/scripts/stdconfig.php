@@ -43,14 +43,16 @@ if (@$EnableIMSCaching && in_array($action,(array)$CacheActions)) {
 }
 
 ## Scripts that are part of a standard PmWiki distribution.
-if (IsEnabled($EnableStdMarkup,1))
-  include_once("$FarmD/scripts/stdmarkup.php");
 if (IsEnabled($EnableAuthorTracking,1)) 
   include_once("$FarmD/scripts/author.php");
 if (IsEnabled($EnableSimulEdit,1))
   include_once("$FarmD/scripts/simuledit.php");
 if (IsEnabled($EnableSkinLayout,1))
   include_once("$FarmD/scripts/skins.php");
+if (IsEnabled($EnableFixup,1))
+  include_once("$FarmD/scripts/fixup.php");
+if (IsEnabled($EnableStdMarkup,1))
+  include_once("$FarmD/scripts/stdmarkup.php");
 if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableWikiTrails,1))
@@ -73,6 +75,8 @@ if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");
 if ($action=='edit' && IsEnabled($EnableGUIButtons,0))
   include_once("$FarmD/scripts/guiedit.php");
+if (IsEnabled($EnableForms,1))
+  include_once("$FarmD/scripts/forms.php");
 
 SDV($MetaRobots,
   ($action!='browse' || preg_match('#^PmWiki[./](?!PmWiki$)#',$pagename))
