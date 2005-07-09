@@ -51,8 +51,8 @@ if (IsEnabled($EnablePrefs, 1))
   include_once("$FarmD/scripts/prefs.php");
 if (IsEnabled($EnableSkinLayout,1))
   include_once("$FarmD/scripts/skins.php");        # must come after prefs
-if (IsEnabled($EnableFixup,1))
-  include_once("$FarmD/scripts/fixup.php");        # must come after skins
+if (IsEnabled($EnableTransitions,1))
+  include_once("$FarmD/scripts/transition.php");   # must come after skins
 if (IsEnabled($EnableStdMarkup,1))
   include_once("$FarmD/scripts/stdmarkup.php");
 if ($action=='diff' && @!$HandleActions['diff'])

@@ -5,17 +5,17 @@
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.  See pmwiki.php for full details.
 
-    This script handles various "fixups" that might need to occur to 
-    help existing sites smoothly upgrade to newer releases of PmWiki.
-    Rather than put the workarounds in the main code files, we try
-    to centralize them here so we can see what's deprecated and a
-    simple switch ($EnableFixup=0, or ?fixup=0 in the url) can tell 
+    This script handles various "fixup transitions" that might need to 
+    occur to help existing sites smoothly upgrade to newer releases of 
+    PmWiki.  Rather than put the workarounds in the main code files, we 
+    try to centralize them here so we can see what's deprecated and a
+    simple switch ($EnableTransitions=0, or ?trans=0 in the url) can tell 
     the admin if his site is relying on an outdated feature or
     way of doing things.
 */
 
-## if ?fixup=0 is specified, then we don't do any fixups.
-if (@$_REQUEST['fixup']==='0') return;
+## if ?trans=0 is specified, then we don't do any fixups.
+if (@$_REQUEST['trans']==='0') return;
 
 ## $PageEditFmt has been deprecated in favor of using wiki markup forms
 ## to layout the edit page (as controlled by the $EditFormPage variable).
