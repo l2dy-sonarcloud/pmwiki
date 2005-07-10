@@ -17,13 +17,13 @@
 ## if ?trans=0 is specified, then we don't do any fixups.
 if (@$_REQUEST['trans']==='0') return;
 
-## Beta44 switches Main.AllRecentChanges to be $SiteGroup.AllRecentChanges .
+## Beta50 switches Main.AllRecentChanges to be $SiteGroup.AllRecentChanges .
 ## This setting keeps Main.AllRecentChanges going if it exists.
 if (PageExists('Main.AllRecentChanges')) 
   SDV($RecentChangesFmt['Main.AllRecentChanges'],
     '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink');
 
-## Beta44 switches Main.ApprovedUrls to be $SiteGroup.ApprovedUrls .
+## Beta50 switches Main.ApprovedUrls to be $SiteGroup.ApprovedUrls .
 ## This setting keeps using Main.ApprovedUrls if it exists.
 if (PageExists('Main.ApprovedUrls')) {
   if (PageExists(FmtPageName($ApprovedUrlPagesFmt[0], $pagename))) 
@@ -75,3 +75,13 @@ function GUIEdit($pagename, &$page, &$new) {
   global $EditMessageFmt;
   $EditMessageFmt .= GUIButtonCode($pagename);
 }
+
+## In beta50 several utility pages change location to the new Site
+## group.  These settings cause some skins (that use translations)
+## to know to link to the new locations.
+XLSDV('en', array(
+  'Main/SearchWiki' => XL('Site/Search'),
+  'PmWiki.EditQuickReference' => XL('Site/EditQuickReference'),
+  'PmWiki.UploadQuickReference' => XL('Site/UploadQuickReference'),
+  ));
+
