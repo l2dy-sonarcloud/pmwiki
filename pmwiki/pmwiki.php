@@ -57,7 +57,7 @@ $SpaceWikiWords = 0;
 $LinkWikiWords = 1;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
-  'Main.AllRecentChanges' => 
+  '$SiteGroup.AllRecentChanges' => 
     '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink',
   '$Group.RecentChanges' =>
     '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink');
@@ -82,7 +82,7 @@ $LinkPageCreateFmt =
 $UrlLinkFmt = 
   "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
 umask(002);
-$Site = 'Site';
+$SiteGroup = 'Site';
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
 $GroupHeaderFmt = '(:include $Group.GroupHeader:)(:nl:)';
@@ -98,7 +98,6 @@ if (preg_match('/^C$|\.UTF-?8/i',setlocale(LC_ALL,0)))
 $FmtP = array(
   '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
   '/\\$FullName/' => '$Group.$Name',
-  '/\\$PageName/' => '$Group.$Name',       # deprecated, 2.0.devel14
   '/\\$Titlespaced/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : \'$Namespaced\'',
   '/\\$Title/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : (($GLOBALS["SpaceWikiWords"]) ? \'$Namespaced\' : \'$Name\')',
   '/\\$Groupspaced/e' => '$AsSpacedFunction(@$match[1])',
@@ -239,7 +238,7 @@ else if ($p && (PageExists($p) || preg_match('/[\\/.]/', $pagename))) {
   if (IsEnabled($EnableFixedUrlRedirect,1)) { Redirect($p); exit(); }
 } else {
   $UrlPage = preg_replace('/^.*[\\/.]/', '', $p);
-  SDV($PageNotFound, "$DefaultGroup.PageNotFound");
+  SDV($PageNotFound, "$SiteGroup.PageNotFound");
   $pagename = $PageNotFound;
   SDV($MetaRobots, "noindex,nofollow");
 }
@@ -1142,7 +1141,7 @@ function PreviewPage($pagename,&$page,&$new) {
   
 function HandleEdit($pagename) {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, $FmtV, 
-    $Now, $EditFormPage, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
+    $Now, $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
     $PageEndFmt;
   if ($_POST['cancel']) { Redirect($pagename); return; }
   Lock(2);
@@ -1164,8 +1163,8 @@ function HandleEdit($pagename) {
   $FmtV['$EditText'] = 
     str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
-  if (@$EditFormPage) {
-    $form = ReadPage(FmtPageName($EditFormPage, $pagename), READPAGE_CURRENT);
+  if (@$PageEditForm) {
+    $form = ReadPage(FmtPageName($PageEditForm, $pagename), READPAGE_CURRENT);
     $FmtV['$EditForm'] = MarkupToHTML($pagename, $form['text']);
   }
   SDV($PageEditFmt, "<div id='wikiedit'>
