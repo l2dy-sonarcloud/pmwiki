@@ -1169,7 +1169,7 @@ function HandleEdit($pagename) {
     $FmtV['$EditForm'] = MarkupToHTML($pagename, $form['text']);
   }
   SDV($PageEditFmt, "<div id='wikiedit'>
-    <h1 class='wikiaction'>$[Editing \$FullName]</h1>
+    <h1 class='wikiaction'>$[Editing {\$FullName}]</h1>
     <form method='post' action='\$PageUrl?action=edit'>
     <input type='hidden' name='action' value='edit' />
     <input type='hidden' name='n' value='\$FullName' />
