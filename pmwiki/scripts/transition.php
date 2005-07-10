@@ -17,6 +17,20 @@
 ## if ?trans=0 is specified, then we don't do any fixups.
 if (@$_REQUEST['trans']==='0') return;
 
+## Beta44 switches Main.AllRecentChanges to be $SiteGroup.AllRecentChanges .
+## This setting keeps Main.AllRecentChanges going if it exists.
+if (PageExists('Main.AllRecentChanges')) 
+  SDV($RecentChangesFmt['Main.AllRecentChanges'],
+    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink');
+
+## Beta44 switches Main.ApprovedUrls to be $SiteGroup.ApprovedUrls .
+## This setting keeps using Main.ApprovedUrls if it exists.
+if (PageExists('Main.ApprovedUrls')) {
+  if (PageExists(FmtPageName($ApprovedUrlPagesFmt[0], $pagename))) 
+    $ApprovedUrlPagesFmt[] = 'Main.ApprovedUrls';
+  else array_unshift($ApprovedUrlPagesFmt, 'Main.ApprovedUrls');
+}
+
 ## $PageEditFmt has been deprecated in favor of using wiki markup forms
 ## to layout the edit page (as controlled by the $EditFormPage variable).
 ## However, some sites and skins have customized $PageEditFmt -- if

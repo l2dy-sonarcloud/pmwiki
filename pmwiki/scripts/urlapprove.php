@@ -31,7 +31,7 @@
 
 $LinkFunctions['http:'] = 'LinkHTTP';
 $LinkFunctions['https:'] = 'LinkHTTP';
-$ApprovedUrlPagesFmt = array('Main.ApprovedUrls');
+$ApprovedUrlPagesFmt = array('$SiteGroup.ApprovedUrls');
 $UnapprovedLinkFmt = 
   "\$LinkText<a class='apprlink' href='\$PageUrl?action=approvesites'>$[(approve sites)]</a>";
 $HTMLStylesFmt[] = '.apprlink { font-size:smaller; }';

@@ -34,7 +34,7 @@ Markup('{$fmt}','>$[phrase]',
   '/{\\$((Group|Name|Title)(spaced)?|LastModified(By|Host)?|FullName)}/e',
   "FmtPageName('$$1',\$pagename)");
 Markup('{$var}','>{$fmt}',
-  '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup|AuthId)}/e',
+  '/{\\$(Version|Author|UrlPage|DefaultName|DefaultGroup|AuthId|SiteGroup)}/e',
   "\$GLOBALS['$1']");
 Markup('if', 'fulltext',
   "/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/sei",
