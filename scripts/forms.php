@@ -54,7 +54,7 @@ function InputMarkup($pagename, $type, $args) {
 
 if ($action != 'edit') return;
 
-SDV($EditFormPage, '$Site.EditForm');
+SDV($PageEditForm, '$SiteGroup.EditForm');
 SDV($PageEditFmt, '$EditForm');
 $Conditions['e_preview'] = '(boolean)$_POST["preview"]';
 
