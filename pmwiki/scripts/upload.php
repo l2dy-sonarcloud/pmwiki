@@ -72,7 +72,7 @@ SDV($PageUploadFmt,array("
       <td><input type='text' name='upname' value='\$UploadName' /><input 
         type='submit' value=' $[Upload] ' /><br />
         </td></tr></table></form></div>",
-  'wiki:$[PmWiki.UploadQuickReference]'));
+  'wiki:$[Site.UploadQuickReference]'));
 XLSDV('en',array(
   'ULsuccess' => 'successfully uploaded',
   'ULbadname' => 'invalid attachment name',
