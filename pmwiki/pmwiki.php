@@ -130,6 +130,7 @@ $HTMLStylesFmt['pmwiki'] = "
   a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
   a.createlink { text-decoration:none; position:relative; top:-0.5em;
     font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
   ";
 $HTMLHeaderFmt['styles'] = array(
   "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
@@ -173,7 +174,7 @@ Markup('closeall', '_begin',
   "implode('', (array)\$GLOBALS['MarkupFrame'][0]['closeall'])");
 
 $ImgExtPattern="\\.(?:gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)";
-$ImgTagFmt="<img src='\$LinkUrl' style='border:0px;' alt='\$LinkAlt' />";
+$ImgTagFmt="<img src='\$LinkUrl' alt='\$LinkAlt' />";
 
 $BlockMarkups = array(
   'block' => array('','','',0),
