@@ -90,10 +90,13 @@ SDVA($InputTags['e_author'], array(
   'name' => 'author', 'value' => $Author));
 SDVA($InputTags['e_changesummary'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
-  'name' => 'csum', 'value' => '', 'size' => '60'));
+  'name' => 'csum', 'size' => '60',
+  'value' => htmlspecialchars(@$_POST['csum'], ENT_QUOTES)));
 SDVA($InputTags['e_minorcheckbox'], array(
   ':html' => "<input type='checkbox' \$InputFormArgs />",
   'name' => 'diffclass', 'value' => 'minor'));
+if (@$_POST['diffclass']=='minor') 
+  SDV($InputTags['e_minorcheckbox']['checked'], 'checked');
 SDVA($InputTags['e_savebutton'], array(
   ':html' => "<input type='submit' \$InputFormArgs />",
   'name' => 'post', 'value' => ' '.XL('Save').' ', 
