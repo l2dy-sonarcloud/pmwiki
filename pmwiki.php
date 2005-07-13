@@ -52,15 +52,16 @@ $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the 
 $EditFields = array('text');
 $EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
   'SaveAttributes', 'PostPage', 'PostRecentChanges', 'PreviewPage');
+$ChangeSummary = stripmagic(@$_REQUEST['csum']);
 $AsSpacedFunction = 'AsSpaced';
 $SpaceWikiWords = 0;
 $LinkWikiWords = 1;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   '$SiteGroup.AllRecentChanges' => 
-    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink',
+    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink: $ChangeSummary',
   '$Group.RecentChanges' =>
-    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink');
+    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink: $ChangeSummary');
 $DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
@@ -1153,7 +1154,6 @@ function HandleEdit($pagename) {
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
-  $ChangeSummary = @$_REQUEST['csum'];
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
   if (@$_POST['postedit']) $_POST['post']=1;
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
