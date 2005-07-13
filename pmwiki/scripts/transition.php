@@ -66,7 +66,7 @@ if ($PageEditFmt || $PagePreviewFmt || $HandleEditFmt) {
     &$PageEditFmt, 'wiki:$[PmWiki.EditQuickReference]', &$PagePreviewFmt,
     &$PageEndFmt));
   $EditMessageFmt = implode('', $MessagesFmt) . $EditMessageFmt;
-  if (IsEnabled($EnableGUIButtons, 0)) 
+  if ($action=='edit' && IsEnabled($EnableGUIButtons, 0)) 
     array_push($EditFunctions, 'GUIEdit');
 } else $MessagesFmt[] = $EditMessageFmt;
 
