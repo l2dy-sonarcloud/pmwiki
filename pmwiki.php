@@ -59,9 +59,9 @@ $LinkWikiWords = 1;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   '$SiteGroup.AllRecentChanges' => 
-    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink: $ChangeSummary',
+    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]',
   '$Group.RecentChanges' =>
-    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink: $ChangeSummary');
+    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
 $DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
