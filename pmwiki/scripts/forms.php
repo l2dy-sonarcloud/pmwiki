@@ -56,6 +56,10 @@ if ($action != 'edit') return;
 
 SDV($PageEditForm, '$SiteGroup.EditForm');
 SDV($PageEditFmt, '$EditForm');
+if (@$_REQUEST['editform']) {
+  $PageEditForm=$_REQUEST['editform'];
+  $PageEditFmt='$EditForm';
+}
 $Conditions['e_preview'] = '(boolean)$_POST["preview"]';
 
 XLSDV('en', array(
