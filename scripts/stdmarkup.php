@@ -65,7 +65,7 @@ Markup('nl1','>nl0',"/\\(:nl:\\)/i",'');
 
 ## \\$  (end of line joins)
 Markup('\\$','>nl1',"/\\\\(?>(\\\\*))\n/e",
-  "Keep(' '.str_repeat('<br />',strlen('$1')))");
+  "' '.str_repeat('<br />',strlen('$1'))");
 
 ## (:noheader:),(:nofooter:),(:notitle:)...
 Markup('noheader', 'directives',
