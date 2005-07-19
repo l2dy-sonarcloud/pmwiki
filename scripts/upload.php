@@ -147,7 +147,8 @@ function HandleUpload($pagename) {
 }
 
 function HandleDownload($pagename) {
-  global $UploadFileFmt, $UploadExts;
+  global $UploadFileFmt, $UploadExts, $DownloadDisposition;
+  SDV($DownloadDisposition, "inline");
   $page = RetrieveAuthPage($pagename, 'read');
   if (!$page) Abort("?cannot read $pagename");
   $upname = MakeUploadName($pagename, @$_REQUEST['upname']);
@@ -161,6 +162,7 @@ function HandleDownload($pagename) {
   if ($UploadExts[@$match[1]]) 
     header("Content-Type: {$UploadExts[@$match[1]]}");
   header("Content-Length: ".filesize($filepath));
+  header("Content-disposition: $DownloadDisposition; filename=$upname");
   readfile($filepath);
   exit();
 }  
