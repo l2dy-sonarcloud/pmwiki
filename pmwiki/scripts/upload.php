@@ -87,6 +87,7 @@ XLSDV('en',array(
   'ULtquota' => 'upload quota exceeded'));
 SDV($PageAttributes['passwdupload'],'$[Set new upload password:]');
 SDV($DefaultPasswords['upload'],'*');
+SDV($AuthCascade['upload'], 'read');
 
 Markup('attachlist', '<block', 
   '/\\(:attachlist\\s*(.*?):\\)/ei',
