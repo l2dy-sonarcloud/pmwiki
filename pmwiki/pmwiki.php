@@ -150,6 +150,7 @@ $ActionTitleFmt = array(
   'edit' => '| $[Edit]',
   'attr' => '| $[Attributes]');
 $DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
+$AuthCascade = array('edit'=>'read', 'attr'=>'edit');
 
 $Conditions['false'] = 'false';
 $Conditions['true'] = 'true';
@@ -1202,7 +1203,7 @@ function HandleSource($pagename) {
 ## to be able to speed up subsequent calls.
 function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   global $DefaultPasswords, $AllowPassword, $GroupAttributesFmt,
-    $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, $AuthId;
+    $AuthCascade, $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, $AuthId;
   static $grouppasswd, $authpw;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
@@ -1229,6 +1230,8 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     }
   }
   $page['=passwd'] = $passwd;
+  foreach($AuthCascade as $f => $t) 
+    if (!$page[$f]) $page[$f] = $page[$t];
   if (!isset($authpw)) {
     $sid = session_id();
     @session_start();
