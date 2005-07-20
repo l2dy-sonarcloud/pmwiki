@@ -11,8 +11,9 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
   'checked', 'size', 'action', 'method', 'accesskey'));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
-foreach(array('text', 'submit', 'hidden', 'password', 'radio', 'checkbox') 
-  as $t) SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
+foreach(array('text', 'submit', 'hidden', 'password', 'radio', 'checkbox',
+              'reset') as $t) 
+  SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
 
 # (:input form:)
 SDVA($InputTags['form'], array(
