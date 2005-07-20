@@ -146,6 +146,9 @@ $HandleActions = array(
   'browse' => 'HandleBrowse',
   'edit' => 'HandleEdit', 'source' => 'HandleSource', 
   'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
+$HandleAuth = array(
+  'browse' => 'read', 'source' => 'read',
+  'edit' => 'edit', 'attr' => 'attr', 'postattr' => 'attr');
 $ActionTitleFmt = array(
   'edit' => '| $[Edit]',
   'attr' => '| $[Attributes]');
@@ -266,7 +269,8 @@ SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
 
 $Action = FmtPageName(@$ActionTitleFmt[$action],$pagename);
 if (!function_exists(@$HandleActions[$action])) $action='browse';
-$HandleActions[$action]($pagename);
+SDV($HandleAuth[$action], 'read');
+$HandleActions[$action]($pagename, $HandleAuth[$action]);
 Lock(0);
 exit;
 
@@ -986,11 +990,11 @@ function MarkupToHTML($pagename,$text) {
   return $out;
 }
    
-function HandleBrowse($pagename) {
+function HandleBrowse($pagename, $auth = 'read') {
   # handle display of a page
-  global $DefaultPageTextFmt,$FmtV,$HandleBrowseFmt,$PageStartFmt,
-    $PageEndFmt,$PageRedirectFmt;
-  $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
+  global $DefaultPageTextFmt, $FmtV, $HandleBrowseFmt, $PageStartFmt,
+    $PageEndFmt, $PageRedirectFmt;
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
@@ -1142,14 +1146,14 @@ function PreviewPage($pagename,&$page,&$new) {
   } 
 }
   
-function HandleEdit($pagename) {
+function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, $FmtV, 
     $Now, $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
     $PageEndFmt;
   if ($_POST['cancel']) { Redirect($pagename); return; }
   Lock(2);
   $IsPagePosted = false;
-  $page = RetrieveAuthPage($pagename,'edit');
+  $page = RetrieveAuthPage($pagename, $auth, true);
   if (!$page) Abort("?cannot edit $pagename"); 
   PCache($pagename,$page);
   $new = $page;
@@ -1184,9 +1188,9 @@ function HandleEdit($pagename) {
   PrintFmt($pagename, $HandleEditFmt);
 }
 
-function HandleSource($pagename) {
+function HandleSource($pagename, $auth = 'read') {
   global $HTTPHeaders;
-  $page = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot source $pagename");
   foreach ($HTTPHeaders as $h) {
     $h = preg_replace('!^Content-type:\\s+text/html!i',
@@ -1314,9 +1318,9 @@ function PrintAttrForm($pagename) {
   echo "</table><input type='submit' /></form>";
 }
 
-function HandleAttr($pagename) {
+function HandleAttr($pagename, $auth = 'attr') {
   global $PageAttrFmt,$PageStartFmt,$PageEndFmt;
-  $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   PCache($pagename,$page);
   SDV($PageAttrFmt,"<div class='wikiattr'>
@@ -1329,10 +1333,10 @@ function HandleAttr($pagename) {
   PrintFmt($pagename,$HandleAttrFmt);
 }
 
-function HandlePostAttr($pagename) {
+function HandlePostAttr($pagename, $auth = 'attr') {
   global $PageAttributes, $EnablePostAttrClearSession;
   Lock(2);
-  $page = RetrieveAuthPage($pagename, 'attr', true, READPAGE_CURRENT);
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
     $v = @$_POST[$attr];

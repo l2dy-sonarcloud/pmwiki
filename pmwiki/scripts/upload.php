@@ -96,10 +96,12 @@ SDV($GUIButtons['attach'], array(220, 'Attach:', '', '$[file.ext]',
   '$GUIButtonDirUrlFmt/attach.gif"$[Attach file]"'));
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
 SDV($IMap['Attach:'], '$1');
-SDV($HandleActions['upload'], 'HandleUpload');
-SDV($HandleActions['postupload'], 'HandlePostUpload');
-SDV($HandleActions['download'], 'HandleDownload');
-SDV($ActionTitleFmt['upload'], '| $[Uploads]');
+SDVA($HandleActions, array('upload' => 'HandleUpload',
+  'postupload' => 'HandlePostUpload',
+  'download' => 'HandleDownload'));
+SDVA($HandleAuth, array('upload' => 'upload',
+  'postupload' => 'upload',
+  'download' => 'read'));
 SDV($UploadVerifyFunction, 'UploadVerifyBasic');
 
 function MakeUploadName($pagename,$x) {
@@ -130,10 +132,10 @@ function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {
   return LinkIMap($pagename, $imap, $path, $title, $txt, $fmt);
 }
 
-function HandleUpload($pagename) {
+function HandleUpload($pagename, $auth = 'upload') {
   global $FmtV,$UploadExtMax,
     $HandleUploadFmt,$PageStartFmt,$PageEndFmt,$PageUploadFmt;
-  $page = RetrieveAuthPage($pagename,'upload');
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot upload to $pagename");
   PCache($pagename,$page);
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
@@ -147,10 +149,10 @@ function HandleUpload($pagename) {
   PrintFmt($pagename,$HandleUploadFmt);
 }
 
-function HandleDownload($pagename) {
+function HandleDownload($pagename, $auth = 'read') {
   global $UploadFileFmt, $UploadExts, $DownloadDisposition;
   SDV($DownloadDisposition, "inline");
-  $page = RetrieveAuthPage($pagename, 'read');
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot read $pagename");
   $upname = MakeUploadName($pagename, @$_REQUEST['upname']);
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
@@ -168,9 +170,9 @@ function HandleDownload($pagename) {
   exit();
 }  
  
-function HandlePostUpload($pagename) {
+function HandlePostUpload($pagename, $auth = 'upload') {
   global $UploadVerifyFunction,$UploadFileFmt,$LastModFile;
-  $page = RetrieveAuthPage($pagename,'upload');
+  $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot upload to $pagename");
   $uploadfile = $_FILES['uploadfile'];
   $upname = $_REQUEST['upname'];
