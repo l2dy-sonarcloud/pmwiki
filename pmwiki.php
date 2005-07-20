@@ -1230,8 +1230,10 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     }
   }
   $page['=passwd'] = $passwd;
-  foreach($AuthCascade as $f => $t) 
-    if (!$page[$f]) $page[$f] = $page[$t];
+  foreach($AuthCascade as $k => $t) {
+    if (!$passwd[$k] && $passwd[$t]) 
+      { $passwd[$k] = $passwd[$t]; $page['=pwsource'][$k] = "cascade:$t"; }
+  }
   if (!isset($authpw)) {
     $sid = session_id();
     @session_start();
@@ -1301,6 +1303,8 @@ function PrintAttrForm($pagename) {
         preg_replace('/^(?!\\w+:).+$/', '****', (array)$page['=passwd'][$a]));
       if ($page['=pwsource'][$a]=='group' || $page['=pwsource'][$a]=='site')
         $setting = "(set by {$page['=pwsource'][$a]}) $setting";
+      if (strncmp($page['=pwsource'][$a], 'cascade:', 8) == 0)
+        $setting = "(using ".substr($page['=pwsource'][$a], 8)." password)";
      }
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
