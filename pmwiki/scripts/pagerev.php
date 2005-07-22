@@ -133,7 +133,7 @@ function PrintDiff($pagename) {
   $LinkFunctions = $lf;
 }
 
-function HandleDiff($pagename, $auth) {
+function HandleDiff($pagename, $auth='read') {
   global $HandleDiffFmt, $PageStartFmt, $PageDiffFmt, $PageEndFmt;
   $page = RetrieveAuthPage($pagename, $auth, true);
   if (!$page) { Abort("?cannot diff $pagename"); }
