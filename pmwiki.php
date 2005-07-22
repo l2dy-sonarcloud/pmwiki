@@ -52,6 +52,7 @@ $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the 
 $EditFields = array('text');
 $EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
   'SaveAttributes', 'PostPage', 'PostRecentChanges', 'PreviewPage');
+$EnablePost = 1;
 $ChangeSummary = stripmagic(@$_REQUEST['csum']);
 $AsSpacedFunction = 'AsSpaced';
 $SpaceWikiWords = 0;
@@ -1070,16 +1071,16 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
 ## ReplaceOnSave performs any text replacements (held in $ROSPatterns)
 ## on the new text prior to saving the page.
 function ReplaceOnSave($pagename,&$page,&$new) {
-  global $ROSPatterns;
-  if (!@$_POST['post']) return;
+  global $EnablePost, $ROSPatterns;
+  if (!$EnablePost) return;
   foreach((array)$ROSPatterns as $pat=>$repfmt) 
     $new['text'] = 
       preg_replace($pat,FmtPageName($repfmt,$pagename),$new['text']);
 }
 
 function SaveAttributes($pagename,&$page,&$new) {
-  global $LinkTargets;
-  if (!@$_REQUEST['post']) return;
+  global $EnablePost, $LinkTargets;
+  if (!$EnablePost) return;
   unset($new['title']);
   $text = preg_replace('/\\[([=@]).*?\\1\\]/s',' ',$new['text']);
   if (preg_match('/\\(:title\\s(.+?):\\)/',$text,$match))
@@ -1089,12 +1090,12 @@ function SaveAttributes($pagename,&$page,&$new) {
 }
 
 function PostPage($pagename, &$page, &$new) {
-  global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern,
+  global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern, $EnablePost,
     $Now, $Author, $WikiDir, $IsPagePosted, $Newline;
   SDV($DiffKeepDays,3650);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
-  if (@$_POST['post']) {
+  if ($EnablePost) {
     $new['text'] = str_replace($Newline, "\n", $new['text']);
     if ($new['text']==@$page['text']) { $IsPagePosted=true; return; }
     $new["author"]=@$Author;
@@ -1147,9 +1148,9 @@ function PreviewPage($pagename,&$page,&$new) {
 }
   
 function HandleEdit($pagename, $auth = 'edit') {
-  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, $FmtV, 
-    $Now, $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, 
-    $PageEndFmt;
+  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
+    $EnablePost, $FmtV, $Now, 
+    $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
   if ($_POST['cancel']) { Redirect($pagename); return; }
   Lock(2);
   $IsPagePosted = false;
@@ -1160,7 +1161,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
-  if (@$_POST['postedit']) $_POST['post']=1;
+  $EnablePost &= (@$_POST['post'] || @$_POST['postedit']);
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   Lock(0);
   if ($IsPagePosted && !@$_POST['postedit']) { Redirect($pagename); return; }
