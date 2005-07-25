@@ -60,7 +60,7 @@ Markup('groupfooter','>nogroupfooter',
   "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)");
 
 ## (:nl:)
-Markup('nl0','<split',"/([^\n])\\(:nl:\\)([^\n])/i","$1\n$2");
+Markup('nl0','<split',"/([^\n])(?>(?:\\(:nl:\\))+)([^\n])/i","$1\n$2");
 Markup('nl1','>nl0',"/\\(:nl:\\)/i",'');
 
 ## \\$  (end of line joins)
