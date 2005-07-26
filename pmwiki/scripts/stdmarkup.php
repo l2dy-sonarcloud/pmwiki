@@ -206,7 +206,9 @@ Markup('wikilink','>urllink',"/\\b($GroupPattern([\\/.]))?($WikiWordPattern)/e",
   "Keep(WikiLink(\$pagename,'$0'),'L')");
 
 ## escaped `WikiWords
-Markup('`wikiword','<wikilink',"/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e","Keep('$1')");
+Markup('`wikiword', '<wikilink',
+  "/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e",
+  "Keep('$1')");
 
 #### Block markups ####
 ## process any <:...> markup
@@ -297,13 +299,13 @@ Markup('^>>', '<table',
 #### special stuff ####
 ## (:markup:) for displaying markup examples
 Markup('markup', '<[=',
-  "/^\\(:markup:\\)[^\\S\n]*\\[=(.*?)=\\]/seim",
-  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
-    '</pre>').PSS('\n$1\n(:divend:)</div>\n')");
+  "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\\[=(.*?)=\\]/seim",
+  "'$1'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
+    '</pre>').PSS('\n$2\n(:divend:)</div>\n')");
 Markup('markupend', '>markup',
-  "/^\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
-  "'\n'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$1'),60).
-    '</pre>').PSS('\n$1\n(:divend:)</div>\n')");
+  "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
+  "'$1'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
+    '</pre>').PSS('\n$2\n(:divend:)</div>\n')");
 $HTMLStylesFmt['markup'] = "
   div.markup { border:2px dotted #ccf; 
     margin-left:30px; margin-right:30px; 
