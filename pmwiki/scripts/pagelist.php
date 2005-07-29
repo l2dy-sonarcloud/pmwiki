@@ -140,7 +140,7 @@ function MakePageList($pagename, $opt) {
   $FmtV['$MatchSearched'] = count($list);
   foreach((array)$list as $pn) {
     if ($readf) {
-      $page = ($readf == 1000) 
+      $page = ($readf >= 1000) 
               ? RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT)
               : ReadPage($pn, READPAGE_CURRENT);
       if (!$page) continue;
