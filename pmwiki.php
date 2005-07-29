@@ -180,7 +180,7 @@ Markup('closeall', '_begin',
   "implode('', (array)\$GLOBALS['MarkupFrame'][0]['closeall'])");
 
 $ImgExtPattern="\\.(?:gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)";
-$ImgTagFmt="<img src='\$LinkUrl' alt='\$LinkAlt' />";
+$ImgTagFmt="<img src='\$LinkUrl' alt='\$LinkAlt' title='\$LinkAlt' />";
 
 $BlockMarkups = array(
   'block' => array('','','',0),
