@@ -210,6 +210,13 @@ Markup('`wikiword', '<wikilink',
   "/`(($GroupPattern([\\/.]))?($WikiWordPattern))/e",
   "Keep('$1')");
 
+## Lines that begin with displayed images receive their own block.  A
+## pipe following the image indicates a "caption" (generates a linebreak).
+Markup('^img', '<block',
+  "/^((?>(\\s+|%%|%[A-Za-z][-,=:#\\w\\s'\"]*%)*)$KeepToken(\\d+L)$KeepToken)(\\s*\\|\\s?)?(.*)$/e",
+  "PSS((strpos(\$GLOBALS['KPV']['$3'],'<img')===false) ? '$0' : 
+       '<:block><div>$1' . ('$4' ? '<br />' : '') .'$5</div>')");
+
 #### Block markups ####
 ## process any <:...> markup
 Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
@@ -300,18 +307,14 @@ Markup('^>>', '<table',
 ## (:markup:) for displaying markup examples
 Markup('markup', '<[=',
   "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\\[=(.*?)=\\]/seim",
-  "'$1'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
-    '</pre>').PSS('\n$2\n(:divend:)</div>\n')");
+  "'$1'.Keep('<table class=\"markup\" align=\"center\"><tr><td class=\"markup\"><pre>'.wordwrap(PSS('$2'),70).'</pre></td></tr><tr><td>').PSS('\n$2\n(:divend:)</td></tr></table>\n')");
 Markup('markupend', '>markup',
   "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
-  "'$1'.Keep('<div class=\"markup\"><pre>'.wordwrap(PSS('$2'),60).
-    '</pre>').PSS('\n$2\n(:divend:)</div>\n')");
+  "'$1'.Keep('<table class=\"markup\" align=\"center\"><tr><td class=\"markup\"><pre>'.wordwrap(PSS('$2'),70).'</pre></td></tr><tr><td>').PSS('\n$2\n(:divend:)</td></tr></table>\n')");
 $HTMLStylesFmt['markup'] = "
-  div.markup { border:2px dotted #ccf; 
-    margin-left:30px; margin-right:30px; 
-    padding-left:10px; padding-right:10px; }
-  div.markup pre { border-bottom:1px solid #ccf; 
-    padding-top:10px; padding-bottom:10px; }
+  table.markup { border: 2px dotted #ccf; width:90%; }
+  table.markup td { padding-left:10px; padding-right:10px; }
+  td.markup { border-bottom: 1px solid #ccf; }
   p.question { font-weight:bold; }
   ";
 
