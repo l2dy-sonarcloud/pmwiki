@@ -96,7 +96,7 @@ SDVA($InputTags['e_author'], array(
 SDVA($InputTags['e_changesummary'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
   'name' => 'csum', 'size' => '60',
-  'value' => htmlspecialchars(@$_POST['csum'], ENT_QUOTES)));
+  'value' => htmlspecialchars(stripmagic(@$_POST['csum']), ENT_QUOTES)));
 SDVA($InputTags['e_minorcheckbox'], array(
   ':html' => "<input type='checkbox' \$InputFormArgs />",
   'name' => 'diffclass', 'value' => 'minor'));
