@@ -234,11 +234,11 @@ function dirsize($dir) {
   return $size;
 }
 
-function FmtUploadList($pagename,$opt) {
+function FmtUploadList($pagename, $args) {
   global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $EnableUploadOverwrite,
     $TimeFmt, $EnableDirectDownload;
 
-  $opt = ParseArgs($opt);
+  $opt = ParseArgs($args);
   if (@$opt[''][0]) $pagename = MakePageName($pagename, $opt[''][0]);
   if (@$opt['ext']) 
     $matchext = '/\\.(' 
