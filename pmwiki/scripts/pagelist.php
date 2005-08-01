@@ -54,7 +54,7 @@ Markup('searchresults', 'directives',
        array('o' => PSS('$1'), 'req' => 1))");
 Markup('searchbox', '>links',
   '/\\(:searchbox(\\s.*?)?:\\)/e',
-  "SearchBox(\$pagename, PSS('$1'))");
+  "SearchBox(\$pagename, ParseArgs(PSS('$1')))");
 
 SDV($HandleActions['search'], 'HandleSearchA');
 SDV($HandleAuth['search'], 'read');
@@ -64,13 +64,12 @@ SDV($HandleAuth['search'], 'read');
 ## is generated.  Options include group=, size=, label=.
 function SearchBox($pagename, $opt) {
   global $SearchBoxFmt, $SearchBoxOpt, $SearchQuery;
-  print_r($opt);
   if (isset($SearchBoxFmt)) return FmtPageName($SearchBoxFmt, $pagename);
   SDVA($SearchBoxOpt, array('size' => '40', 
     'label' => FmtPageName('$[Search]', $pagename),
     'group' => @$_REQUEST['group'],
     'value' => $SearchQuery));
-  $opt = array_merge($SearchBoxOpt, $opt);
+  $opt = array_merge($SearchBoxOpt, (array)$opt);
   $group = $opt['group'];
   $out[] = FmtPageName("<form 
     class='wikisearch' action='\$ScriptUrl' method='get'><input 

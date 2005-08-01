@@ -48,11 +48,11 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   foreach(array('left','right','center') as $c)
     SDV($WikiStyle[$c],array('apply'=>'block','text-align'=>$c));
   ## frames, floating frames, and floats
-  $HTMLStylesFmt['wikistyles'] = " 
+  SDV($HTMLStylesFmt['wikistyles'], " 
     .frame 
       { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
     .lfloat { float:left; margin-right:0.5em; }
-    .rfloat { float:right; margin-left:0.5em; }\n";
+    .rfloat { float:right; margin-left:0.5em; }\n");
   SDV($WikiStyle['thumb'], array('width' => '100px'));
   SDV($WikiStyle['frame'], array('class' => 'frame'));
   SDV($WikiStyle['lframe'], array('class' => 'frame lfloat'));
