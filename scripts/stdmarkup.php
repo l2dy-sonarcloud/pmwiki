@@ -84,30 +84,6 @@ Markup('noright', 'directives',
   '/\\(:noright:\\)/ei',
   "SetTmplDisplay('PageRightFmt',0)");
 
-## (:title:)
-Markup('title','directives',
-  '/\\(:title\\s(.*?):\\)/ei',
-  "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
-
-## (:messages:)
-Markup('messages', 'directives',
-  '/^\\(:messages:\\)/ei',
-  "'<:block>'.Keep(
-    FmtPageName(implode('',(array)\$GLOBALS['MessagesFmt']), \$pagename))");
-
-## (:comment:)
-Markup('comment', 'directives', '/\\(:comment .*?:\\)/i', '');
-
-## (:keywords:)
-Markup('keywords', 'directives', 
-  "/\\(:keywords?\\s+([^'\n]+?):\\)/ei",
-  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = 
-    \"<meta name='keywords' content='$1' />\")");
-Markup('description', 'directives',
-  "/\\(:description\\s+(.+?):\\)/ei",
-  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='description' content='\".
-    str_replace('\\'','&#39;',PSS('$1')).\"' />\")"); 
-
 ## (:spacewikiwords:)
 Markup('spacewikiwords', 'directives',
   '/\\(:(no)?spacewikiwords:\\)/ei',
@@ -118,11 +94,35 @@ Markup('linkwikiwords', 'directives',
   '/\\(:(no)?linkwikiwords:\\)/ei',
   "PZZ(\$GLOBALS['LinkWikiWords']=('$1'!='no'))");
 
-#### inline markups ####
+## (:messages:)
+Markup('messages', 'directives',
+  '/^\\(:messages:\\)/ei',
+  "'<:block>'.Keep(
+    FmtPageName(implode('',(array)\$GLOBALS['MessagesFmt']), \$pagename))");
+
+## (:comment:)
+Markup('comment', 'directives', '/\\(:comment .*?:\\)/i', '');
+
 ## character entities
 Markup('&','directives','/&amp;(?>([A-Za-z0-9]+|#\\d+|#[xX][A-Fa-f0-9]+));/',
   '&$1;');
 
+## (:title:)
+Markup('title','>&',
+  '/\\(:title\\s(.*?):\\)/ei',
+  "PZZ(\$GLOBALS['PCache'][\$pagename]['title']=PSS('$1'))");
+
+## (:keywords:)
+Markup('keywords', '>&', 
+  "/\\(:keywords?\\s+([^'\n]+?):\\)/ei",
+  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = 
+    \"<meta name='keywords' content='$1' />\")");
+Markup('description', '>&',
+  "/\\(:description\\s+(.+?):\\)/ei",
+  "PZZ(\$GLOBALS['HTMLHeaderFmt'][] = \"<meta name='description' content='\".
+    str_replace('\\'','&#39;',PSS('$1')).\"' />\")"); 
+
+#### inline markups ####
 ## ''emphasis''
 Markup("''",'inline',"/''(.*?)''/",'<em>$1</em>');
 
