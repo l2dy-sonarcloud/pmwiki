@@ -223,7 +223,7 @@ Markup('^<:','>block','/^(<:([^>]+)>)?/e',"Block('$2')");
 
 # unblocked lines w/block markup become anonymous <:block>
 Markup('^!<:', '<^<:',
-  '/^(?!<:)(?=.*<(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
+  '/^(?!<:)(?=.*<\\/?(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
   '<:block>');
 
 ## bullet lists
@@ -244,7 +244,7 @@ Markup('^ ','block','/^(\\s)/','<:pre,1>$1');
 
 ## Q: and A:
 Markup('^Q:', 'block', '/^Q:(.*)$/', "<:block><p class='question'>$1</p>");
-Markup('^A:', 'block', '/^(A:.*)$/', "<:block><p class='answer'>$1</p>");
+Markup('^A:', 'block', '/^A:/', Keep(''));
 
 ## blank lines
 Markup('blank','<^ ','/^\\s*$/','<:vspace>');
@@ -315,6 +315,8 @@ $HTMLStylesFmt['markup'] = "
   table.markup { border: 2px dotted #ccf; width:90%; }
   table.markup td { padding-left:10px; padding-right:10px; }
   td.markup { border-bottom: 1px solid #ccf; }
-  p.question { font-weight:bold; }
+  div.faq { margin-left:2em; }
+  div.faq p.question { margin: 1em 0 0.75em -2em; font-weight:bold; }
+  div.faq hr { margin-left: -2em; }
   ";
 
