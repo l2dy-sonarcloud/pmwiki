@@ -59,7 +59,7 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   SDV($WikiStyle['rframe'], array('class' => 'frame rfloat'));
 }
 
-SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"]*%');
+SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
 
 SDVA($WikiStyleAttr,array(
   'height' => 'img',
@@ -67,7 +67,6 @@ SDVA($WikiStyleAttr,array(
   'vspace' => 'img',
   'hspace' => 'img',
   'align' => 'img',
-  'value' => 'li',
   'target' => 'a',
   'accesskey' => 'a',
   'rel' => 'a'));
@@ -93,7 +92,7 @@ function ApplyStyles($x) {
       $WikiStyle['curr']=$style; $style=array();
       foreach((array)$WikiStyleRepl as $pat=>$rep) 
         $p=preg_replace($pat,$rep,$p);
-      preg_match_all('/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w]+|([\'"]).*?\\4))?/',
+      preg_match_all('/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w.()]+|([\'"]).*?\\4))?/',
         $p,$match,PREG_SET_ORDER);
       while ($match) {
         $m = array_shift($match);
@@ -119,7 +118,9 @@ function ApplyStyles($x) {
     foreach((array)$alist as $a=>$s) {
       $classv=array(); $stylev=array(); $id='';
       foreach((array)$s as $k=>$v) {
-        if (!@$WikiStyleApply[$a] && @$WikiStyleAttr[$k]) 
+        if ($k=='value') 
+          $p = preg_replace("/<li\\b/", "<li value='$v'", $p);
+        elseif (!@$WikiStyleApply[$a] && @$WikiStyleAttr[$k]) 
           $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=))([^>]*)>/s",
             "<$1 $k='$v' $2>",$p);
         elseif ($k=='class') $classv[]=$v;
