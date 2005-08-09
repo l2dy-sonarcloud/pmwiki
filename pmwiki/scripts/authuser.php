@@ -23,6 +23,9 @@
     directly in the $AuthUser array, such as:
         $AuthUser['pmichaud'] = crypt('secret');
 
+    To authenticate against an LDAP server, put the url for
+    the server in $AuthUser['ldap'], as in:
+        $AuthUser['ldap'] = 'ldap://ldap.example.com/ou=People,o=example?uid';
 */
 
 # Let's set up an authorization prompt that includes usernames.
@@ -74,6 +77,28 @@ foreach((array)($AuthUser['htpasswd']) as $f) {
   fclose($fp);
 }
 
+# LDAP authentication.  
+if ($AuthUser['ldap'] &&
+    preg_match('!ldap://([^:]+)(?::(\d+))?/(.+)$!', 
+        $AuthUser['ldap'], $match)) {
+  list($z, $server, $port, $path) = $match;
+  list($basedn, $attr, $sub) = explode('?', $path);
+  if (!$port) $port=389;
+  if (!$attr) $attr = 'uid';
+  if (!$sub) $attr = 'one';
+  $ds = ldap_connect($server, $port);
+  ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+  if (ldap_bind($ds)) {
+    $fn = ($sub == 'sub') ? 'ldap_search' : 'ldap_list';
+    $sr = $fn($ds, $basedn, "($attr=$id)", array($attr));
+    $x = ldap_get_entries($ds, $sr);
+    if ($x['count'] == 1) {
+      $dn = $x[0]['dn'];
+      if (ldap_bind($ds, $dn, $pw)) AuthenticateUser($id);
+    }
+  }
+  ldap_close($ds);
+}
 
 #  The _crypt function provides support for SHA1 encrypted passwords 
 #  (keyed by '{SHA}') and Apache MD5 encrypted passwords (keyed by 
