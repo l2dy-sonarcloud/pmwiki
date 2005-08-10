@@ -139,7 +139,7 @@ function MakePageList($pagename, $opt) {
 
   # link= (backlinks)
   if (@$opt['link']) { 
-    $linkpat = "/,{$opt['link']},/";              # find in target= attribute
+    $linkpat = '/,'.MakePageName($pagename, $opt['link']).',/i';
     $readf = 1;                                   # forced read
   }
  
