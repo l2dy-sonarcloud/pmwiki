@@ -780,7 +780,8 @@ function IncludeText($pagename,$inclspec) {
         continue;
       }
     }
-    return htmlspecialchars($itext,ENT_NOQUOTES);
+    return  preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", 
+      htmlspecialchars($itext, ENT_NOQUOTES));
   }
   return Keep($inclspec);
 }
@@ -970,7 +971,9 @@ function MarkupToHTML($pagename,$text) {
   array_unshift($MarkupFrame,$MarkupFrameBase);
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
-  foreach((array)$text as $l) $lines[] = htmlspecialchars($l,ENT_NOQUOTES);
+  foreach((array)$text as $l) 
+    $lines[] = preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", 
+      htmlspecialchars($l,ENT_NOQUOTES));
   $lines[] = '(:closeall:)';
   $out = array();
   while (count($lines)>0) {
