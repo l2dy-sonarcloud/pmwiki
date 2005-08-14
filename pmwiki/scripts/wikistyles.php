@@ -62,11 +62,10 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
 SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
 
 SDVA($WikiStyleAttr,array(
-  'height' => 'img',
-  'width' => 'img',
   'vspace' => 'img',
   'hspace' => 'img',
   'align' => 'img',
+  'value' => 'li',
   'target' => 'a',
   'accesskey' => 'a',
   'rel' => 'a'));
@@ -118,9 +117,10 @@ function ApplyStyles($x) {
     foreach((array)$alist as $a=>$s) {
       $classv=array(); $stylev=array(); $id='';
       foreach((array)$s as $k=>$v) {
-        if ($k=='value') 
-          $p = preg_replace("/<li\\b/", "<li value='$v'", $p);
-        elseif (!@$WikiStyleApply[$a] && @$WikiStyleAttr[$k]) 
+        if (($k=='width' || $k=='height') && !@$WikiStyleApply[$a]
+            && preg_match('/\\s*<img\\b/', $p)) 
+          $p = preg_replace("/<img(?![^>]*\\s$k=)/", "<img $k='$v'", $p);
+        elseif (@$WikiStyleAttr[$k]) 
           $p=preg_replace("/<({$WikiStyleAttr[$k]}(?![^>]*\\s$k=))([^>]*)>/s",
             "<$1 $k='$v' $2>",$p);
         elseif ($k=='class') $classv[]=$v;
