@@ -57,6 +57,9 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   SDV($WikiStyle['frame'], array('class' => 'frame'));
   SDV($WikiStyle['lframe'], array('class' => 'frame lfloat'));
   SDV($WikiStyle['rframe'], array('class' => 'frame rfloat'));
+  SDV($WikiStyle['cframe'], array(
+    'class' => 'frame', 'margin-left' => 'auto', 'margin-right' => 'auto',
+    'width' => '200px', 'apply' => 'block', 'text-align' => 'center'));
 }
 
 SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
