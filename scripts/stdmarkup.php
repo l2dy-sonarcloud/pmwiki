@@ -20,7 +20,7 @@
 function PreserveText($sigil, $text, $lead) {
   if ($sigil=='=') return $lead.Keep($text);
   if (strpos($text, "\n")===false) 
-    return "$lead <code>".Keep($text)."</code>";
+    return "$lead<code>".Keep($text)."</code>";
   $text = preg_replace("/^[^\\S\n]*\n/", "\n", substr($lead,1).$text);
   $text = preg_replace("/\n[^\\S\n]*$/", "\n", $text);
   return "<pre>".Keep($text)."</pre>";
@@ -298,7 +298,7 @@ function Cells($name,$attr) {
   }
   if ($name == 'table') $MarkupFrame[0]['tattr'] = $attr;
   if (strncmp($name, 'cell', 4) == 0) {
-    if (strpos($attr, "valign=")===false) $attr .= "valign='top'";
+    if (strpos($attr, "valign=")===false) $attr .= " valign='top'";
     if (!@$MarkupFrame[0]['closeall']['table']) {
        $MarkupFrame[0]['closeall']['table'] = "</td></tr></table>";
        $out[] = "<table $tattr><tr><td $attr>";
