@@ -53,8 +53,8 @@ Markup('if', 'fulltext',
 
 ## (:include:)
 Markup('include', '>if',
-  '/\\(:(include\\s+.+?):\\)/ei',
-  "PRR().IncludeText(\$pagename,'$1')");
+  '/\\(:include\\s+(\\S.*?):\\)/ei',
+  "PRR().IncludeText(\$pagename, '$1')");
 
 ## GroupHeader/GroupFooter handling
 Markup('nogroupheader', '>include',
@@ -76,7 +76,7 @@ Markup('nl1','>nl0',"/\\(:nl:\\)/i",'');
 
 ## \\$  (end of line joins)
 Markup('\\$','>nl1',"/\\\\(?>(\\\\*))\n/e",
-  "' '.str_repeat('<br />',strlen('$1'))");
+  "str_repeat('<br />',strlen('$1'))");
 
 ## (:noheader:),(:nofooter:),(:notitle:)...
 Markup('noheader', 'directives',
@@ -253,12 +253,12 @@ Markup('^::','block','/^(:+)([^:]+):/','<:dl,$1><dt>$2</dt><dd>');
 ## preformatted text
 Markup('^ ','block','/^(\\s)/','<:pre,1>$1');
 
+## blank lines
+Markup('blank', '<^ ', '/^\\s+$/', '');
+
 ## Q: and A:
 Markup('^Q:', 'block', '/^Q:(.*)$/', "<:block><p class='question'>$1</p>");
 Markup('^A:', 'block', '/^A:/', Keep(''));
-
-## blank lines
-Markup('blank','<^ ','/^\\s+$/','');
 
 ## tables
 ## ||cell||, ||!header cell||, ||!caption!||
