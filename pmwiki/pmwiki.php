@@ -280,6 +280,8 @@ function stripmagic($x)
   { return get_magic_quotes_gpc() ? stripslashes($x) : $x; }
 function PSS($x) 
   { return str_replace('\\"','"',$x); }
+function PVS($x) 
+  { return preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", $x); }
 function PZZ($x,$y='') { return ''; }
 function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
@@ -745,46 +747,50 @@ function CondText($pagename,$condspec,$condtext) {
   }
   return $condtext;
 }
-  
-function IncludeText($pagename,$inclspec) {
-  global $MaxIncludes,$IncludeBadAnchorFmt,$InclCount,$FmtV;
+
+
+function IncludeText($pagename, $inclspec) {
+  global $MaxIncludes, $InclCount;
   SDV($MaxIncludes,50);
-  SDV($IncludeBadAnchorFmt,"include:\$FullName - #\$BadAnchor \$[not found]\n");
   $npat = '[[:alpha:]][-\\w]*';
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
-  if (preg_match("/^include\\s+([^#\\s]+)(.*)$/",$inclspec,$match)) {
-    @list($inclstr,$inclname,$opts) = $match;
-    $inclname = MakePageName($pagename,$inclname);
-    if ($inclname==$pagename) return '';
-    $inclpage = RetrieveAuthPage($inclname, 'read', false, READPAGE_CURRENT);
-    $itext=@$inclpage['text'];
-    foreach(preg_split('/\\s+/',$opts) as $o) {
-      if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/",$o,$match)) {
-        @list($x,$aa,$dots,$b,$bb)=$match;
-        if (!$dots && !$b) $bb=$npat;
-        if ($b=='#') $bb=$npat;
+  $args = ParseArgs($inclspec);
+  while (count($args['#'])>0) {
+    $k = array_shift($args['#']); $v = array_shift($args['#']);
+    if ($k=='') {
+      preg_match('/^([^#\\s]*)(.*)$/', $v, $match);
+      if ($match[1]) {                                 # include a page
+        if (isset($itext)) continue;
+        $iname = MakePageName($pagename, $match[1]);
+        if (!PageExists($iname)) continue;
+        $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
+        $itext = @$ipage['text'];
+      }
+      if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/", $match[2], $m)) {
+        @list($x, $aa, $dots, $b, $bb) = $m;
+        if (!$dots && !$b) $bb = $npat;
+        if ($b == '#') $bb = $npat;
         if ($aa)
           $itext=preg_replace("/^.*?([^\n]*\\[\\[#$aa\\]\\])/s",'$1',$itext,1);
         if ($bb)
           $itext=preg_replace("/(.)[^\n]*\\[\\[#$bb\\]\\].*$/s",'$1',$itext,1);
-        continue;
-      } 
-      if (preg_match('/^(lines?|paras?)=(\\d*)(\\.\\.(\\d*))?$/',
-          $o,$match)) {
-        @list($x,$unit,$a,$dots,$b) = $match;
-        $upat = ($unit{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
-        if (!$dots) { $b=$a; $a=0; }
-        if ($a>0) $a--;
-        $itext=preg_replace("/^(($upat)\{0,$b}).*$/s",'$1',$itext,1);
-        $itext=preg_replace("/^($upat)\{0,$a}/s",'',$itext,1); 
-        continue;
       }
+      continue;
     }
-    return  preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", 
-      htmlspecialchars($itext, ENT_NOQUOTES));
+    if (in_array($k, array('line', 'lines', 'para', 'paras'))) {
+      preg_match('/^(\\d*)(\\.\\.(\\d*))?$/', $v, $match);
+      @list($x, $a, $dots, $b) = $match;
+      $upat = ($k{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
+      if (!$dots) { $b=$a; $a=0; }
+      if ($a>0) $a--;
+      $itext=preg_replace("/^(($upat)\{0,$b}).*$/s",'$1',$itext,1);
+      $itext=preg_replace("/^($upat)\{0,$a}/s",'',$itext,1);
+      continue;
+    }
   }
-  return Keep($inclspec);
+  return PVS(htmlspecialchars(@$itext, ENT_NOQUOTES));
 }
+
 
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$HTMLPNewline,$MarkupFrame;
@@ -972,8 +978,7 @@ function MarkupToHTML($pagename,$text) {
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) 
-    $lines[] = preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", 
-      htmlspecialchars($l,ENT_NOQUOTES));
+    $lines[] = PVS(htmlspecialchars($l, ENT_NOQUOTES));
   $lines[] = '(:closeall:)';
   $out = array();
   while (count($lines)>0) {
