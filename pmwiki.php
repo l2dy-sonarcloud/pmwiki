@@ -1266,7 +1266,8 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
           if ($id == "-$AuthId") { continue 3; }
         }
       }
-      if ($pwchal == '' || crypt($AllowPassword, $pwchal) == $pwchal) 
+      if ($pwchal == '' || $pwchal == 'nopass:' 
+          || crypt($AllowPassword, $pwchal) == $pwchal) 
         { $page['=auth'][$lv]++; continue 2; }
       foreach ($authpw as $pwresp)
         if (crypt($pwresp, $pwchal) == $pwchal)
