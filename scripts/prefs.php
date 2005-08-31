@@ -27,3 +27,11 @@ if (isset($_GET['setprefs'])) {
 }
 if (PageExists($sp)) XLPage('prefs', $sp);
 
+XLSDV('en', array(
+  'ak_edit' => 'e',
+  'ak_history' => 'h',
+  'ak_recentchanges' => 'c',
+  'ak_save' => 's',
+  'ak_saveedit' => 'u',
+  'ak_preview' => 'p'));
+
