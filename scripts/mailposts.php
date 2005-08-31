@@ -58,15 +58,15 @@ if (@$MailPostsFrom)
 
 array_push($EditFunctions,'MailPosts');
 
-function MailPosts($pagename,&$page,&$new) {
-  global $IsPagePosted,$MailPostsFile,$MailPostsTimeFmt,$Now,$Newline,
-    $MailPostsItemFmt,$PostTime;
+function MailPosts($pagename, &$page, &$new) {
+  global $IsPagePosted, $MailPostsFile, $MailPostsTimeFmt, $Now,
+    $MailPostsItemFmt, $PostTime;
   if (!$IsPagePosted) return;
-  $fp = @fopen($MailPostsFile,"a");
+  $fp = @fopen($MailPostsFile, "a");
   if ($fp) { 
-    $PostTime = strftime($MailPostsTimeFmt,$Now);
-    fputs($fp,str_replace("\n",$Newline,
-      FmtPageName("$Now $MailPostsItemFmt",$pagename))."\n"); 
+    $PostTime = strftime($MailPostsTimeFmt, $Now);
+    fputs($fp,
+        urlencode(FmtPageName("$Now $MailPostsItemFmt", $pagename))."\n"); 
     fclose($fp); 
   }
 }
@@ -83,7 +83,9 @@ while (!feof($fp)) {
     continue;
   }
   Lock(2);
-  array_push($mailpost,str_replace($Newline,"\n",$p)."\n");
+  if (@$Newline) $p = str_replace($Newline, "\n", $p);
+  else $p = str_replace("\262", "\n", $p);
+  array_push($mailpost, urldecode($p)."\n");
   if ($t<$oldestpost) $oldestpost=$t;
 }
 fclose($fp);

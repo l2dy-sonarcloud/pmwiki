@@ -16,12 +16,11 @@
     characters are "letters" and which are punctuation.
 */
 
-global $HTTPHeaders, $Newline, $KeepToken, $pagename,
+global $HTTPHeaders, $KeepToken, $pagename,
   $GroupPattern, $NamePattern, $MakePageNameFunction, $WikiWordPattern;
 
 $HTTPHeaders[] = 'Content-type: text/html; charset=utf-8';
 
-$Newline = "\xc0\x8a";
 $KeepToken = "\263\263\263";
 $pagename = $_REQUEST['n'];
 if (!$pagename) $pagename = $_REQUEST['pagename'];
