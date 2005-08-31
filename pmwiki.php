@@ -595,7 +595,7 @@ class PageStore {
   function delete($pagename) {
     global $Now;
     $pagefile = $this->pagefile($pagename);
-    @rename($pagefile,"$pagefile,$Now");
+    @rename($pagefile,"$pagefile,del-$Now");
   }
   function ls($pats=NULL) {
     global $GroupPattern, $NamePattern;
