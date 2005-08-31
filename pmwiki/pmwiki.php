@@ -46,7 +46,6 @@ $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
-$Newline="\262";
 $MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
@@ -530,29 +529,32 @@ class PageStore {
   }
   function read($pagename, $since=0) {
     $newline = "\262";
+    $urlencoded = false;
     $pagefile = $this->pagefile($pagename);
-    if ($pagefile && $fp=@fopen($pagefile,"r")) {
+    if ($pagefile && ($fp=@fopen($pagefile, "r"))) {
       while (!feof($fp)) {
-        $line = fgets($fp,4096);
-        while (substr($line,-1,1)!="\n" && !feof($fp)) 
-          { $line .= fgets($fp,4096); }
+        $line = fgets($fp, 4096);
+        while (substr($line, -1, 1) != "\n" && !feof($fp)) 
+          { $line .= fgets($fp, 4096); }
+        if ($urlencoded) $line = urldecode($line);
         @list($k,$v) = explode('=',rtrim($line),2);
         if ($k == 'newline') { $newline = $v; continue; }
-        if ($since > 0) {
-          if ($k == 'version') $ordered = (strpos($v, 'ordered=') !== false); 
-          if (preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
-            if ($ordered) break;
-            continue;
-          }
+        if ($k == 'version') { 
+          $ordered = (strpos($v, 'ordered=1') !== false); 
+          $urlencoded = (strpos($v, 'urlencoded=1') !== false); 
         }
-        if ($k) $page[$k] = str_replace($newline,"\n",$v);
+        if ($since > 0 && preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
+          if ($ordered) break;
+          continue;
+        }
+        if ($k) $page[$k] = str_replace($newline, "\n", $v);
       }
       fclose($fp);
     }
     return @$page;
   }
   function write($pagename,$page) {
-    global $Now,$Version,$Newline;
+    global $Now, $Version, $Newline;
     $page['name'] = $pagename;
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
@@ -566,11 +568,14 @@ class PageStore {
     if (!file_exists("$dir/.htaccess") && $fp = @fopen("$dir/.htaccess", "w")) 
       { fwrite($fp, "Order Deny,Allow\nDeny from all\n"); fclose($fp); }
     if ($pagefile && ($fp=fopen("$pagefile,new","w"))) {
-      $x = "version=$Version ordered=1\nnewline=$Newline\n";
+      $r0 = array('%', "\n", '<');
+      $r1 = array('%25', '%0a', '%3c');
+      $x = "version=$Version ordered=1 urlencoded=1\n";
+      if (@$Newline) { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
         if ($k > '' && $k{0} != '=') {
-          $x = str_replace("\n", $Newline, "$k=$v") . "\n";
+          $x = str_replace($r0, $r1, "$k=$v") . "\n";
           $s = $s && fputs($fp, $x); $sz += strlen($x);
         }
       $s = fclose($fp) && $s;
@@ -1104,7 +1109,7 @@ function PostPage($pagename, &$page, &$new) {
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if ($EnablePost) {
-    $new['text'] = str_replace($Newline, "\n", $new['text']);
+    if (@$Newline) $new['text'] = str_replace($Newline, "\n", $new['text']);
     if ($new['text']==@$page['text']) { $IsPagePosted=true; return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
