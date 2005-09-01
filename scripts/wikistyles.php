@@ -60,6 +60,7 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   SDV($WikiStyle['cframe'], array(
     'class' => 'frame', 'margin-left' => 'auto', 'margin-right' => 'auto',
     'width' => '200px', 'apply' => 'block', 'text-align' => 'center'));
+  SDV($WikiStyle['sidehead'], array('apply' => 'block', 'class' => 'sidehead'));
 }
 
 SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
