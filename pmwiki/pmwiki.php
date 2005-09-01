@@ -852,7 +852,7 @@ function FormatTableRow($x) {
     for ($colspan=1;$i+$colspan<count($td);$colspan++) 
       if ($td[$colspan+$i]!='') break;
     if ($colspan>1) { $attr .= " colspan='$colspan'"; }
-    $y .= "<$t $attr>".$td[$i]."</$t>";
+    $y .= "<$t $attr>".trim($td[$i])."</$t>";
   }
   if ($t=='caption') return "<:table,1>$y";
   if ($MarkupFrame[0]['cs'][0] != 'table') $rowcount = 0; else $rowcount++;
