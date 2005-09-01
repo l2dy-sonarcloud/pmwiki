@@ -56,7 +56,7 @@ function LinkHTTP($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   $p = str_replace(' ','%20',$path);
   $url = str_replace('$1',$p,$IMap[$imap]);
   foreach((array)$WhiteUrlPatterns as $pat) {
-    if (preg_match("!^$pat(/|$)!",$url))
+    if (preg_match("!^$pat(/|$)!i",$url))
       return LinkIMap($pagename,$imap,$path,$title,$txt,$fmt);
   }
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
@@ -88,8 +88,6 @@ function HandleApprove($pagename, $auth='edit') {
   ReadApprovedUrls($pagename);
   $addpat = array();
   foreach($match[0] as $a) {
-    foreach((array)$WhiteUrlPatterns as $pat) 
-      if (preg_match("!^$pat(/|$)!",$a)) continue 2;
     if ($action=='approvesites') 
       $a=preg_replace("!^([^:]+://[^/]+).*$!",'$1',$a);
     $addpat[] = $a;
@@ -100,7 +98,13 @@ function HandleApprove($pagename, $auth='edit') {
     if (!$apage) Abort("?cannot edit $aname");
     $new = $apage;
     if (substr($new['text'],-1,1)!="\n") $new['text'].="\n";
-    foreach($addpat as $pat) $new['text'].="  $pat\n";
+    foreach($addpat as $a) {
+      foreach((array)$WhiteUrlPatterns as $pat)
+        if (preg_match("!^$pat(/|$)!i",$a)) continue 2;
+      $urlp = preg_quote($a,'!');
+      $WhiteUrlPatterns[] = $urlp;
+      $new['text'].="  $a\n";
+    }
     $_POST['post'] = 'y';
     PostPage($aname,$apage,$new);
   }
