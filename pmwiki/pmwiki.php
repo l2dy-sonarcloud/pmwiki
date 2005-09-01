@@ -536,7 +536,7 @@ class PageStore {
         $line = fgets($fp, 4096);
         while (substr($line, -1, 1) != "\n" && !feof($fp)) 
           { $line .= fgets($fp, 4096); }
-        if ($urlencoded) $line = urldecode($line);
+        if ($urlencoded) $line = urldecode(str_replace('+', '%2b', $line));
         @list($k,$v) = explode('=',rtrim($line),2);
         if ($k == 'newline') { $newline = $v; continue; }
         if ($k == 'version') { 
