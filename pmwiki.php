@@ -46,6 +46,7 @@ $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
+$Newline = "\263";
 $MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
@@ -571,7 +572,7 @@ class PageStore {
       $r0 = array('%', "\n", '<');
       $r1 = array('%25', '%0a', '%3c');
       $x = "version=$Version ordered=1 urlencoded=1\n";
-      if (@$Newline) { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
+      if ($Newline != "\263") { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
         if ($k > '' && $k{0} != '=') {
