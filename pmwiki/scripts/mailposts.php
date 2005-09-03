@@ -11,10 +11,6 @@
     the $MailPostsTo variable or the scratch file will grow without
     limit.
 
-    To explicitly enable this feature, execute
-	include_once("scripts/mailposts.php");
-    from config.php somewhere.
-
     Several variables control the functioning of this script:
 
     $MailPostsTo - comma separated list of email recipients
@@ -71,21 +67,20 @@ function MailPosts($pagename, &$page, &$new) {
   }
 }
 
-if (@$MailPostsTo=="") return;
-$fp = @fopen($MailPostsFile,"r");
+if (@$MailPostsTo == "") return;
+$fp = @fopen($MailPostsFile, "r");
 if (!$fp) return;
 $oldestpost = $Now+1; $mailpost=array();
 while (!feof($fp)) {
-  @(list($t,$p) = explode(' ',rtrim(fgets($fp,1024)),2));
+  $x = urldecode(rtrim(fgets($fp, 1024)));
+  @(list($t,$p) = explode(' ', $x, 2));
   if (!$t) continue;
   if ($p=='#lastmailed') {
     if ($t > $Now-$MailPostsSquelch) { fclose($fp); return; }
     continue;
   }
   Lock(2);
-  if (@$Newline) $p = str_replace($Newline, "\n", $p);
-  else $p = str_replace("\262", "\n", $p);
-  array_push($mailpost, urldecode($p)."\n");
+  array_push($mailpost, $p."\n");
   if ($t<$oldestpost) $oldestpost=$t;
 }
 fclose($fp);
