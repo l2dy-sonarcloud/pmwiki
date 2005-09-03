@@ -537,8 +537,9 @@ class PageStore {
         $line = fgets($fp, 4096);
         while (substr($line, -1, 1) != "\n" && !feof($fp)) 
           { $line .= fgets($fp, 4096); }
+        $line = rtrim($line);
         if ($urlencoded) $line = urldecode(str_replace('+', '%2b', $line));
-        @list($k,$v) = explode('=',rtrim($line),2);
+        @list($k,$v) = explode('=', $line, 2);
         if ($k == 'newline') { $newline = $v; continue; }
         if ($k == 'version') { 
           $ordered = (strpos($v, 'ordered=1') !== false); 
