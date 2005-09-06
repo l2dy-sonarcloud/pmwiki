@@ -85,7 +85,7 @@ if ($AuthUser['ldap'] &&
   list($basedn, $attr, $sub) = explode('?', $path);
   if (!$port) $port=389;
   if (!$attr) $attr = 'uid';
-  if (!$sub) $attr = 'one';
+  if (!$sub) $sub = 'one';
   $ds = ldap_connect($server, $port);
   ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
   if (ldap_bind($ds)) {
