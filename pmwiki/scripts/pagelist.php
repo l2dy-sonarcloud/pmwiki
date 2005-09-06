@@ -63,7 +63,7 @@ SDV($HandleAuth['search'], 'read');
 ## If $SearchBoxFmt is defined, that is used, otherwise a searchbox
 ## is generated.  Options include group=, size=, label=.
 function SearchBox($pagename, $opt) {
-  global $SearchBoxFmt, $SearchBoxOpt, $SearchQuery;
+  global $SearchBoxFmt, $SearchBoxOpt, $SearchQuery, $EnablePathInfo;
   if (isset($SearchBoxFmt)) return FmtPageName($SearchBoxFmt, $pagename);
   SDVA($SearchBoxOpt, array('size' => '40', 
     'label' => FmtPageName('$[Search]', $pagename),
@@ -72,9 +72,10 @@ function SearchBox($pagename, $opt) {
   $opt = array_merge((array)$SearchBoxOpt, (array)$opt);
   $group = $opt['group'];
   $out[] = FmtPageName("
-    class='wikisearch' action='\$ScriptUrl' method='get'><input 
-    type='hidden' name='n' value='\$FullName' /><input
+    class='wikisearch' action='\$PageUrl' method='get'><input
     type='hidden' name='action' value='search' />", $pagename);
+  if (!IsEnabled($EnablePathInfo, 0)) 
+    $out[] = "<input type='hidden' name='n' value='$pagename' />";
   if ($group) 
     $out[] = "<input type='hidden' name='group' value='$group' />";
   $out[] = "<input type='text' name='q' value='{$opt['value']}' 
