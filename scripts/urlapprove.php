@@ -31,12 +31,12 @@
 
 $LinkFunctions['http:'] = 'LinkHTTP';
 $LinkFunctions['https:'] = 'LinkHTTP';
-$ApprovedUrlPagesFmt = array('$SiteGroup.ApprovedUrls');
-$UnapprovedLinkFmt = 
-  "\$LinkText<a class='apprlink' href='\$PageUrl?action=approvesites'>$[(approve sites)]</a>";
-$HTMLStylesFmt[] = '.apprlink { font-size:smaller; }';
-$ApproveUrlPattern = 
-  "\\bhttps?:[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]";
+SDV($ApprovedUrlPagesFmt, array('$SiteGroup.ApprovedUrls'));
+SDV($UnapprovedLinkFmt,
+  "\$LinkText<a class='apprlink' href='\$PageUrl?action=approvesites'>$[(approve sites)]</a>");
+$HTMLStylesFmt['urlapprove'] = '.apprlink { font-size:smaller; }';
+SDV($ApproveUrlPattern,
+  "\\bhttps?:[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]");
 $WhiteUrlPatterns = (array)$WhiteUrlPatterns;
 SDV($HandleActions['approveurls'], 'HandleApprove');
 SDV($HandleAuth['approveurls'], 'edit');
