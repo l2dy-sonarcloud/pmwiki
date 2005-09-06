@@ -8,7 +8,8 @@
 
 # $InputAttrs are the attributes we allow in output tags
 SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols', 
-  'checked', 'size', 'action', 'method', 'accesskey'));
+  'size', 'action', 'method', 'accesskey', 'checked', 'disabled', 'readonly',
+  'enctype'));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
 foreach(array('text', 'submit', 'hidden', 'password', 'radio', 'checkbox',
@@ -40,6 +41,8 @@ function InputMarkup($pagename, $type, $args) {
   if (!$args) $args = array('name', 'value');
   while (count($opt['']) > 0 && count($args) > 0) 
     $opt[array_shift($args)] = array_shift($opt['']);
+  foreach ((array)$opt[''] as $a) 
+    if (!isset($opt[$a])) $opt[$a] = $a;
   $attr = array();
   foreach ($InputAttrs as $a) {
     if (!isset($opt[$a])) continue;
