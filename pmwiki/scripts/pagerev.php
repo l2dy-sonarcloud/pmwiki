@@ -25,7 +25,7 @@ SDV($PageDiffFmt,"<h2 class='wikiaction'>$[\$FullName History]</h2>
   ");
 SDV($DiffStartFmt,"
       <div class='diffbox'><div class='difftime'>\$DiffTime 
-        \$[by] <span class='diffauthor' title='\$DiffHost'>\$DiffAuthor</span></div>");
+        \$[by] <span class='diffauthor' title='\$DiffHost'>\$DiffAuthor</span> - \$DiffChangeSum</div>");
 SDV($DiffDelFmt['a'],"
         <div class='difftype'>\$[Deleted line \$DiffLines:]</div>
         <div class='diffdel'>");
@@ -80,7 +80,7 @@ function PrintDiff($pagename) {
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
     if (!$diffauthor) $diffauthor="unknown";
-    $FmtV['$DiffChangeSum'] = @$page["csum:$diffgmt"];
+    $FmtV['$DiffChangeSum'] = htmlspecialchars(@$page["csum:$diffgmt"]);
     $FmtV['$DiffHost'] = @$page["host:$diffgmt"];
     $FmtV['$DiffAuthor'] = $diffauthor;
     $FmtV['$DiffId'] = $k; 
