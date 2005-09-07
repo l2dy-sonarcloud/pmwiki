@@ -37,11 +37,11 @@ function InputMarkup($pagename, $type, $args) {
   global $InputTags, $InputAttrs, $FmtV;
   if (!$InputTags[$type]) return "(:input $type $args:)";
   $opt = array_merge($InputTags[$type], ParseArgs($args));
-  $args = $opt[':args'];
+  $args = @$opt[':args'];
   if (!$args) $args = array('name', 'value');
-  while (count($opt['']) > 0 && count($args) > 0) 
+  while (count(@$opt['']) > 0 && count($args) > 0) 
     $opt[array_shift($args)] = array_shift($opt['']);
-  foreach ((array)$opt[''] as $a) 
+  foreach ((array)@$opt[''] as $a) 
     if (!isset($opt[$a])) $opt[$a] = $a;
   $attr = array();
   foreach ($InputAttrs as $a) {

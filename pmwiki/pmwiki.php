@@ -1035,7 +1035,7 @@ function HandleBrowse($pagename, $auth = 'read') {
 # with the contents of another page.
 function EditTemplate($pagename, &$page, &$new) {
   global $EditTemplatesFmt;
-  if ($new['text'] > '') return;
+  if (@$new['text'] > '') return;
   if (@$_REQUEST['template'] && PageExists($_REQUEST['template'])) {
     $p = RetrieveAuthPage($_REQUEST['template'], 'read', false,
              READPAGE_CURRENT);
@@ -1166,7 +1166,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
     $EnablePost, $FmtV, $Now, 
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
-  if ($_POST['cancel']) { Redirect($pagename); return; }
+  if (@$_POST['cancel']) { Redirect($pagename); return; }
   Lock(2);
   $IsPagePosted = false;
   $page = RetrieveAuthPage($pagename, $auth, true);
