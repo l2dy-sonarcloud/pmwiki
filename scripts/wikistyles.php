@@ -144,7 +144,7 @@ function ApplyStyles($x) {
           $p = preg_replace("/<({$WikiStyleApply[$a]})\\b/","<$1 $spanattr",$p);
         }
       }
-      if ($s['color'])
+      if (@$s['color'])
         $p = preg_replace('/<a\\b/', "<a style='color: {$s['color']}'", $p);
     }
     $out[] = $p;
