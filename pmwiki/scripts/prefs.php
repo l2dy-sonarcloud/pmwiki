@@ -20,12 +20,13 @@
 */
 
 SDV($PrefsCookieExpires, $Now + 60 * 60 * 24 * 365);
+$sp = '';
 if (@$_COOKIE['setprefs']) $sp = $_COOKIE['setprefs'];
 if (isset($_GET['setprefs'])) {
   $sp = $_GET['setprefs'];
   setcookie('setprefs', $sp, $PrefsCookieExpires, '/');
 }
-if (PageExists($sp)) XLPage('prefs', $sp);
+if ($sp && PageExists($sp)) XLPage('prefs', $sp);
 
 XLSDV('en', array(
   'ak_edit' => 'e',
