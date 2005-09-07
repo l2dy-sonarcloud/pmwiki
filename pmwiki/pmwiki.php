@@ -968,7 +968,7 @@ function BuildMarkupRules() {
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if ($m['pat']) 
+      if (@$m['pat']) 
         $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
   }
   return $MarkupRules;
@@ -1000,7 +1000,7 @@ function MarkupToHTML($pagename,$text) {
     if ($x>'') $out[] = "$x\n";
   }
   $out = implode('',(array)$out);
-  foreach((array)($MarkupFrame[0]['posteval']) as $v) eval($v);
+  foreach((array)(@$MarkupFrame[0]['posteval']) as $v) eval($v);
   array_shift($MarkupFrame);
   StopWatch('MarkupToHTML end');
   return $out;
@@ -1263,25 +1263,25 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     if (!$sid) session_write_close();
   }
   foreach($passwd as $lv => $a) {
-    if (!$a) { $page['=auth'][$lv]++; continue; }
+    if (!$a) { @$page['=auth'][$lv]++; continue; }
     foreach((array)$a as $pwchal) {
       if ($AuthId && strncmp($pwchal, 'id:', 3) == 0) {
         $idlist = explode(',', substr($pwchal, 3));
         foreach($idlist as $id) {
           if ($id == $AuthId || $id == '*') 
-            { $page['=auth'][$lv]++; continue 3; }
+            { @$page['=auth'][$lv]++; continue 3; }
           if ($id == "-$AuthId") { continue 3; }
         }
       }
       if ($pwchal == '' || $pwchal == 'nopass:' 
           || crypt($AllowPassword, $pwchal) == $pwchal) 
-        { $page['=auth'][$lv]++; continue 2; }
+        { @$page['=auth'][$lv]++; continue 2; }
       foreach ($authpw as $pwresp)
         if (crypt($pwresp, $pwchal) == $pwchal)
-          { $page['=auth'][$lv]++; continue 3; }
+          { @$page['=auth'][$lv]++; continue 3; }
     }
   }
-  if ($page['=auth']['admin']) 
+  if (@$page['=auth']['admin']) 
     foreach($passwd as $lv=>$a) $page['=auth'][$lv]++;
   if ($page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
