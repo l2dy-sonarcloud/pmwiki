@@ -24,6 +24,12 @@
     as markup) as appropriate for the output being returned.
 */
 
+## $LinkIndexFile is the index file for backlinks and link= option
+if (IsEnabled($EnableLinkIndex, 0)) {
+  SDV($LinkIndexFile, "$WorkDir/.linkindex");
+  $EditFunctions[] = 'PostLinkIndex';
+}
+
 ## $SearchPatterns holds patterns for list= option
 SDVA($SearchPatterns['all'], array());
 $SearchPatterns['normal'][] = '!\.(All)?Recent(Changes|Uploads)$!';
@@ -38,12 +44,6 @@ XLSDV('en', array(
   'SearchFor' => 'Results of search for <em>$Needle</em>:',
   'SearchFound' => 
     '$MatchCount pages found out of $MatchSearched pages searched.'));
-
-## $FPLFunctions is a list of functions associated with fmt= options
-SDVA($FPLFunctions, array(
-  'bygroup' => 'FPLByGroup',
-  'simple'  => 'FPLSimple',
-  'group'   => 'FPLGroup'));
 
 Markup('pagelist', 'directives',
   '/\\(:pagelist(\\s+.*?)?:\\)/ei',
@@ -100,7 +100,7 @@ function FmtPageList($fmt, $pagename, $opt) {
   if (@($opt['req'] && !$opt['-'] && !$opt[''] && !$opt['+'] && !$opt['q']))
     return;
   $GLOBALS['SearchIncl'] = array_merge((array)@$opt[''], (array)@$opt['+']);
-  $GLOBALS['SearchExcl'] = (array)$opt['-'];
+  $GLOBALS['SearchExcl'] = (array)@$opt['-'];
   $GLOBALS['SearchGroup'] = @$opt['group'];
   $matches = array();
   $fmtfn = @$FPLFunctions[$opt['fmt']];
@@ -127,7 +127,7 @@ function MakePageList($pagename, $opt) {
   $order = $opt['order'];
   $readf |= $order && ($order!='name') && ($order!='-name');
 
-  $pats = (array)$SearchPatterns[$opt['list']];
+  $pats = @(array)$SearchPatterns[$opt['list']];
   if ($opt['group']) array_unshift($pats, "/^({$opt['group']})\./i");
 
   # inclp/exclp contain words to be included/excluded.  
@@ -138,12 +138,6 @@ function MakePageList($pagename, $opt) {
   $searchterms = count($inclp) + count($exclp);
   $readf += $searchterms;                         # forced read if incl/excl
 
-  # link= (backlinks)
-  if (@$opt['link']) { 
-    $linkpat = '/,'.MakePageName($pagename, $opt['link']).',/i';
-    $readf = 1;                                   # forced read
-  }
- 
   if (@$opt['trail']) {
     $trail = ReadTrail($pagename, $opt['trail']);
     foreach($trail as $tstop) {
@@ -156,16 +150,30 @@ function MakePageList($pagename, $opt) {
       $PCache[$tstop['pagename']]['parentnames'][] =
         $trail[$tstop['parent']]['pagename'];
   } else $list = ListPages($pats);
+
   if (IsEnabled($EnablePageListProtect, 0)) $readf = 1000;
   $matches = array();
   $FmtV['$MatchSearched'] = count($list);
+
+  # link= (backlinks)
+  if (@$opt['link']) { 
+    $link = MakePageName($pagename, $opt['link']);
+    $linkpat = "/(^|,)$link(,|$)/i";
+    $readf++;
+    $xlist = BacklinksTo($link, false);
+    $list = array_diff($list, $xlist);
+  }
+  $xlist = array();
+ 
+  StopWatch('MakePageList scan');
   foreach((array)$list as $pn) {
     if ($readf) {
       $page = ($readf >= 1000) 
               ? RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT)
               : ReadPage($pn, READPAGE_CURRENT);
       if (!$page) continue;
-      if ($linkpat && !preg_match($linkpat, ",{$page['targets']},")) continue;
+      if (@$linkpat && !preg_match($linkpat, $page['targets'])) 
+        { $PCache[$pn]['targets'] = $page['targets']; $xlist[]=$pn; continue; }
       if ($searchterms) {
         $text = $pn."\n".@$page['targets']."\n".@$page['text'];
         foreach($inclp as $i) if (!preg_match($i, $text)) continue 2;
@@ -177,7 +185,10 @@ function MakePageList($pagename, $opt) {
     PCache($pn, $page);
     $matches[] = & $PCache[$pn];
   }
+  StopWatch('MakePageList sort');
   SortPageList($matches, $order);
+  StopWatch('MakePageList update');
+  if ($xlist) LinkIndexUpdate($xlist);
   StopWatch('MakePageList end');
   return $matches;
 }
@@ -210,6 +221,18 @@ function HandleSearchA($pagename, $level = 'read') {
   PrintFmt($pagename, $HandleSearchFmt);
 }
 
+########################################################################
+## The functions below provide different formatting options for
+## the output list, controlled by the fmt= parameter and the
+## $FPLFunctions hash.
+########################################################################
+
+## $FPLFunctions is a list of functions associated with fmt= options
+SDVA($FPLFunctions, array(
+  'bygroup' => 'FPLByGroup',
+  'simple'  => 'FPLSimple',
+  'group'   => 'FPLGroup'));
+
 ## FPLByGroup provides a simple listing of pages organized by group
 function FPLByGroup($pagename, &$matches, $opt) {
   global $FPLByGroupStartFmt, $FPLByGroupEndFmt, $FPLByGroupGFmt,
@@ -231,7 +254,6 @@ function FPLByGroup($pagename, &$matches, $opt) {
              FmtPageName($FPLByGroupEndFmt, $pagename);
 }
 
-
 ## FPLSimple provides a simple bullet list of pages
 function FPLSimple($pagename, &$matches, $opt) {
   global $FPLSimpleStartFmt, $FPLSimpleIFmt, $FPLSimpleEndFmt, $FPLSimpleOpt;
@@ -250,7 +272,6 @@ function FPLSimple($pagename, &$matches, $opt) {
              FmtPageName($FPLSimpleEndFmt, $pagename);
 }
    
-
 ## FPLGroup provides a simple bullet list of groups
 function FPLGroup($pagename, &$matches, $opt) {
   global $FPLGroupStartFmt, $FPLGroupIFmt, $FPLGroupEndFmt, $FPLGroupOpt;
@@ -269,4 +290,89 @@ function FPLGroup($pagename, &$matches, $opt) {
   }
   return FmtPageName($FPLGroupStartFmt, $pagename) . implode('', $out) .
              FmtPageName($FPLGroupEndFmt, $pagename);
+}
+
+
+########################################################################
+## The functions below optimize backlinks by maintaining an index
+## file of link cross references (the "link index").
+########################################################################
+
+## The BacklinksTo($pagename, $incl) function reads the current
+## linkindex file and returns all listed pages that have $pagename
+## as a target.  If $incl is false, then BacklinksTo returns
+## the pages in the linkindex that *don't* have $pagename as a target.
+## Note that if the linkindex is incomplete then so is the returned list.
+function BacklinksTo($pagename, $incl=true) {
+  global $LinkIndexFile;
+  if (!$LinkIndexFile) return;
+  StopWatch('BacklinksTo begin');
+  $excl = ! $incl;
+  $pagelist = array();
+  $fp = @fopen($LinkIndexFile, 'r');
+  if ($fp) {
+    $linkpat = "/[=,]{$pagename}[\n,]/i";
+    while (!feof($fp)) {
+      $line = fgets($fp, 4096);
+      while (substr($line, -1, 1) != "\n" && !feof($fp)) 
+        $line .= fgets($fp, 4096);
+      if (strpos($line, '=') === false) continue;
+      if (preg_match($linkpat, $line) xor $excl) {
+        list($n,$t) = explode('=', $line, 2);
+        $pagelist[] = $n;
+      }
+    }
+    fclose($fp);
+  }
+  StopWatch('BacklinksTo end');
+  return $pagelist;
+}
+
+## The LinkIndexUpdate($pagelist) function updates the linkindex
+## file with the target information for the pages in $pagelist.
+## If the targets are cached then LinkIndexUpdate uses that,
+## otherwise the pages are read to get the current targets.
+function LinkIndexUpdate($pagelist) {
+  global $LinkIndexFile, $PCache;
+  if (!$pagelist || !$LinkIndexFile) return;
+  StopWatch('LinkIndexUpdate begin');
+  $pagelist = (array)$pagelist;
+  Lock(2);
+  $ofp = fopen("$LinkIndexFile,new", 'w');
+  foreach($pagelist as $n) {
+    if (isset($PCache[$n]['targets'])) $targets=$PCache[$n]['targets'];
+    else {
+      $page = ReadPage($n, READPAGE_CURRENT);
+      if (!$page) continue;
+      $targets = $page['targets'];
+    }
+    fputs($ofp, "$n=$targets\n");
+  }
+  $ifp = @fopen($LinkIndexFile, 'r');
+  if ($ifp) {
+    while (!feof($ifp)) {
+      $line = fgets($ifp, 4096);
+      while (substr($line, -1, 1) != "\n" && !feof($ifp)) 
+        $line .= fgets($ifp, 4096);
+      if (strpos($line, '=') === false) continue;
+      list($n, $t) = explode('=', $line, 2);
+      if (in_array($n, $pagelist)) continue;
+      fputs($ofp, $line);
+    }
+    fclose($ifp);
+  }
+  fclose($ofp);
+  if (file_exists($LinkIndexFile)) unlink($LinkIndexFile); 
+  rename("$LinkIndexFile,new", $LinkIndexFile);
+  fixperms($LinkIndexFile);
+  StopWatch('LinkIndexUpdate end');
+}
+
+## PostLinkIndex is inserted into $EditFunctions to update
+## the linkindex whenever a page is saved.
+function PostLinkIndex($pagename, &$page, &$new) {
+  global $IsPagePosted, $PCache;
+  if (!$IsPagePosted) return;
+  $PCache[$pagename]['targets'] = $new['targets'];
+  LinkIndexUpdate($pagename);
 }
