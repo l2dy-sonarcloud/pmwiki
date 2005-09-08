@@ -492,8 +492,8 @@ function XLPage($lang,$p) {
       $i18n = preg_replace('/[^-\\w]/','',$xl['xlpage-i18n']);
       include_once("$FarmD/scripts/xlpage-$i18n.php");
     }
-    if ($xl['Locale']) setlocale(LC_ALL,$xl['Locale']);
-    if ($xl['TimeFmt']) $TimeFmt=$xl['TimeFmt'];
+    if (@$xl['Locale']) setlocale(LC_ALL,$xl['Locale']);
+    if (@$xl['TimeFmt']) $TimeFmt=$xl['TimeFmt'];
     array_unshift($XLLangs,$lang);
     XLSDV($lang,$xl);
   }
@@ -857,10 +857,10 @@ function FormatTableRow($x) {
     $y .= "<$t $attr>".trim($td[$i])."</$t>";
   }
   if ($t=='caption') return "<:table,1>$y";
-  if ($MarkupFrame[0]['cs'][0] != 'table') $rowcount = 0; else $rowcount++;
+  if (@$MarkupFrame[0]['cs'][0] != 'table') $rowcount = 0; else $rowcount++;
   $FmtV['$TableRowCount'] = $rowcount + 1;
   $FmtV['$TableRowIndex'] = ($rowcount % $TableRowIndexMax) + 1;
-  $trattr = FmtPageName($TableRowAttrFmt, $pagename);
+  $trattr = FmtPageName($TableRowAttrFmt, '');
   return "<:table,1><tr $trattr>$y</tr>";
 }
 
@@ -1282,8 +1282,8 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     }
   }
   if (@$page['=auth']['admin']) 
-    foreach($passwd as $lv=>$a) $page['=auth'][$lv]++;
-  if ($page['=auth'][$level]) return $page;
+    foreach($passwd as $lv=>$a) @$page['=auth'][$lv]++;
+  if (@$page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
   PCache($pagename, $page);
   $postvars = '';
@@ -1295,9 +1295,10 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   }
   $FmtV['$PostVars'] = $postvars;
   SDV($AuthPromptFmt,array(&$PageStartFmt,
-    "<p><b>Password required</b></p>
+    "<p><b>$[Password required]</b></p>
       <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
-        Password: <input tabindex='1' type='password' name='authpw' value='' />
+        $[Password]: <input tabindex='1' type='password' name='authpw' 
+          value='' />
         <input type='submit' value='OK' />\$PostVars</form>
         <script language='javascript'><!--
           document.authform.authpw.focus() //--></script>", &$PageEndFmt));
@@ -1307,7 +1308,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
 
 
 function PrintAttrForm($pagename) {
-  global $PageAttributes, $PCache;
+  global $PageAttributes, $PCache, $FmtV;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
     <input type='hidden' name='action' value='postattr' />
     <input type='hidden' name='n' value='\$FullName' />
@@ -1315,17 +1316,20 @@ function PrintAttrForm($pagename) {
   $page = $PCache[$pagename];
   foreach($PageAttributes as $attr=>$p) {
     $prompt = FmtPageName($p, $pagename);
-    $setting = $page[$attr];
-    $value = $page[$attr];
+    $setting = @$page[$attr];
+    $value = @$page[$attr];
     if (strncmp($attr, 'passwd', 6) == 0) {
       $a = substr($attr, 6);
       $value = '';
       $setting = implode(' ', 
         preg_replace('/^(?!\\w+:).+$/', '****', (array)$page['=passwd'][$a]));
-      if ($page['=pwsource'][$a]=='group' || $page['=pwsource'][$a]=='site')
-        $setting = "(set by {$page['=pwsource'][$a]}) $setting";
-      if (strncmp($page['=pwsource'][$a], 'cascade:', 8) == 0)
-        $setting = "(using ".substr($page['=pwsource'][$a], 8)." password)";
+      $pwsource = $page['=pwsource'][$a];
+      $FmtV['$PWSource'] = $pwsource;
+      $FmtV['$PWCascade'] = substr($pwsource, 8);
+      if ($pwsource == 'group' || $pwsource == 'site')
+        $setting = FmtPageName('$[(set by $PWSource)]', $pagename)." $setting";
+      if (strncmp($pwsource, 'cascade:', 8) == 0)
+        $setting = FmtPageName('$[(using $PWCascade password)]', $pagename);
      }
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
@@ -1340,11 +1344,13 @@ function HandleAttr($pagename, $auth = 'attr') {
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   PCache($pagename,$page);
+  XLSDV('en', array('EnterAttributes' =>
+    "Enter new attributes for this page below.  Leaving a field blank
+    will leave the attribute unchanged.  To clear an attribute, enter
+    'clear'."));
   SDV($PageAttrFmt,"<div class='wikiattr'>
     <h1 class='wikiaction'>$[\$FullName Attributes]</h1>
-    <p>Enter new attributes for this page below.  Leaving a field blank
-    will leave the attribute unchanged.  To clear an attribute, enter
-    'clear'.</p></div>");
+    <p>$[EnterAttributes]</p></div>");
   SDV($HandleAttrFmt,array(&$PageStartFmt,&$PageAttrFmt,
     'function:PrintAttrForm',&$PageEndFmt));
   PrintFmt($pagename,$HandleAttrFmt);
