@@ -25,7 +25,7 @@
 */
 
 ## $LinkIndexFile is the index file for backlinks and link= option
-if (IsEnabled($EnableLinkIndex, 0)) {
+if (IsEnabled($EnableLinkIndex, 1)) {
   SDV($LinkIndexFile, "$WorkDir/.linkindex");
   $EditFunctions[] = 'PostLinkIndex';
 }

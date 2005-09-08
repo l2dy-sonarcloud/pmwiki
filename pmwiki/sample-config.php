@@ -100,10 +100,6 @@ $WikiTitle = 'PmWiki';
 ## pages from appearing in search results.
 # $EnablePageListProtect = 1;
 
-## The $EnableLinkIndex option turns on link indexing, which can
-## speed up the generation of categories and backlinks.
-# $EnableLinkIndex = 1;
-
 ##  The refcount.php script enables ?action=refcount, which helps to
 ##  find missing and orphaned pages.  See PmWiki.RefCount.
 # if ($action == 'refcount') include_once('scripts/refcount.php');
