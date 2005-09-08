@@ -53,7 +53,7 @@ $EditFields = array('text');
 $EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
   'SaveAttributes', 'PostPage', 'PostRecentChanges', 'PreviewPage');
 $EnablePost = 1;
-$ChangeSummary = stripmagic(@$_REQUEST['csum']);
+$ChangeSummary = substr(stripmagic(@$_REQUEST['csum']), 0, 100);
 $AsSpacedFunction = 'AsSpaced';
 $SpaceWikiWords = 0;
 $LinkWikiWords = 1;
