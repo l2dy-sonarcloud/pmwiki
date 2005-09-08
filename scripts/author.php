@@ -29,10 +29,10 @@ if (!isset($AuthorPage)) $AuthorPage =
 SDV($AuthorLink,($Author) ? "[[~$Author]]" : '?');
 
 if (IsEnabled($EnableAuthorSignature,1)) {
-  $ROSPatterns['/~~~~/'] = '[[~$Author]] $CurrentTime';
-  $ROSPatterns['/~~~/'] = '[[~$Author]]';
-  Markup('~~~~','<links','/~~~~/',"[[~$Author]] $CurrentTime");
-  Markup('~~~','>~~~~','/~~~/',"[[~$Author]]");
+  $ROSPatterns['/(?<!~)~~~~(?!~)/'] = '[[~$Author]] $CurrentTime';
+  $ROSPatterns['/(?<!~)~~~(?!~)/'] = '[[~$Author]]';
+  Markup('~~~~','<links','/(?<!~)~~~~(?!~)/',"[[~$Author]] $CurrentTime");
+  Markup('~~~','>~~~~','/(?<!~)~~~(?!~)/',"[[~$Author]]");
 }
 if (IsEnabled($EnablePostAuthorRequired,0))
   array_unshift($EditFunctions,'RequireAuthor');
