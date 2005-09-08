@@ -128,7 +128,7 @@ function MakePageList($pagename, $opt) {
   $readf |= $order && ($order!='name') && ($order!='-name');
 
   $pats = @(array)$SearchPatterns[$opt['list']];
-  if ($opt['group']) array_unshift($pats, "/^({$opt['group']})\./i");
+  if (@$opt['group']) array_unshift($pats, "/^({$opt['group']})\./i");
 
   # inclp/exclp contain words to be included/excluded.  
   $inclp = array(); $exclp = array();
@@ -261,7 +261,7 @@ function FPLSimple($pagename, &$matches, $opt) {
   SDV($FPLSimpleEndFmt, "</ul>");
   SDV($FPLSimpleIFmt, "<li><a href='\$PageUrl'>\$FullName</a></li>");
   SDVA($FPLSimpleOpt, array('readf' => 0));
-  $topt['order'] = ($opt['trail']) ? '' : 'name';
+  $topt['order'] = (@$opt['trail']) ? '' : 'name';
   $matches = MakePageList($pagename, 
                  array_merge($topt, (array)$FPLSimpleOpt, $opt));
   if (@$opt['count']) array_splice($matches, $opt['count']);
