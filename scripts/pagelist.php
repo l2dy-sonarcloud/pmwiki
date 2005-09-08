@@ -305,7 +305,7 @@ function FPLGroup($pagename, &$matches, $opt) {
 ## Note that if the linkindex is incomplete then so is the returned list.
 function BacklinksTo($pagename, $incl=true) {
   global $LinkIndexFile;
-  if (!$LinkIndexFile) return;
+  if (!$LinkIndexFile) return array();
   StopWatch('BacklinksTo begin');
   $excl = ! $incl;
   $pagelist = array();
