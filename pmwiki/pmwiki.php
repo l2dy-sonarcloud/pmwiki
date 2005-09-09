@@ -146,10 +146,12 @@ $PageEndFmt = array('</div>',&$HTMLEndFmt);
 $HandleActions = array(
   'browse' => 'HandleBrowse',
   'edit' => 'HandleEdit', 'source' => 'HandleSource', 
-  'attr'=>'HandleAttr', 'postattr' => 'HandlePostAttr');
+  'attr' => 'HandleAttr', 'postattr' => 'HandlePostAttr',
+  'logout' => 'HandleLogoutA');
 $HandleAuth = array(
   'browse' => 'read', 'source' => 'read',
-  'edit' => 'edit', 'attr' => 'attr', 'postattr' => 'attr');
+  'edit' => 'edit', 'attr' => 'attr', 'postattr' => 'attr',
+  'logout' => 'read');
 $ActionTitleFmt = array(
   'edit' => '| $[Edit]',
   'attr' => '| $[Attributes]');
@@ -1306,7 +1308,6 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   exit;
 }
 
-
 function PrintAttrForm($pagename) {
   global $PageAttributes, $PCache, $FmtV;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
@@ -1383,4 +1384,18 @@ function HandlePostAttr($pagename, $auth = 'attr') {
   Redirect($pagename);
   exit;
 } 
+
+
+function HandleLogoutA($pagename, $auth = 'read') {
+  global $LogoutRedirectFmt;
+  @session_start();
+  $_SESSION = array();
+  if (isset($_COOKIE[session_name()]))
+    setcookie(session_name(), '', time()-43200, '/');
+  if (isset($_COOKIE['author']))
+    setcookie('author', '', time()-43200, '/');
+  session_destroy();
+  SDV($LogoutRedirectFmt, '$FullName');
+  Redirect(FmtPageName($LogoutRedirectFmt, $pagename));
+}
 
