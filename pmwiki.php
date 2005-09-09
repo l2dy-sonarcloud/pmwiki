@@ -41,6 +41,7 @@ $WikiDir = new PageStore('wiki.d/$FullName');
 $WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/$FullName'));
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",
   "$FarmD/local/farmmap.txt", 'local/localmap.txt');
+$Newline = "\263";                                 # deprecated, 2.0.0
 $KeepToken = "\235\235";  
 $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
@@ -560,7 +561,7 @@ class PageStore {
     return @$page;
   }
   function write($pagename,$page) {
-    global $Now, $Version, $Newline;
+    global $Now, $Version, $NewlineXXX;
     $page['name'] = $pagename;
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
@@ -577,7 +578,7 @@ class PageStore {
       $r0 = array('%', "\n", '<');
       $r1 = array('%25', '%0a', '%3c');
       $x = "version=$Version ordered=1 urlencoded=1\n";
-      if ($Newline) { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
+      if ($NewlineXXX) { $r1[1] = $NewlineXXX; $x .= "newline=$NewlineXXX\n"; }
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
         if ($k > '' && $k{0} != '=') {
@@ -1110,12 +1111,12 @@ function SaveAttributes($pagename,&$page,&$new) {
 
 function PostPage($pagename, &$page, &$new) {
   global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern, $EnablePost,
-    $Now, $Author, $WikiDir, $IsPagePosted, $Newline;
+    $Now, $Author, $WikiDir, $IsPagePosted, $NewlineXXX;
   SDV($DiffKeepDays,3650);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if ($EnablePost) {
-    if (@$Newline) $new['text'] = str_replace($Newline, "\n", $new['text']);
+    if (@$NewlineXXX) $new['text']=str_replace($NewlineXXX,"\n",$new['text']);
     if ($new['text']==@$page['text']) { $IsPagePosted=true; return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;
