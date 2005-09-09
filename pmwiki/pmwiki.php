@@ -46,7 +46,6 @@ $K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
-$Newline = "\263";
 $MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
@@ -531,7 +530,7 @@ class PageStore {
     return FmtPageName($dfmt, $pagename);
   }
   function read($pagename, $since=0) {
-    $newline = "\262";
+    $newline = '';
     $urlencoded = false;
     $pagefile = $this->pagefile($pagename);
     if ($pagefile && ($fp=@fopen($pagefile, "r"))) {
@@ -542,16 +541,19 @@ class PageStore {
         $line = rtrim($line);
         if ($urlencoded) $line = urldecode(str_replace('+', '%2b', $line));
         @list($k,$v) = explode('=', $line, 2);
-        if ($k == 'newline') { $newline = $v; continue; }
+        if (!$k) continue;
         if ($k == 'version') { 
           $ordered = (strpos($v, 'ordered=1') !== false); 
           $urlencoded = (strpos($v, 'urlencoded=1') !== false); 
+          if (strpos($v, 'pmwiki-0.')) $newline="\262";
         }
+        if ($k == 'newline') { $newline = $v; continue; }
         if ($since > 0 && preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
           if ($ordered) break;
           continue;
         }
-        if ($k) $page[$k] = str_replace($newline, "\n", $v);
+        if ($newline) $v = str_replace($newline, "\n", $v);
+        $page[$k] = $v;
       }
       fclose($fp);
     }
@@ -575,7 +577,7 @@ class PageStore {
       $r0 = array('%', "\n", '<');
       $r1 = array('%25', '%0a', '%3c');
       $x = "version=$Version ordered=1 urlencoded=1\n";
-      if ($Newline != "\263") { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
+      if ($Newline) { $r1[1] = $Newline; $x .= "newline=$Newline\n"; }
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
         if ($k > '' && $k{0} != '=') {
