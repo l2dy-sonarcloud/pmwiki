@@ -30,10 +30,10 @@
 
 # Let's set up an authorization prompt that includes usernames.
 SDV($AuthPromptFmt, array(&$PageStartFmt,
-  "<p><b>Password required</b></p>
+  "<p><b>$[Password required]</b></p>
     <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
-      Name: <input tabindex='1' type='text' name='authid' value='' /><br />
-      Password: <input tabindex='2' type='password' name='authpw' value='' />
+      $[Name]: <input tabindex='1' type='text' name='authid' value='' /><br />
+      $[Password]: <input tabindex='2' type='password' name='authpw' value='' />
       <input type='submit' value='OK' />\$PostVars</form>
       <script language='javascript'><!--
         document.authform.authid.focus() //--></script>", &$PageEndFmt));
