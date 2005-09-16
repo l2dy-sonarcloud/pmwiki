@@ -19,12 +19,15 @@
     'setprefs' cookie from the browser to load the preference settings.
 */
 
+SDV($PrefsCookie, $PmWikiCookie.'setprefs');
 SDV($PrefsCookieExpires, $Now + 60 * 60 * 24 * 365);
+$LogoutCookies[] = $PrefsCookie;
+
 $sp = '';
-if (@$_COOKIE['setprefs']) $sp = $_COOKIE['setprefs'];
+if (@$_COOKIE[$PrefsCookie]) $sp = $_COOKIE[$PrefsCookie];
 if (isset($_GET['setprefs'])) {
   $sp = $_GET['setprefs'];
-  setcookie('setprefs', $sp, $PrefsCookieExpires, '/');
+  setcookie($PrefsCookie, $sp, $PrefsCookieExpires, '/');
 }
 if ($sp && PageExists($sp)) XLPage('prefs', $sp);
 
