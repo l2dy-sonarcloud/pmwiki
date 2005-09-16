@@ -21,7 +21,7 @@
     button) are specified in their respective cookbook module.
 */
 
-$HTMLHeaderFmt[] = "<script language='javascript' 
+$HTMLHeaderFmt[] = "<script language='javascript' type='text/javascript'
   src='\$FarmPubDirUrl/guiedit/guiedit.js'></script>\n";
 
 SDV($GUIButtonDirUrlFmt,'$FarmPubDirUrl/guiedit');
