@@ -18,7 +18,7 @@
 
 global $HTTPHeaders, $KeepToken, $pagename,
   $GroupPattern, $NamePattern, $WikiWordPattern, $SuffixPattern,
-  $Author, $PageNameChars, $MakePageNamePatterns, $CaseConversions;
+  $PageNameChars, $MakePageNamePatterns, $CaseConversions;
 
 $HTTPHeaders[] = 'Content-type: text/html; charset=utf-8';
 
