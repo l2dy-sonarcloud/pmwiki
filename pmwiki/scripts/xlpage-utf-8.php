@@ -64,10 +64,6 @@ function utf8toupper($x) {
         $s+=$step; $t+=$step;
       }
     }
-    print "<pre>";
-    print_r($lower);
-    print_r($upper);
-    print "</pre>\n";
   }
   return str_replace($lower, $upper, $x);
 }
