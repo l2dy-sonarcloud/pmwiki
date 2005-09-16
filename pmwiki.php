@@ -84,6 +84,7 @@ $LinkPageCreateFmt =
 $UrlLinkFmt = 
   "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
 umask(002);
+$PmWikiCookie = '';
 $SiteGroup = 'Site';
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
@@ -1305,7 +1306,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
         $[Password]: <input tabindex='1' type='password' name='authpw' 
           value='' />
         <input type='submit' value='OK' />\$PostVars</form>
-        <script language='javascript'><!--
+        <script language='javascript' type='text/javascript'><!--
           document.authform.authpw.focus() //--></script>", &$PageEndFmt));
   PrintFmt($pagename,$AuthPromptFmt);
   exit;
@@ -1390,15 +1391,16 @@ function HandlePostAttr($pagename, $auth = 'attr') {
 
 
 function HandleLogoutA($pagename, $auth = 'read') {
-  global $LogoutRedirectFmt;
+  global $LogoutRedirectFmt, $LogoutCookies;
+  SDV($LogoutRedirectFmt, '$FullName');
+  SDV($LogoutCookies, array());
   @session_start();
   $_SESSION = array();
   if (isset($_COOKIE[session_name()]))
     setcookie(session_name(), '', time()-43200, '/');
-  if (isset($_COOKIE['author']))
-    setcookie('author', '', time()-43200, '/');
+  foreach ($LogoutCookies as $c)
+    if (isset($_COOKIE[$c])) setcookie($c, '', time()-43200, '/');
   session_destroy();
-  SDV($LogoutRedirectFmt, '$FullName');
   Redirect(FmtPageName($LogoutRedirectFmt, $pagename));
 }
 
