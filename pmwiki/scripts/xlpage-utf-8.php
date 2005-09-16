@@ -37,17 +37,6 @@ $WikiWordPattern =
   '[A-Z][A-Za-z0-9]*(?:[A-Z][a-z0-9]|[a-z0-9][A-Z])[A-Za-z0-9]*';
 $SuffixPattern = '(?:-?[[:alnum:]\\x80-\\xfe]+)*';
 
-if (!isset($Author)) {
-  if (isset($_POST['author'])) {
-    $Author = htmlspecialchars(stripmagic($_POST['author']),ENT_QUOTES);
-    setcookie('author',$Author,$AuthorCookieExpires,$AuthorCookieDir);
-  } else {
-    $Author = htmlspecialchars(stripmagic(@$_COOKIE['author']),ENT_QUOTES);
-  }
-  $Author = preg_replace('/(^[^[:alpha:]\\x80-\\xfe]+)|[^-\\w\\x80-\\xfe ]/',
-    '', $Author);
-}
-
 SDV($PageNameChars, '-[:alnum:]\\x80-\\xfe');
 SDV($MakePageNamePatterns, array(
     "/'/" => '',                           # strip single-quotes
