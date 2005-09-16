@@ -19,7 +19,7 @@
     'setprefs' cookie from the browser to load the preference settings.
 */
 
-SDV($PrefsCookie, $PmWikiCookie.'setprefs');
+SDV($PrefsCookie, $CookiePrefix.'setprefs');
 SDV($PrefsCookieExpires, $Now + 60 * 60 * 24 * 365);
 $LogoutCookies[] = $PrefsCookie;
 

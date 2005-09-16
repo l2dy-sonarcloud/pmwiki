@@ -9,7 +9,7 @@
 */
 
 SDV($AuthorNameChars, "- '\\w\\x80-\\xff");
-SDV($AuthorCookie, $PmWikiCookie.'author');
+SDV($AuthorCookie, $CookiePrefix.'author');
 SDV($AuthorCookieExpires,$Now+60*60*24*30);
 SDV($AuthorCookieDir,'/');
 SDV($AuthorGroup,'Profiles');
