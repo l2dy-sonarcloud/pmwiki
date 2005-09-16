@@ -35,7 +35,7 @@ SDV($AuthPromptFmt, array(&$PageStartFmt,
       $[Name]: <input tabindex='1' type='text' name='authid' value='' /><br />
       $[Password]: <input tabindex='2' type='password' name='authpw' value='' />
       <input type='submit' value='OK' />\$PostVars</form>
-      <script language='javascript'><!--
+      <script language='javascript' type='text/javascript'><!--
         document.authform.authid.focus() //--></script>", &$PageEndFmt));
 
 # This is a helper function called when someone meets the
