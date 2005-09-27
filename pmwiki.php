@@ -1367,14 +1367,16 @@ function HandlePostAttr($pagename, $auth = 'attr') {
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) { Abort("?unable to read $pagename"); }
   foreach($PageAttributes as $attr=>$p) {
-    $v = @$_POST[$attr];
+    $v = stripmagic(@$_POST[$attr]);
     if ($v == '') continue;
     if ($v=='clear') unset($page[$attr]);
     else if (strncmp($attr, 'passwd', 6) != 0) $page[$attr] = $v;
     else {
       $a = array();
-      foreach(preg_split('/\\s+/', $v, -1, PREG_SPLIT_NO_EMPTY) as $pw) 
-        $a[] = preg_match('/^\\w+:/', $pw) ? $pw : crypt($pw);
+      preg_match_all('/"[^"]*"|\'[^\']*\'|\\S+/', $v, $match);
+      foreach($match[0] as $pw) 
+        $a[] = preg_match('/^\\w+:/', $pw) ? $pw 
+                   : crypt(preg_replace('/^([\'"])(.*)\\1$/', '$2', $pw));
       if ($a) $page[$attr] = implode(' ',$a);
     }
   }
