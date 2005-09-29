@@ -56,6 +56,11 @@ function utf8toupper($x) {
 }
 
 SDV($CaseConversions, array(
+  'a' => 'A', 'b' => 'B', 'c' => 'C', 'd' => 'D', 'e' => 'E', 'f' => 'F',
+  'g' => 'G', 'h' => 'H', 'i' => 'I', 'j' => 'J', 'k' => 'K', 'l' => 'L',
+  'm' => 'M', 'n' => 'N', 'o' => 'O', 'p' => 'P', 'q' => 'Q', 'r' => 'R',
+  's' => 'S', 't' => 'T', 'u' => 'U', 'v' => 'V', 'w' => 'W', 'x' => 'X',
+  'y' => 'Y', 'z' => 'Z',
   "\xc3\xa0" => "\xc3\x80",  "\xc3\xa1" => "\xc3\x81",
   "\xc3\xa2" => "\xc3\x82",  "\xc3\xa3" => "\xc3\x83",
   "\xc3\xa4" => "\xc3\x84",  "\xc3\xa5" => "\xc3\x85",
