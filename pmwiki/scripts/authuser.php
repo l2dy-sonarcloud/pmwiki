@@ -78,9 +78,9 @@ foreach((array)($AuthUser['htpasswd']) as $f) {
 }
 
 # LDAP authentication.  
-if ($AuthUser['ldap'] &&
-    preg_match('!ldap://([^:]+)(?::(\d+))?/(.+)$!', 
-        $AuthUser['ldap'], $match)) {
+if ($AuthUser['ldap'] && $id && $pw 
+    && preg_match('!ldap://([^:]+)(?::(\d+))?/(.+)$!', 
+                  $AuthUser['ldap'], $match)) {
   list($z, $server, $port, $path) = $match;
   list($basedn, $attr, $sub) = explode('?', $path);
   if (!$port) $port=389;
