@@ -1075,6 +1075,7 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
   krsort($page); reset($page);
   foreach($page as $k=>$v) {
     if ($k<$restore) break;
+    if (strncmp($k, 'diff:', 5) != 0) continue;
     foreach(explode("\n",$v) as $x) {
       if (preg_match('/^(\\d+)(,(\\d+))?([adc])(\\d+)/',$x,$match)) {
         $a1 = $a2 = $match[1];
