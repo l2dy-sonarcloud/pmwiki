@@ -35,7 +35,7 @@ Markup('input', 'directives',
 
 function InputMarkup($pagename, $type, $args) {
   global $InputTags, $InputAttrs, $FmtV;
-  if (!$InputTags[$type]) return "(:input $type $args:)";
+  if (!@$InputTags[$type]) return "(:input $type $args:)";
   $opt = array_merge($InputTags[$type], ParseArgs($args));
   $args = @$opt[':args'];
   if (!$args) $args = array('name', 'value');
