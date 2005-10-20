@@ -276,7 +276,7 @@ if (!function_exists(@$HandleActions[$action])) $action='browse';
 SDV($HandleAuth[$action], 'read');
 $HandleActions[$action]($pagename, $HandleAuth[$action]);
 Lock(0);
-exit;
+return;
 
 ## helper functions
 function stripmagic($x) 
@@ -910,7 +910,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
     return '';
   $tgtname = MakePageName($pagename,$match[1]); 
-  $qf = str_replace('&amp;', '&', @$match[2]);
+  $qf = @$match[2];
   @$LinkTargets[$tgtname]++;
   if (!$fmt) {
     if (PageExists($tgtname)) 
