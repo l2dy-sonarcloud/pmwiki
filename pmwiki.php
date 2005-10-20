@@ -1171,7 +1171,7 @@ function PostRecentChanges($pagename,&$page,&$new) {
 
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved, $FmtV;
-  if (!$IsPageSaved && @$_POST['preview']) {
+  if (@$_POST['preview']) {
     $text = '(:groupheader:)'.$new['text'].'(:groupfooter:)';
     $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
   } 
