@@ -11,8 +11,6 @@ Markup('%%','style','%','return ApplyStyles($x);');
 ## restore links before applying styles
 Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
   '$GLOBALS[\'KPV\'][\'$1\']');
-## Place a closing %% at the end of any line with a (possible) WikiStyle in it
-#Markup('%%$','<block','/([^%]%[^%]+?)$/','$1 %%');
 
 # define PmWiki's standard/default wikistyles
 if (IsEnabled($EnableStdWikiStyles,1)) {
@@ -74,7 +72,11 @@ SDVA($WikiStyleAttr,array(
   'accesskey' => 'a',
   'rel' => 'a'));
 
-SDVA($WikiStyleRepl,array('/\\bbgcolor([:=])/' => 'background-color$1'));
+SDVA($WikiStyleRepl,array(
+  '/^%(.*)%$/' => '$1',
+  '/\\bbgcolor([:=])/' => 'background-color$1',
+  '/\\b(\d+)pct\\b/' => '$1%',
+  ));
 
 $WikiStyleCSS[] = 'color|background-color';
 $WikiStyleCSS[] = 'text-align|text-decoration';
@@ -95,8 +97,9 @@ function ApplyStyles($x) {
       $WikiStyle['curr']=$style; $style=array();
       foreach((array)$WikiStyleRepl as $pat=>$rep) 
         $p=preg_replace($pat,$rep,$p);
-      preg_match_all('/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w.()]+|([\'"]).*?\\4))?/',
-        $p,$match,PREG_SET_ORDER);
+      preg_match_all(
+        '/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w.()%]+|([\'"]).*?\\4))?/',
+        $p, $match, PREG_SET_ORDER);
       while ($match) {
         $m = array_shift($match);
         if (@$m[2]) $style[$m[1]]=preg_replace('/^([\'"])(.*)\\1$/','$2',$m[3]);
