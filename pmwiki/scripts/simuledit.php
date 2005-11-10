@@ -12,8 +12,8 @@
 */
 
 array_unshift($EditFunctions,'MergeSimulEdits');
-$HTMLStylesFmt[] = ".editconflict { color:green; font-style:italic; 
-  margin-top:1.33em; margin-bottom:1.33em; }\n";
+$HTMLStylesFmt['simuledit'] = ".editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }\n";
 
 function Merge($newtext,$oldtext,$pagetext) {
   global $WorkDir,$SysMergeCmd;

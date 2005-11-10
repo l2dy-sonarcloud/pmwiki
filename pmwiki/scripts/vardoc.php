@@ -22,7 +22,7 @@ Markup('varindex', 'directives',
   '/\\(:varindex:\\)/ei',
   "Keep(VarIndexList(\$pagename))");
 
-$HTMLStylesFmt[] = "a.varlink { text-decoration:none; }\n";
+$HTMLStylesFmt['vardoc'] = "a.varlink { text-decoration:none; }\n";
 
 function VarLink($pagename,$tgt,$txt) {
   global $VarIndex,$FmtV,$VarLinkMissingFmt,$VarLinkExistsFmt;
