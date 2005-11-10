@@ -3,7 +3,7 @@
 ##  local/config.php, then edit it for whatever customizations you want.
 ##  Also, be sure to take a look at http://www.pmichaud.com/wiki/Cookbook
 ##  for more details on the types of customizations that can be added
-##  to PmWiki.
+##  to PmWiki.  
 
 ##  $WikiTitle is the name that appears in the browser's title bar.
 $WikiTitle = 'PmWiki';
@@ -48,10 +48,6 @@ $WikiTitle = 'PmWiki';
 # $EnableUpload = 1;                       
 # $DefaultPasswords['upload'] = crypt('secret');
 
-##  Set $LinkWikiWords to zero if you don't want WikiWord links (i.e.,
-##  all links are made using [[...]].
-# $LinkWikiWords = 0;                      # disable WikiWord links
-
 ##  Setting $EnableDiag turns on the ?action=diag and ?action=phpinfo
 ##  actions, which often helps the PmWiki authors to troubleshoot 
 ##  various configuration and execution problems.
@@ -66,6 +62,9 @@ $WikiTitle = 'PmWiki';
 ##  Set $SpaceWikiWords if you want WikiWords to automatically 
 ##  have spaces before each sequence of capital letters.
 # $SpaceWikiWords = 1;                     # turn on WikiWord spacing
+
+##  Set $LinkWikiWords if you want to allow WikiWord links.
+# $LinkWikiWords = 1;                      # enable WikiWord links
 
 ##  If you want only the first occurrence of a WikiWord to be converted
 ##  to a link, set $WikiWordCountMax=1.
