@@ -116,6 +116,7 @@ function BlockUnapprovedPosts($pagename, &$page, &$new) {
     $UnapprovedLinkCountMax, $EnablePost, $MessagesFmt, $BlockMessageFmt;
   if (!IsEnabled($EnableUrlApprovalRequired, 1)) return;
   if ($UnapprovedLinkCount <= $UnapprovedLinkCountMax) return;
+  if ($page['=auth']['admin']) return;
   $EnablePost = 0;
   $MessagesFmt[] = $BlockMessageFmt;
 }
