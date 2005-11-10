@@ -782,7 +782,6 @@ function IncludeText($pagename, $inclspec) {
       if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/", $match[2], $m)) {
         @list($x, $aa, $dots, $b, $bb) = $m;
         if (!$dots && !$b) $bb = $npat;
-        if ($b == '#') $bb = $npat;
         if ($aa)
           $itext=preg_replace("/^.*?([^\n]*\\[\\[#$aa\\]\\])/s",'$1',$itext,1);
         if ($bb)
