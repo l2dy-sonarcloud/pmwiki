@@ -68,7 +68,7 @@ function SearchBox($pagename, $opt) {
   SDVA($SearchBoxOpt, array('size' => '40', 
     'label' => FmtPageName('$[Search]', $pagename),
     'group' => @$_REQUEST['group'],
-    'value' => $SearchQuery));
+    'value' => str_replace("'", "&#039;", $SearchQuery)));
   $opt = array_merge((array)$SearchBoxOpt, (array)$opt);
   $group = $opt['group'];
   $out[] = FmtPageName("
