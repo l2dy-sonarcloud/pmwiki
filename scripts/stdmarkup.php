@@ -227,8 +227,16 @@ Markup('`wikiword', '<wikilink',
   "Keep('$1')");
 
 #### Block markups ####
-## process any <:...> markup
+## Completely blank lines don't do anything.
+Markup('blank', '<block', '/^\\s+$/', '');
+
+## process any <:...> markup (after all other block markups)
 Markup('^<:','>block','/^(?=\\s*\\S)(<:([^>]+)>)?/e',"Block('$2')");
+
+## unblocked lines w/block markup become anonymous <:block>
+Markup('^!<:', '<^<:',
+  '/^(?!<:)(?=.*<\\/?(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
+  '<:block>');
 
 ## Lines that begin with displayed images receive their own block.  A
 ## pipe following the image indicates a "caption" (generates a linebreak).
@@ -237,10 +245,24 @@ Markup('^img', 'block',
   "PSS((strpos(\$GLOBALS['KPV']['$3'],'<img')===false) ? '$0' : 
        '<:block,1><div>$1' . ('$4' ? '<br />' : '') .'$5</div>')");
 
-# unblocked lines w/block markup become anonymous <:block>
-Markup('^!<:', '<^<:',
-  '/^(?!<:)(?=.*<\\/?(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
-  '<:block>');
+## Whitespace at the beginning of lines can be used to maintain the
+## indent level of a previous list item, or a preformatted text block.
+Markup('^ws', '<^img', '/^(\\s+)/e', "WSIndent('$1')");
+function WSIndent($i) {
+  global $MarkupFrame;
+  $icol = strlen($i);
+  for($depth = count(@$MarkupFrame[0]['cs']); $depth > 0; $depth--)
+    if (@$MarkupFrame[0]['is'][$depth] == $icol) {
+      $MarkupFrame[0]['idep'] = $depth;
+      $MarkupFrame[0]['icol'] = $icol;
+      return '';
+    }
+  return "<:pre,1>$i";
+}
+
+## If the ^ws rule is disabled, then leading whitespace is a
+## preformatted text block.
+Markup('^ ','block','/^(\\s)/','<:pre,1>$1');
 
 ## bullet lists
 Markup('^*','block','/^(\\*+)\\s?(\\s*)/','<:ul,$1,$0>$2');
@@ -254,12 +276,6 @@ Markup('^-<','block','/^(?>(-+))&lt;\\s?(\\s*)/','<:outdent,$1,$1  $2>$2');
 
 ## definition lists
 Markup('^::','block','/^(:+)(\s*)([^:]+):/','<:dl,$1,$1$2><dt>$2$3</dt><dd>');
-
-## preformatted text
-Markup('^ ','block','/^(\\s)/','<:pre,1>$1');
-
-## blank lines
-Markup('blank', '<^ ', '/^\\s+$/', '');
 
 ## Q: and A:
 Markup('^Q:', 'block', '/^Q:(.*)$/', "<:block,1><p class='question'>$1</p>");
