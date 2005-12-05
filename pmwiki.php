@@ -114,10 +114,11 @@ $FmtP = array(
   );
 
 $WikiTitle = 'PmWiki';
+$Charset = 'ISO-8859-1';
 $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
   "Cache-Control: no-store, no-cache, must-revalidate",
-  "Content-type: text/html; charset=iso-8859-1;");
+  "Content-type: text/html; charset=ISO-8859-1;");
 $CacheActions = array('browse','diff','print');
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
@@ -525,7 +526,9 @@ function CmpPageAttr($a, $b) {
 ## filesystem.
 class PageStore {
   var $dirfmt;
-  function PageStore($d='$WorkDir/$FullName') { $this->dirfmt=$d; }
+  var $iswrite;
+  function PageStore($d='$WorkDir/$FullName', $w=0) 
+    { $this->dirfmt=$d; $this->iswrite=$w; }
   function pagefile($pagename) {
     global $FarmD;
     $dfmt = $this->dirfmt;
@@ -654,8 +657,14 @@ function ReadPage($pagename, $since=0) {
 }
 
 function WritePage($pagename,$page) {
-  global $WikiDir,$LastModFile;
-  $WikiDir->write($pagename,$page);
+  global $WikiLibDirs,$WikiDir,$LastModFile;
+  $WikiDir->iswrite = 1;
+  for($i=0; $i<count($WikiLibDirs); $i++) {
+    $wd = &$WikiLibDirs[$i];
+    if ($wd->iswrite && $wd->exists($pagename)) break;
+  }
+  if ($i >= count($WikiLibDirs)) $wd = &$WikiDir;
+  $wd->write($pagename,$page);
   if ($LastModFile && !@touch($LastModFile)) 
     { unlink($LastModFile); touch($LastModFile); fixperms($LastModFile); }
 }
@@ -807,8 +816,8 @@ function IncludeText($pagename, $inclspec) {
       $upat = ($k{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*\n";
       if (!$dots) { $b=$a; $a=0; }
       if ($a>0) $a--;
-      $itext=preg_replace("/^(($upat)\{0,$b}).*$/s",'$1',$itext,1);
-      $itext=preg_replace("/^($upat)\{0,$a}/s",'',$itext,1);
+      $itext=preg_replace("/^(($upat){0,$b}).*$/s",'$1',$itext,1);
+      $itext=preg_replace("/^($upat){0,$a}/s",'',$itext,1);
       continue;
     }
   }
@@ -1017,7 +1026,7 @@ function MarkupToHTML($pagename,$text) {
   foreach((array)$text as $l) 
     $lines[] = PVS(htmlspecialchars($l, ENT_NOQUOTES));
   $lines[] = '(:closeall:)';
-  $out = array();
+  $out = '';
   while (count($lines)>0) {
     $x = array_shift($lines);
     $RedoMarkupLine=0;
@@ -1027,9 +1036,8 @@ function MarkupToHTML($pagename,$text) {
       if (isset($php_errormsg)) { echo "pat=$p"; unset($php_errormsg); }
       if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
     }
-    if ($x>'') $out[] = "$x\n";
+    if ($x>'') $out .= "$x\n";
   }
-  $out = implode('',(array)$out);
   foreach((array)(@$MarkupFrame[0]['posteval']) as $v) eval($v);
   array_shift($MarkupFrame);
   StopWatch('MarkupToHTML end');
@@ -1274,7 +1282,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     $passwd[$k] = isset($page["passwd$k"]) 
       ? NormalizeAuth($page["passwd$k"], 'page')
       : $grouppasswd[$groupattr][$k];
-    $page['=pwsource'][$k] = $passwd[$k]['=pwsource'];  
+    $page['=pwsource'][$k] = @$passwd[$k]['=pwsource'];  
     unset($passwd[$k]['=pwsource']);
   }
   $page['=passwd'] = $passwd;
