@@ -37,8 +37,8 @@ define('PmWiki',1);
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
-$WikiDir = new PageStore('wiki.d/$FullName');
-$WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/$FullName'));
+$WikiDir = new PageStore('wiki.d/{$FullName}');
+$WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/{$FullName}'));
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",
   "$FarmD/local/farmmap.txt", 'Site.InterMap', 'local/localmap.txt');
 $Newline = "\263";                                 # deprecated, 2.0.0
@@ -60,9 +60,9 @@ $LinkWikiWords = 0;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   '$SiteGroup.AllRecentChanges' => 
-    '* [[$Group.$Name]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]',
+    '* [[{$Group}.{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]',
   '$Group.RecentChanges' =>
-    '* [[$Group/$Name]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
+    '* [[{$Group}/{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
 $DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
@@ -79,8 +79,8 @@ $SuffixPattern = '(?:-?[[:alnum:]]+)*';
 $LinkPageSelfFmt = "<a class='selflink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageExistsFmt = "<a class='wikilink' href='\$LinkUrl'>\$LinkText</a>";
 $LinkPageCreateFmt = 
-  "<a class='createlinktext' href='\$PageUrl?action=edit'>\$LinkText</a><a 
-    class='createlink' href='\$PageUrl?action=edit'>?</a>";
+  "<a class='createlinktext' href='{\$PageUrl}?action=edit'>\$LinkText</a><a 
+    class='createlink' href='{\$PageUrl}?action=edit'>?</a>";
 $UrlLinkFmt = 
   "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
 umask(002);
@@ -88,9 +88,9 @@ $CookiePrefix = '';
 $SiteGroup = 'Site';
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$GroupHeaderFmt = '(:include $Group.GroupHeader:)(:nl:)';
-$GroupFooterFmt = '(:nl:)(:include $Group.GroupFooter:)';
-$PagePathFmt = array('$Group.$1','$1.$1','$1.$DefaultName');
+$GroupHeaderFmt = '(:include {$Group}.GroupHeader:)(:nl:)';
+$GroupFooterFmt = '(:nl:)(:include {$Group}.GroupFooter:)';
+$PagePathFmt = array('{$Group}.$1','$1.$1','$1.{$DefaultName}');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
   'passwdedit' => '$[Set new edit password:]',
@@ -98,19 +98,33 @@ $PageAttributes = array(
 $XLLangs = array('en');
 if (preg_match('/^C$|\.UTF-?8/i',setlocale(LC_ALL,0)))
   setlocale(LC_ALL,'en_US');
-$FmtP = array(
-  '/\\$PageUrl/' => '$ScriptUrl/$Group/$Name',
-  '/\\$FullName/' => '$Group.$Name',
-  '/\\$Titlespaced/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : \'$Namespaced\'',
-  '/\\$Title/e' => '(@$PCache[$pagename]["title"]) ? $PCache[$pagename]["title"] : (($GLOBALS["SpaceWikiWords"]) ? \'$Namespaced\' : \'$Name\')',
-  '/\\$Groupspaced/e' => '$AsSpacedFunction(@$match[1])',
-  '/\\$Group/e' => '@$match[1]',
-  '/\\$Namespaced/e' => '$AsSpacedFunction(@$match[2])',
-  '/\\$Name/e' => '@$match[2]',
-  '/\\$LastModifiedBy/e' => '@$PCache[$pagename]["author"]',
-  '/\\$LastModifiedHost/e' => '@$PCache[$pagename]["host"]',
-  '/\\$LastModified/e' => 
-    'strftime($GLOBALS["TimeFmt"],$PCache[$pagename]["time"])',
+$FmtP = array();
+$FmtPV = array(
+  # '$ScriptUrl'    => 'PUE($ScriptUrl)',   ## $ScriptUrl is special
+  '$PageUrl'      => 
+    'PUE(($EnablePathInfo) 
+         ? "$ScriptUrl/$group/$name"
+         : "$ScriptUrl?n=$group.$name")',
+  '$FullName'     => '$pn',
+  '$Groupspaced'  => '$AsSpacedFunction($group)',
+  '$Namespaced'   => '$AsSpacedFunction($name)',
+  '$Group'        => '$group',
+  '$Name'         => '$name',
+  '$Titlespaced'  => 
+    '@$page["title"] ? $page["title"] : $AsSpacedFunction($name)',
+  '$Title'        => 
+    '@$page["title"] ? $page["title"] : ($GLOBALS["SpaceWikiWords"]
+       ? $AsSpacedFunction($name) : $name)',
+  '$LastModifiedBy' => '$page["author"]',
+  '$LastModifiedHost' => '$page["host"]',
+  '$LastModified' => 'strftime($GLOBALS["TimeFmt"], $page["time"])',
+  '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
+  '$VersionNum'   => '$GLOBALS["VersionNum"]',
+  '$Version'      => '$GLOBALS["Version"]',
+  '$Author'       => '$GLOBALS["Author"]',
+  '$AuthId'       => '$GLOBALS["AuthId"]',
+  '$DefaultGroup' => '$GLOBALS["DefaultGroup"]',
+  '$DefaultName'  => '$GLOBALS["DefaultName"]',
   );
 
 $WikiTitle = 'PmWiki';
@@ -163,13 +177,15 @@ $AuthList = array('' => 1, 'nopass:' => 1);
 
 $Conditions['false'] = '$condparm > "" ? !$GLOBALS[$condparm] : false';
 $Conditions['true'] = '$condparm > "" ? (boolean)$GLOBALS[$condparm] : true';
-$Conditions['group'] = "FmtPageName('\$Group',\$pagename)==\$condparm";
-$Conditions['name'] = "FmtPageName('\$Name',\$pagename)==\$condparm";
+$Conditions['group'] = "PageVar(\$pagename, '\$Group') == \$condparm";
+$Conditions['name'] = "PageVar(\$pagename, '\$Name') == \$condparm";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['auth'] =
   '@$GLOBALS["PCache"][$GLOBALS["pagename"]]["=auth"][trim($condparm)]';
 $Conditions['authid'] = '@$GLOBALS["AuthId"] > ""';
-$Conditions['enabled'] = '(boolean)@$GLOBALS[$condparm]';
+$Conditions['equal'] = 'CompareArgs($condparm) == 0';
+function CompareArgs($arg) 
+  { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
 
 $MarkupTable['_begin']['seq'] = 'B';
 $MarkupTable['_end']['seq'] = 'E';
@@ -293,7 +309,8 @@ function PSS($x)
 function PVS($x) 
   { return preg_replace("/\n[^\\S\n]*(?=\n)/", "\n<:vspace>", $x); }
 function PZZ($x,$y='') { return ''; }
-function PRR($x='') { $GLOBALS['RedoMarkupLine']++; return $x; }
+function PRR($x=NULL) 
+  { if ($x || is_null($x)) $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
   { return preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $x); }
 function PQA($x) { 
@@ -381,7 +398,7 @@ function mkdirp($dir) {
     before it can continue.  You can create the directory manually 
     by executing the following commands on your server:
     <pre>    mkdir $parent/$dir\n    chmod 777 $parent/$dir</pre>
-    Then, <a href='$ScriptUrl'>reload this page</a>.";
+    Then, <a href='{$ScriptUrl}'>reload this page</a>.";
   $safemode = ini_get('safe_mode');
   if (!$safemode) $msg .= "<br /><br />Or, for a slightly more 
     secure installation, try executing <pre>    chmod 2777 $parent</pre> 
@@ -436,29 +453,52 @@ function MakePageName($basepage,$x) {
 
 ## PCache caches basic information about a page and its attributes--
 ## usually everything except page text and page history.  This makes
-## for quicker access to certain values in FmtPageName below.
-function PCache($pagename,$page) {
+## for quicker access to certain values in PageVar below.
+function PCache($pagename, &$page) {
   global $PCache;
   foreach($page as $k=>$v) 
     if ($k!='text' && strpos($k,':')===false) $PCache[$pagename][$k]=$v;
 }
 
+function PageVar($pagename, $var, $pn = '') {
+  global $Cursor, $PCache, $FmtPV, $AsSpacedFunction, $ScriptUrl,
+    $EnablePathInfo;
+  if ($var == '$ScriptUrl') return PUE($ScriptUrl);
+  if ($pn) {
+    $pn = isset($Cursor[$pn]) ? $Cursor[$pn] : MakePageName($pagename, $pn);
+  } else $pn = $pagename;
+  if (!$pn) return '';
+  list($group, $name) = explode('.', $pn);
+  if (!isset($PCache[$pn]) 
+      && (!@$FmtPV[$var] || strpos('$page', $FmtPV[$var]) !== false)) {
+    PCache($pn, ReadPage($pn, READPAGE_CURRENT));
+  }
+  $page = &$PCache[$pn];
+  if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
+  return '';
+  #return @$page[substr($var, 1)];
+}
   
 ## FmtPageName handles $[internationalization] and $Variable 
 ## substitutions in strings based on the $pagename argument.
-function FmtPageName($fmt, $pagename, $pc=0) {
+function FmtPageName($fmt, $pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern, $NamePattern, $EnablePathInfo, $ScriptUrl,
-    $GCount, $UnsafeGlobals, $FmtV, $FmtP, $PCache, $AsSpacedFunction;
-  if ($pc && !isset($PCache[$pagename]))
-    PCache($pagename, ReadPage($pagename, READPAGE_CURRENT));
+    $GCount, $UnsafeGlobals, $FmtV, $FmtP, $FmtPV, $PCache, $AsSpacedFunction;
   if (strpos($fmt,'$')===false) return $fmt;                  
   $fmt = preg_replace('/\\$([A-Z]\\w*Fmt)\\b/e','$GLOBALS[\'$1\']',$fmt);
   $fmt = preg_replace('/\\$\\[(?>([^\\]]+))\\]/e',"XL(PSS('$1'))",$fmt);
-  $match = array('','$Group','$Name');
-  if (preg_match("/^($GroupPattern)[\\/.]($NamePattern)\$/", $pagename, $m))
-    $match = $m;
-  $fmt = preg_replace(array_keys($FmtP),array_values($FmtP),$fmt);
+  $fmt = str_replace('{$ScriptUrl}', '$ScriptUrl', $fmt);
+  $fmt = 
+    preg_replace('/\\{(\\$[A-Z]\\w+)\\}/e', "PageVar(\$pagename, '$1')", $fmt);
+  if (strpos($fmt,'$')===false) return $fmt;
+  if ($FmtP) $fmt = preg_replace(array_keys($FmtP), array_values($FmtP), $fmt);
+  static $pv, $pvpat;
+  if ($pv != count($FmtPV)) {
+    $pvpat = str_replace('$', '\\$', implode('|', array_keys($FmtPV)));
+    $pv = count($FmtPV);
+  }
+  $fmt = preg_replace("/(?:$pvpat)\\b/e", "PageVar(\$pagename, '$0')", $fmt);
   $fmt = preg_replace('!\\$ScriptUrl/([^?#\'"\\s<>]+)!e', 
     (@$EnablePathInfo) ? "'$ScriptUrl/'.PUE('$1')" :
         "'$ScriptUrl?n='.str_replace('/','.',PUE('$1'))",
@@ -534,11 +574,11 @@ class PageStore {
     $dfmt = $this->dirfmt;
     if ($pagename > '') {
       $pagename = str_replace('/', '.', $pagename);
-      if ($dfmt == 'wiki.d/$FullName')                 # optimizations for
+      if ($dfmt == 'wiki.d/{$FullName}')               # optimizations for
         return "wiki.d/$pagename";                     # standard locations
-      if ($dfmt == '$FarmD/wikilib.d/$FullName')       # 
+      if ($dfmt == '$FarmD/wikilib.d/{$FullName}')     # 
         return "$FarmD/wikilib.d/$pagename";           #
-      if ($dfmt == 'wiki.d/$Group/$FullName')
+      if ($dfmt == 'wiki.d/{$Group}/{$FullName}')
         return preg_replace('/([^.]+).*/', 'wiki.d/$1/$0', $pagename);
     }
     return FmtPageName($dfmt, $pagename);
@@ -574,7 +614,7 @@ class PageStore {
     return @$page;
   }
   function write($pagename,$page) {
-    global $Now, $Version, $NewlineXXX;
+    global $Now, $Version;
     $page['name'] = $pagename;
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
@@ -591,7 +631,6 @@ class PageStore {
       $r0 = array('%', "\n", '<');
       $r1 = array('%25', '%0a', '%3c');
       $x = "version=$Version ordered=1 urlencoded=1\n";
-      if ($NewlineXXX) { $r1[1] = $NewlineXXX; $x .= "newline=$NewlineXXX\n"; }
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
         if ($k > '' && $k{0} != '=') {
@@ -621,7 +660,7 @@ class PageStore {
     global $GroupPattern, $NamePattern;
     $pats=(array)$pats; 
     array_unshift($pats, "/^$GroupPattern\.$NamePattern$/");
-    $dir = $this->pagefile('');
+    $dir = $this->pagefile('$Group.$Name');
     $dirlist = array(preg_replace('!/*[^/]*\\$.*$!','',$dir));
     $out = array();
     while (count($dirlist)>0) {
@@ -652,7 +691,8 @@ function ReadPage($pagename, $since=0) {
     $page = $dir->read($pagename, $since);
     if ($page) break;
   }
-  if (@!$page['time']) $page['time']=$Now;
+  if (@!$page) $page['ctime'] = $Now;
+  if (@!$page['time']) $page['time'] = $Now;
   return $page;
 }
 
@@ -945,7 +985,7 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     else $fmt=$LinkPageCreateFmt;
   }
   $fmt = str_replace(array('$LinkUrl', '$LinkText'),
-           array(PUE(FmtPageName("\$PageUrl$qf",$tgtname)), $txt), $fmt);
+           array(PageVar($tgtname, '$PageUrl').PUE($qf), $txt), $fmt);
   return FmtPageName($fmt,$tgtname);
 }
 
@@ -1014,7 +1054,7 @@ function BuildMarkupRules() {
 }
 
 
-function MarkupToHTML($pagename,$text) {
+function MarkupToHTML($pagename, $text, $escape = true) {
   # convert wiki markup text to HTML output
   global $MarkupRules, $MarkupFrame, $MarkupFrameBase, $WikiWordCount,
     $K0, $K1, $RedoMarkupLine;
@@ -1024,7 +1064,7 @@ function MarkupToHTML($pagename,$text) {
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) 
-    $lines[] = PVS(htmlspecialchars($l, ENT_NOQUOTES));
+    $lines[] = ($escape) ? PVS(htmlspecialchars($l, ENT_NOQUOTES)) : $l;
   $lines[] = '(:closeall:)';
   $out = '';
   while (count($lines)>0) {
@@ -1052,7 +1092,7 @@ function HandleBrowse($pagename, $auth = 'read') {
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
-    <a href='\$PageUrl?action=edit'>\$FullName</a>)</i></p>\$HTMLVSpace\n");
+    <a href='{\$PageUrl}?action=edit'>{\$FullName}</a>)</i></p>\$HTMLVSpace\n");
   if (isset($page['text'])) $text=$page['text'];
   else $text = FmtPageName($DefaultPageTextFmt,$pagename);
   if (@!$_GET['from']) {
@@ -1143,7 +1183,7 @@ function SaveAttributes($pagename,&$page,&$new) {
   $new['targets'] = implode(',',array_keys((array)$LinkTargets));
   $p = & $PCache[$pagename];
   foreach(array('title', 'description', 'keywords') as $k) {
-    if ($p["=$k"]) $new[$k] = implode("\n", (array)$p["=$k"]);
+    if (@$p["=$k"]) $new[$k] = implode("\n", (array)$p["=$k"]);
     else unset($new[$k]);
   }
   if ($SaveAttrExcerptLength) 
@@ -1153,12 +1193,11 @@ function SaveAttributes($pagename,&$page,&$new) {
 
 function PostPage($pagename, &$page, &$new) {
   global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern, $EnablePost,
-    $Now, $Author, $WikiDir, $IsPagePosted, $NewlineXXX;
+    $Now, $Author, $WikiDir, $IsPagePosted;
   SDV($DiffKeepDays,3650);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
   if ($EnablePost) {
-    if (@$NewlineXXX) $new['text']=str_replace($NewlineXXX,"\n",$new['text']);
     if ($new['text']==@$page['text']) { $IsPagePosted=true; return; }
     $new["author"]=@$Author;
     $new["author:$Now"] = @$Author;

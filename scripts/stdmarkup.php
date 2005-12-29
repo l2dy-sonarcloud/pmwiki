@@ -41,12 +41,10 @@ Markup('$[phrase]', '>[=',
   '/\\$\\[(?>([^\\]]+))\\]/e', "XL(PSS('$1'))");
 
 # {$var} substitutions
-Markup('{$fmt}','>$[phrase]',
-  '/{\\$((Group|Name|Title)(spaced)?|LastModified(By|Host)?|FullName)}/e',
-  "FmtPageName('$$1',\$pagename)");
-Markup('{$var}','>{$fmt}',
-  '/{\\$(Version(Num)?|Auth(or|Id|Needed)|UrlPage|Default(Name|Group)|SiteGroup)}/e',
-  "\$GLOBALS['$1']");
+Markup('{$var}', '>$[phrase]',
+  '/\\{(!?[-\\w.\\/]*)(\\$\\w+)\\}/e', 
+  "htmlspecialchars(PageVar(\$pagename, '$2', '$1'), ENT_NOQUOTES)");
+
 Markup('if', 'fulltext',
   "/\\(:(if[^\n]*?):\\)(.*?)(?=\\(:if[^\n]*?:\\)|$)/sei",
   "CondText(\$pagename,PSS('$1'),PSS('$2'))");
@@ -54,7 +52,7 @@ Markup('if', 'fulltext',
 ## (:include:)
 Markup('include', '>if',
   '/\\(:include\\s+(\\S.*?):\\)/ei',
-  "PRR().IncludeText(\$pagename, '$1')");
+  "PRR(IncludeText(\$pagename, '$1'))");
 
 $SaveAttrPatterns['/\\(:(if|include\\s).*?:\\)/i'] = ' ';
 
@@ -67,10 +65,10 @@ Markup('nogroupfooter', '>include',
   "PZZ(\$GLOBALS['GroupFooterFmt']='')");
 Markup('groupheader', '>nogroupheader',
   '/\\(:groupheader:\\)/ei',
-  "PRR().FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename)");
+  "PRR(FmtPageName(\$GLOBALS['GroupHeaderFmt'],\$pagename))");
 Markup('groupfooter','>nogroupfooter',
   '/\\(:groupfooter:\\)/ei',
-  "PRR().FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename)");
+  "PRR(FmtPageName(\$GLOBALS['GroupFooterFmt'],\$pagename))");
 
 ## (:nl:)
 Markup('nl0','<split',"/([^\n])(?>(?:\\(:nl:\\))+)([^\n])/i","$1\n$2");
@@ -362,19 +360,19 @@ Markup('^>><<', '<^>>',
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
-function MarkupMarkup($pagename, $lead, $text) {
-  return "$lead(:divend:)" .
+function MarkupMarkup($pagename, $text) {
+  return "(:divend:)" .
     Keep("<table class='markup' align='center'><tr><td class='markup1'><pre>" .
       wordwrap($text, 70) .  "</pre></td></tr><tr><td class='markup2'>") .
     "\n$text\n(:divend:)</td></tr></table>\n";
 }
 
 Markup('markup', '<[=',
-  "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\\[([=@])(.*?)\\2\\]/seim",
-  "MarkupMarkup(\$pagename, '$1', PSS('$3'))");
+  "/\\(:markup:\\)[^\\S\n]*\\[([=@])(.*?)\\1\\]/sei",
+  "MarkupMarkup(\$pagename, PSS('$2'))");
 Markup('markupend', '>markup',
-  "/(^|\\(:nl:\\))\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/seim",
-  "MarkupMarkup(\$pagename, '$1', PSS('$2'))");
+  "/\\(:markup:\\)[^\\S\n]*\n(.*?)\\(:markupend:\\)/sei",
+  "MarkupMarkup(\$pagename, PSS('$1'))");
 
 $HTMLStylesFmt['markup'] = "
   table.markup { border: 2px dotted #ccf; width:90%; }
