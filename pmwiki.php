@@ -175,8 +175,9 @@ $DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
 $AuthCascade = array('edit'=>'read', 'attr'=>'edit');
 $AuthList = array('' => 1, 'nopass:' => 1);
 
-$Conditions['false'] = '$condparm > "" ? !$GLOBALS[$condparm] : false';
-$Conditions['true'] = '$condparm > "" ? (boolean)$GLOBALS[$condparm] : true';
+$Conditions['enabled'] = '(boolean)@$GLOBALS[$condparm]';
+$Conditions['false'] = 'false';
+$Conditions['true'] = 'true';
 $Conditions['group'] = "PageVar(\$pagename, '\$Group') == \$condparm";
 $Conditions['name'] = "PageVar(\$pagename, '\$Name') == \$condparm";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
@@ -470,7 +471,7 @@ function PageVar($pagename, $var, $pn = '') {
   if (!$pn) return '';
   list($group, $name) = explode('.', $pn);
   if (!isset($PCache[$pn]) 
-      && (!@$FmtPV[$var] || strpos('$page', $FmtPV[$var]) !== false)) {
+      && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) {
     PCache($pn, ReadPage($pn, READPAGE_CURRENT));
   }
   $page = &$PCache[$pn];
