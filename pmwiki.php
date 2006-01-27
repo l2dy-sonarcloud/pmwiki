@@ -28,7 +28,10 @@
 error_reporting(E_ALL ^ E_NOTICE);
 StopWatch('PmWiki');
 if (ini_get('register_globals')) 
-  foreach($_REQUEST as $k=>$v) { unset(${$k}); }
+  foreach($_REQUEST as $k=>$v) { 
+    if (preg_match('/^(GLOBALS|_SERVER|_GET|_POST|_COOKIE|_FILES|_ENV|_REQUEST|_SESSION)$/i', $k)) exit();
+    unset(${$k}); 
+  }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
@@ -63,7 +66,6 @@ $RecentChangesFmt = array(
     '* [[{$Group}.{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]',
   '$Group.RecentChanges' =>
     '* [[{$Group}/{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
-$DefaultPageTextFmt = '$[Describe $Name here.]';
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
 $HTMLVSpace = "<p class='vspace'></p>";
@@ -106,7 +108,7 @@ $FmtPV = array(
     'PUE(($EnablePathInfo) 
          ? "$ScriptUrl/$group/$name"
          : "$ScriptUrl?n=$group.$name")',
-  '$FullName'     => '$pn',
+  '$FullName'     => '"$group.$name"',
   '$Groupspaced'  => '$AsSpacedFunction($group)',
   '$Namespaced'   => '$AsSpacedFunction($name)',
   '$Group'        => '$group',
@@ -179,8 +181,10 @@ $AuthList = array('' => 1, 'nopass:' => 1);
 $Conditions['enabled'] = '(boolean)@$GLOBALS[$condparm]';
 $Conditions['false'] = 'false';
 $Conditions['true'] = 'true';
-$Conditions['group'] = "PageVar(\$pagename, '\$Group') == \$condparm";
-$Conditions['name'] = "PageVar(\$pagename, '\$Name') == \$condparm";
+$Conditions['group'] = 
+  "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1$2.*'))";
+$Conditions['name'] = 
+  "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['auth'] =
   '@$GLOBALS["PCache"][$GLOBALS["pagename"]]["=auth"][trim($condparm)]';
@@ -244,6 +248,7 @@ if (!$pagename &&
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
 $pagename = preg_replace('![^[:alnum:]\\x80-\\xff]+$!','',$pagename);
+$FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -255,21 +260,6 @@ if (IsEnabled($EnableLocalConfig,1)) {
 }
 
 SDV($CurrentTime,strftime($TimeFmt,$Now));
-SDV($DefaultPage,"$DefaultGroup.$DefaultName");
-SDV($UrlPage,'{$UrlPage}');
-$p = MakePageName($DefaultPage, $pagename);
-if (!$pagename) $pagename = $DefaultPage;
-else if (preg_match("/^$GroupPattern([\\/.])$NamePattern$/i", $pagename)) 
-  { $pagename = $p; }
-else if ($p && (PageExists($p) || preg_match('/[\\/.]/', $pagename))) { 
-  $pagename = $p;
-  if (IsEnabled($EnableFixedUrlRedirect,1)) { Redirect($p); exit(); }
-} else {
-  $UrlPage = preg_replace('/^.*[\\/.]/', '', $p);
-  SDV($PageNotFound, "$SiteGroup.PageNotFound");
-  $pagename = $PageNotFound;
-  SDV($MetaRobots, "noindex,nofollow");
-}
 
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
@@ -420,6 +410,57 @@ function fixperms($fname, $add = 0) {
     @chmod($fname,fileperms($fname)|$bp);
 }
 
+## MatchPageNames
+function MatchPageNames($pagelist, $pat) {
+  $pagelist = (array)$pagelist;
+  foreach((array)$pat as $p) {
+    if (count($pagelist) < 1) break;
+    switch ($p{0}) {
+      case '/': 
+        $pagelist = preg_grep($p, $pagelist); 
+        continue;
+      case '!':
+        $pagelist = array_diff($pagelist, preg_grep($p, $pagelist)); 
+        continue;
+      default:
+        $p = preg_quote($p, '/');
+        $p = str_replace(array('/', '\\*', '\\?', '\\[', '\\]', '\\^'),
+                         array('.', '.*', '.', '[', ']', '^'), $p);
+        $excl = array(); $incl = array();
+        foreach(preg_split('/[\\s,]+/', $p, -1, PREG_SPLIT_NO_EMPTY) as $q) {
+          if ($q{0} == '-' || $q{0} == '!') $excl[] = '^'.substr($q, 1).'$';
+          else $incl[] = "^$q$";
+        }
+        if ($excl) 
+          $pagelist = array_diff($pagelist, 
+                          preg_grep('/' . join('|', $excl) . '/i', $pagelist));
+        if ($incl)
+          $pagelist = preg_grep('/' . join('|', $incl) . '/i', $pagelist);
+    }
+  }
+  return $pagelist;
+}
+function FixGlob($x, $rep = '$1*.$2') {
+  return preg_replace('/([\\s,][-!]?)([^.\\s,]+)(?=[\\s,])/', $rep, " $x ");
+}
+  
+## ResolvePageName "normalizes" a pagename based on the current
+## settings of $DefaultPage and $PagePathFmt.  It's normally used
+## during initialization to fix up any missing or partial pagenames.
+function ResolvePageName($pagename) {
+  global $DefaultPage, $DefaultGroup, $DefaultName,
+    $GroupPattern, $NamePattern, $EnableFixedUrlRedirect;
+  SDV($DefaultPage, "$DefaultGroup.$DefaultName");
+  if ($pagename == '') return $DefaultPage;
+  $p = MakePageName($DefaultPage, $pagename);
+  if (preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $pagename))
+    return $p;
+  if (IsEnabled($EnableFixedUrlRedirect, 1)
+      && $p && (PageExists($p) || preg_match('/[\\/.]/', $pagename)))
+    { Redirect($p); exit(); }
+  return MakePageName($DefaultPage, "$pagename.$pagename");
+}
+
 ## MakePageName is used to convert a string into a valid pagename.
 ## If no group is supplied, then it uses $PagePathFmt to look
 ## for the page in other groups, or else uses the group of the
@@ -466,16 +507,15 @@ function PageVar($pagename, $var, $pn = '') {
   if ($pn) {
     $pn = isset($Cursor[$pn]) ? $Cursor[$pn] : MakePageName($pagename, $pn);
   } else $pn = $pagename;
-  if (!$pn || !preg_match('/^(.*)[.\\/]([^.\\/]+)$/', $pn, $match)) return '';
-  list($d, $group, $name) = $match;
-  if (!isset($PCache[$pn]) 
-      && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) {
+  if ($pn == '') return '';
+  if (preg_match('/^(.+)[.\\/]([^.\\/]+)$/', $pn, $match)
+      && !isset($PCache[$pn]['time']) 
+      && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) 
     PCache($pn, ReadPage($pn, READPAGE_CURRENT));
-  }
+  @list($d, $group, $name) = $match;
   $page = &$PCache[$pn];
   if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
   return '';
-  #return @$page[substr($var, 1)];
 }
   
 ## FmtPageName handles $[internationalization] and $Variable 
@@ -658,26 +698,24 @@ class PageStore {
   function ls($pats=NULL) {
     global $GroupPattern, $NamePattern;
     $pats=(array)$pats; 
-    array_unshift($pats, "/^$GroupPattern\.$NamePattern$/");
+    array_push($pats, "/^$GroupPattern\.$NamePattern$/");
     $dir = $this->pagefile('$Group.$Name');
     $dirlist = array(preg_replace('!/*[^/]*\\$.*$!','',$dir));
     $out = array();
     while (count($dirlist)>0) {
       $dir = array_shift($dirlist);
       $dfp = opendir($dir); if (!$dfp) { continue; }
+      $o = array();
       while ( ($pagefile = readdir($dfp)) !== false) {
         if ($pagefile{0} == '.') continue;
         if (is_dir("$dir/$pagefile"))
           { array_push($dirlist,"$dir/$pagefile"); continue; }
+        
         if (@$seen[$pagefile]++) continue;
-        foreach($pats as $p) {
-          if ($p{0} == '!') {
-           if (preg_match($p,$pagefile)) continue 2;
-          } else if (!preg_match($p,$pagefile)) continue 2;
-        }
-        $out[] = $pagefile;
+        $o[] = $pagefile;
       }
       closedir($dfp);
+      $out = array_merge($out, MatchPageNames($o, $pats));
     }
     return $out;
   }
@@ -885,7 +923,7 @@ function Block($b) {
     { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
   if (!$code) {
     if (@end($cs) == 'p') { $out .= $HTMLPNewline; $code = 'p'; }
-    else if ($depth < 2) { $code = 'p'; }
+    else if ($depth < 2) { $code = 'p'; $mf['is'][$depth] = 0; }
     else { $out .= $HTMLPNewline; $code = 'block'; }
   }
   if ($depth>0 && $depth==count($cs) && $cs[$depth-1]!=$code)
@@ -969,11 +1007,12 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets;
   if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
-    return "<a href='#$path'>$txt</a>";
+    return ($path) ? "<a href='#$path'>$txt</a>" : '';
   }
-  if (!preg_match("/^([^#?]+)($QueryFragPattern)?$/",$path,$match))
+  if (!preg_match("/^\\s*([^#?]+)($QueryFragPattern)?$/",$path,$match))
     return '';
-  $tgtname = MakePageName($pagename,$match[1]); 
+  $tgtname = MakePageName($pagename, $match[1]); 
+  if (!$tgtname) return '';
   $qf = @$match[2];
   @$LinkTargets[$tgtname]++;
   if (!$fmt) {
@@ -1085,15 +1124,20 @@ function MarkupToHTML($pagename, $text, $escape = true) {
    
 function HandleBrowse($pagename, $auth = 'read') {
   # handle display of a page
-  global $DefaultPageTextFmt, $FmtV, $HandleBrowseFmt, $PageStartFmt,
-    $PageEndFmt, $PageRedirectFmt;
+  global $DefaultPageTextFmt, $PageNotFoundHeaderFmt, $HTTPHeaders,
+    $FmtV, $HandleBrowseFmt, $PageStartFmt, $PageEndFmt, $PageRedirectFmt;
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort('?cannot read $pagename');
   PCache($pagename,$page);
+  if (PageExists($pagename)) $text = @$page['text'];
+  else {
+    SDV($DefaultPageTextFmt,'(:include $[{$SiteGroup}.PageNotFound]:)');
+    $text = FmtPageName($DefaultPageTextFmt, $pagename);
+    SDV($PageNotFoundHeaderFmt, 'HTTP/1.1 404 Not Found');
+    SDV($HTTPHeaders['status'], $PageNotFoundHeaderFmt);
+  }
   SDV($PageRedirectFmt,"<p><i>($[redirected from] 
     <a rel='nofollow' href='{\$PageUrl}?action=edit'>{\$FullName}</a>)</i></p>\$HTMLVSpace\n");
-  if (isset($page['text'])) $text=$page['text'];
-  else $text = FmtPageName($DefaultPageTextFmt,$pagename);
   if (@!$_GET['from']) {
     $PageRedirectFmt = '';
     if (preg_match('/\\(:redirect\\s+(.+?):\\)/',$text,$match)) {
