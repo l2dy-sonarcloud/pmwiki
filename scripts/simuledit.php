@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2005 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2006 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -38,10 +38,12 @@ function Merge($newtext,$oldtext,$pagetext) {
 }
 
 function MergeSimulEdits($pagename,&$page,&$new) {
-  global $EnablePost, $MessagesFmt, $WorkDir, $SysMergeCmd;
+  global $Now, $EnablePost, $MessagesFmt, $WorkDir, $SysMergeCmd;
   SDV($SysMergeCmd,"/usr/bin/diff3 -L '' -L '' -L '' -m -E");
-  if (@!$_POST['basetime'] || !PageExists($pagename) ||
-    $_POST['basetime']>=$page['time']) return;
+  if (@!$_POST['basetime'] || !PageExists($pagename) 
+      || $page['time'] >= $Now
+      || $_POST['basetime']>=$page['time']
+      || $page['text'] == $new['text']) return;
   $EnablePost = 0;
   XLSDV('en', array(
     'EditConflict' => "The page you are
