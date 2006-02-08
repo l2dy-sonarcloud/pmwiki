@@ -76,6 +76,7 @@ SDV($SaveAttrPatterns['/\\(:(searchresults|pagelist)(\\s+.*?)?:\\)/i'], ' ');
 
 SDV($HandleActions['search'], 'HandleSearchA');
 SDV($HandleAuth['search'], 'read');
+SDV($ActionTitleFmt['search'], '| $[Search Results]');
 
 ## SearchBox generates the output of the (:searchbox:) markup.
 ## If $SearchBoxFmt is defined, that is used, otherwise a searchbox
@@ -97,8 +98,8 @@ function SearchBox($pagename, $opt) {
   if ($group) 
     $out .= "<input type='hidden' name='group' value='$group' />";
   $out .= "<input type='text' name='q' value='{$opt['value']}' 
-    size='{$opt['size']}' /><input class='wikisearchbutton' 
-    type='submit' value='{$opt['label']}' /></form>";
+    class='inputbox searchbox' size='{$opt['size']}' /><input type='submit' 
+    class='inputbox searchbutton' value='{$opt['label']}' /></form>";
   return "<form ".Keep($out);
 }
 
