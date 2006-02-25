@@ -64,7 +64,7 @@ XLSDV('en', array(
 Markup('pagelist', 'directives',
   '/\\(:pagelist(\\s+.*?)?:\\)/ei',
   "FmtPageList('\$MatchList', \$pagename, array('o' => PSS('$1 ')))");
-Markup('searchbox', '>links',
+Markup('searchbox', 'directives',
   '/\\(:searchbox(\\s.*?)?:\\)/e',
   "SearchBox(\$pagename, ParseArgs(PSS('$1')))");
 Markup('searchresults', 'directives',
@@ -86,21 +86,25 @@ function SearchBox($pagename, $opt) {
   if (isset($SearchBoxFmt)) return FmtPageName($SearchBoxFmt, $pagename);
   SDVA($SearchBoxOpt, array('size' => '40', 
     'label' => FmtPageName('$[Search]', $pagename),
-    'group' => @$_REQUEST['group'],
     'value' => str_replace("'", "&#039;", $SearchQuery)));
-  $opt = array_merge((array)$SearchBoxOpt, (array)$opt);
-  $group = $opt['group'];
-  $out = FmtPageName("
-    class='wikisearch' action='\$PageUrl' method='get'><input
-    type='hidden' name='action' value='search' />", $pagename);
-  if (!IsEnabled($EnablePathInfo, 0)) 
-    $out .= "<input type='hidden' name='n' value='$pagename' />";
-  if ($group) 
-    $out .= "<input type='hidden' name='group' value='$group' />";
+  $opt = array_merge((array)$SearchBoxOpt, @$_GET, (array)$opt);
+  $opt['action'] = 'search';
+  $target = ($opt['target']) 
+            ? MakePageName($pagename, $opt['target']) : $pagename;
+  $out = FmtPageName(" class='wikisearch' action='\$PageUrl' method='get'>",
+                     $target);
+  $opt['n'] = IsEnabled($EnablePathInfo, 0) ? '' : $target;
   $out .= "<input type='text' name='q' value='{$opt['value']}' 
     class='inputbox searchbox' size='{$opt['size']}' /><input type='submit' 
-    class='inputbox searchbutton' value='{$opt['label']}' /></form>";
-  return "<form ".Keep($out);
+    class='inputbox searchbutton' value='{$opt['label']}' />";
+  foreach($opt as $k => $v) {
+    if ($v == '') continue;
+    if ($k == 'q' || $k == 'label' || $k == 'value' || $k == 'size') continue;
+    $k = str_replace("'", "&#039;", $k);
+    $v = str_replace("'", "&#039;", $v);
+    $out .= "<input type='hidden' name='$k' value='$v' />";
+  }
+  return '<form '.Keep($out).'</form>';
 }
 
 ## FmtPageList combines options from markup, request form, and url,
@@ -188,7 +192,7 @@ function MakePageList($pagename, $opt, $retpages = 1) {
         @$trail[$tstop['parent']]['pagename'];
   } else $list = ListPages($pats);
 
-  if (IsEnabled($EnablePageListProtect, 0)) $readf = 1000;
+  if (IsEnabled($EnablePageListProtect, 1)) $readf = 1000;
   $matches = array();
   $FmtV['$MatchSearched'] = count($list);
 
@@ -280,8 +284,13 @@ function HandleSearchA($pagename, $level = 'read') {
     $PageStartFmt, $PageEndFmt;
   SDV($HandleSearchFmt,array(&$PageStartFmt, '$PageText', &$PageEndFmt));
   SDV($PageSearchForm, '$[$SiteGroup/Search]');
-  PCache($pagename, RetrieveAuthPage($pagename, 'read'));
-  $form = ReadPage(FmtPageName($PageSearchForm, $pagename), READPAGE_CURRENT);
+  $form = RetrieveAuthPage($pagename, 'read', true, READPAGE_CURRENT);
+  PCache($pagename, $form);
+  if (!preg_match('/\\(:searchresults(\\s.*?)?:\\)/', $form['text']))
+    foreach((array)$PageSearchForm as $formfmt) {
+      $form = ReadPage(FmtPageName($formfmt, $pagename), READPAGE_CURRENT);
+      if ($form['text']) break;
+    }
   $text = @$form['text'];
   if (!$text) $text = '(:searchresults:)';
   $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
@@ -381,7 +390,7 @@ function PageIndexUpdate($pagelist, $dir = '') {
     $page = ReadPage($pn, READPAGE_CURRENT);
     if ($page) {
       $targets = str_replace(',', ' ', @$page['targets']);
-      $terms = PageIndexTerms(array(@$page['text'], $targets));
+      $terms = PageIndexTerms(array(@$page['text'], $targets, $pn));
       usort($terms, $cmpfn);
       $x = '';
       foreach($terms as $t) { if (strpos($x, $t) === false) $x .= " $t"; }
