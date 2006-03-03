@@ -124,6 +124,7 @@ $FmtPV = array(
   '$LastModifiedHost' => '@$page["host"]',
   '$LastModified' => 'strftime($GLOBALS["TimeFmt"], $page["time"])',
   '$LastModifiedSummary' => '@$page["csum"]',
+  '$Description' => '@$page["description"]',
   '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
   '$VersionNum'   => '$GLOBALS["VersionNum"]',
   '$Version'      => '$GLOBALS["Version"]',
@@ -195,6 +196,27 @@ $Conditions['authid'] = '@$GLOBALS["AuthId"] > ""';
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
+
+## CondExpr handles complex conditions (expressions)
+## Portions Copyright 2005 by D. Faure (dfaure@cpan.org)
+function CondExpr($pagename, $condname, $condparm) {
+  global $CondExprOps;
+  SDV($CondExprOps, 'and|x?or|&&|\\|\\||[!()]');
+  if ($condname == '(' || $condname == '[')
+    $condparm = preg_replace('/[\\]\\)]\\s*$/', '', $condparm);
+  $condparm = str_replace('&amp;&amp;', '&&', $condparm);
+  $terms = preg_split("/(?<!\\S)($CondExprOps)(?!\\S)/i", $condparm, -1,
+                      PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+  foreach($terms as $i => $t) {
+    $t = trim($t);
+    if (preg_match("/^($CondExprOps)$/i", $t)) continue;
+    if ($t) $terms[$i] = CondText($pagename, "if $t", 'TRUE') ? '1' : '0';
+  }
+  return @eval('return(' . implode(' ', $terms) . ');');
+}
+$Conditions['expr'] = 'CondExpr($pagename, $condname, $condparm)';
+$Conditions['('] = 'CondExpr($pagename, $condname, $condparm)';
+$Conditions['['] = 'CondExpr($pagename, $condname, $condparm)';
 
 $MarkupTable['_begin']['seq'] = 'B';
 $MarkupTable['_end']['seq'] = 'E';
@@ -455,6 +477,7 @@ function ResolvePageName($pagename) {
   global $DefaultPage, $DefaultGroup, $DefaultName,
     $GroupPattern, $NamePattern, $EnableFixedUrlRedirect;
   SDV($DefaultPage, "$DefaultGroup.$DefaultName");
+  $pagename = preg_replace('!([./][^./]+)\\.html$!', '$1', $pagename);
   if ($pagename == '') return $DefaultPage;
   $p = MakePageName($DefaultPage, $pagename);
   if (preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $pagename))
@@ -1300,9 +1323,11 @@ function PreviewPage($pagename,&$page,&$new) {
   
 function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
-    $EnablePost, $FmtV, $Now, 
+    $EnablePost, $FmtV, $Now, $EditRedirectFmt, 
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
-  if (@$_POST['cancel']) { Redirect($pagename); return; }
+  SDV($EditRedirectFmt, '$FullName');
+  if (@$_POST['cancel']) 
+    { Redirect(FmtPageName($EditRedirectFmt, $pagename)); return; }
   Lock(2);
   $IsPagePosted = false;
   $page = RetrieveAuthPage($pagename, $auth, true);
@@ -1316,7 +1341,8 @@ function HandleEdit($pagename, $auth = 'edit') {
   $EnablePost &= preg_grep('/^post/', array_keys(@$_POST));
   foreach((array)$EditFunctions as $fn) $fn($pagename,$page,$new);
   Lock(0);
-  if ($IsPagePosted && !@$_POST['postedit']) { Redirect($pagename); return; }
+  if ($IsPagePosted && !@$_POST['postedit']) 
+    { Redirect(FmtPageName($EditRedirectFmt, $pagename)); return; }
   $FmtV['$DiffClassMinor'] = 
     (@$_POST['diffclass']=='minor') ?  "checked='checked'" : '';
   $FmtV['$EditText'] = 
