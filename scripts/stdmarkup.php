@@ -38,7 +38,7 @@ Markup('\\r','<[=','/\\r/','');
 
 # $[phrase] substitutions
 Markup('$[phrase]', '>[=',
-  '/\\$\\[(?>([^\\]]+))\\]/e', "XL(PSS('$1'))");
+  '/\\$\\[(?>([^\\]]+))\\]/e', "NoCache(XL(PSS('$1')))");
 
 # {$var} substitutions
 Markup('{$var}', '>$[phrase]',
@@ -54,7 +54,12 @@ Markup('include', '>if',
   '/\\(:include\\s+(\\S.*?):\\)/ei',
   "PRR(IncludeText(\$pagename, '$1'))");
 
-$SaveAttrPatterns['/\\(:(if|include)(\\s.*?)?:\\)/i'] = ' ';
+## (:redirect:)
+Markup('redirect', '<include',
+  '/\\(:redirect\\s+(\\S.*?):\\)/ei',
+  "RedirectMarkup(\$pagename, PSS('$1'))");
+
+$SaveAttrPatterns['/\\(:(if|include|redirect)(\\s.*?)?:\\)/i'] = ' ';
 
 ## GroupHeader/GroupFooter handling
 Markup('nogroupheader', '>include',
@@ -129,22 +134,21 @@ Markup('&','directives','/&amp;(?>([A-Za-z0-9]+|#\\d+|#[xX][A-Fa-f0-9]+));/',
 ## (:title:)
 Markup('title','>&',
   '/\\(:title\\s(.*?):\\)/ei',
-  "PZZ(\$GLOBALS['PCache'][\$pagename]['title']
-       = \$GLOBALS['PCache'][\$pagename]['=title']
-       = PSS('$1'))");
+  "PZZ(PCache(\$pagename, 
+         array('title' => SetProperty(\$pagename, 'title', PSS('$1')))))");
 
 ## (:keywords:), (:description:)
 Markup('keywords', '>&', 
   "/\\(:keywords?\\s+(.+?):\\)/ei",
-  "PZZ(\$GLOBALS['PCache'][\$pagename]['=keywords'][]=PSS('$1'))");
+  "PZZ(SetProperty(\$pagename, 'keywords', PSS('$1'), ', '))");
 Markup('description', '>&',
   "/\\(:description\\s+(.+?):\\)/ei",
-  "PZZ(\$GLOBALS['PCache'][\$pagename]['=description'][]=PSS('$1'))");
+  "PZZ(SetProperty(\$pagename, 'description', PSS('$1'), '\n'))");
 $HTMLHeaderFmt['meta'] = 'function:PrintMetaTags';
 function PrintMetaTags($pagename, $args) {
   global $PCache;
   foreach(array('keywords', 'description') as $n) {
-    foreach((array)@$PCache[$pagename]["=$n"] as $v) {
+    foreach((array)@$PCache[$pagename]["=p_$n"] as $v) {
       $v = str_replace("'", '&#039;', $v);
       print "<meta name='$n' content='$v' />\n";
     }
@@ -370,7 +374,7 @@ Markup('^>><<', '<^>>',
 #### special stuff ####
 ## (:markup:) for displaying markup examples
 function MarkupMarkup($pagename, $text) {
-  $html = MarkupToHTML($pagename, $text, false);
+  $html = MarkupToHTML($pagename, $text, array('escape' => 0));
   return 
     Keep("<table class='markup' align='center'><tr><td class='markup1'><pre>" .
       wordwrap($text, 70) .  "</pre></td></tr><tr><td class='markup2'>
@@ -399,6 +403,7 @@ $Conditions['date'] = "CondDate(\$condparm)";
 
 function CondDate($condparm) {
   global $Now;
+  NoCache();
   if (!preg_match('/^(.*?)(\\.\\.(.*))?$/', $condparm, $match)) return false;
   if ($match[2]) {
     $t0 = $match[1];  if ($t0 == '') $t0 = '19700101';

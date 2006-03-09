@@ -74,7 +74,8 @@ $HTMLVSpace = "<p class='vspace'></p>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
 $MarkupFrameBase = array('cs' => array(), 'vs' => '', 'ref' => 0,
-  'closeall' => array('block' => '<:block>'), 'is' => array());
+  'closeall' => array('block' => '<:block>'), 'is' => array(),
+  'escape' => 1);
 $WikiWordCountMax = 1000000;
 $WikiWordCount['PmWiki'] = 1;
 $UrlExcludeChars = '<>"{}|\\\\^`()[\\]\'';
@@ -128,11 +129,12 @@ $FmtPV = array(
   '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
   '$VersionNum'   => '$GLOBALS["VersionNum"]',
   '$Version'      => '$GLOBALS["Version"]',
-  '$Author'       => '$GLOBALS["Author"]',
-  '$AuthId'       => '$GLOBALS["AuthId"]',
+  '$Author'       => 'NoCache($GLOBALS["Author"])',
+  '$AuthId'       => 'NoCache($GLOBALS["AuthId"])',
   '$DefaultGroup' => '$GLOBALS["DefaultGroup"]',
   '$DefaultName'  => '$GLOBALS["DefaultName"]',
   );
+$SaveProperties = array('title', 'description', 'keywords');
 
 $WikiTitle = 'PmWiki';
 $Charset = 'ISO-8859-1';
@@ -141,6 +143,8 @@ $HTTPHeaders = array(
   "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=ISO-8859-1;");
 $CacheActions = array('browse','diff','print');
+$EnableHTMLCache = 0;
+$NoHTMLCache = 0;
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
@@ -191,8 +195,8 @@ $Conditions['name'] =
   "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['auth'] =
-  '@$GLOBALS["PCache"][$GLOBALS["pagename"]]["=auth"][trim($condparm)]';
-$Conditions['authid'] = '@$GLOBALS["AuthId"] > ""';
+  'NoCache(@$GLOBALS["PCache"][$GLOBALS["pagename"]]["=auth"][trim($condparm)])';
+$Conditions['authid'] = 'NoCache(@$GLOBALS["AuthId"] > "")';
 $Conditions['exists'] = 'PageExists(MakePageName(\$pagename, \$condparm))';
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
@@ -337,7 +341,9 @@ function SDVA(&$var,$val)
   { foreach($val as $k=>$v) if (!isset($var[$k])) $var[$k]=$v; }
 function IsEnabled(&$var,$f=0)
   { return (isset($var)) ? $var : $f; }
-function SetTmplDisplay($var, $val) { $GLOBALS['TmplDisplay'][$var] = $val; }
+function SetTmplDisplay($var, $val) 
+  { NoCache(); $GLOBALS['TmplDisplay'][$var] = $val; }
+function NoCache($x = '') { $GLOBALS['NoHTMLCache'] |= 1; return $x; }
 function ParseArgs($x) {
   $z = array();
   preg_match_all('/([-+]|(?>(\\w+)[:=]))?("[^"]*"|\'[^\']*\'|\\S+)/',
@@ -527,6 +533,23 @@ function PCache($pagename, $page) {
   foreach($page as $k=>$v) 
     if ($k!='text' && strpos($k,':')===false) $PCache[$pagename][$k]=$v;
 }
+
+## SetProperty saves a page property into $PCache.  For convenience
+## it returns the $value of the property just set.  If $sep is supplied,
+## then $value is appended to the current property (with $sep as
+## as separator) instead of replacing it.
+function SetProperty($pagename, $prop, $value, $sep = NULL) {
+  global $PCache, $KeepToken;
+  NoCache();
+  $prop = "=p_$prop";
+  $value = preg_replace("/$KeepToken(\\d.*?)$KeepToken/e", 
+                        "\$GLOBALS['KPV']['$1']", $value);
+  if (!is_null($sep) && isset($PCache[$pagename][$prop]))
+    $value = $PCache[$pagename][$prop] . $sep . $value;
+  $PCache[$pagename][$prop] = $value;
+  return $value;
+}
+
 
 function PageVar($pagename, $var, $pn = '') {
   global $Cursor, $PCache, $FmtPV, $AsSpacedFunction, $ScriptUrl,
@@ -935,6 +958,28 @@ function IncludeText($pagename, $inclspec) {
 }
 
 
+function RedirectMarkup($pagename, $opt) {
+  $k = Keep("(:redirect $opt:)");
+  global $MarkupFrame;
+  if (!@$MarkupFrame[0]['redirect']) return $k;
+  $opt = ParseArgs($opt);
+  $to = @$opt['to']; if (!$to) $to = @$opt[''][0];
+  if (!$to) return $k;
+  if (preg_match('/^([^#]+)(#[A-Za-z][-\\w]*)$/', $to, $match)) 
+    { $to = $match[1]; $anchor = $match[2]; }
+  $to = MakePageName($pagename, $to);
+  if (!PageExists($to)) return $k;
+  if ($to == $pagename) return '';
+  if (@$opt['from'] 
+      && !MatchPageNames($pagename, FixGlob($opt['from'], '$1*.$2')))
+    return '';
+  if (preg_match('/^30[1237]$/', @$opt['status'])) 
+     header("HTTP/1.1 {$opt['status']}");
+  Redirect($to, "{\$PageUrl}?from=$pagename$anchor");
+  exit();
+}
+   
+
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$HTMLPNewline,$MarkupFrame;
   $mf = &$MarkupFrame[0]; $cs = &$mf['cs']; $vspaces = &$mf['vs'];
@@ -1126,17 +1171,18 @@ function BuildMarkupRules() {
 }
 
 
-function MarkupToHTML($pagename, $text, $escape = true) {
+function MarkupToHTML($pagename, $text, $opt = NULL) {
   # convert wiki markup text to HTML output
   global $MarkupRules, $MarkupFrame, $MarkupFrameBase, $WikiWordCount,
     $K0, $K1, $RedoMarkupLine;
 
   StopWatch('MarkupToHTML begin');
-  array_unshift($MarkupFrame,$MarkupFrameBase);
+  array_unshift($MarkupFrame, array_merge($MarkupFrameBase, (array)$opt));
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
   $markrules = BuildMarkupRules();
   foreach((array)$text as $l) 
-    $lines[] = ($escape) ? PVS(htmlspecialchars($l, ENT_NOQUOTES)) : $l;
+    $lines[] = $MarkupFrame[0]['escape'] 
+               ? PVS(htmlspecialchars($l, ENT_NOQUOTES)) : $l;
   $lines[] = '(:closeall:)';
   $out = '';
   while (count($lines)>0) {
@@ -1159,6 +1205,7 @@ function MarkupToHTML($pagename, $text, $escape = true) {
 function HandleBrowse($pagename, $auth = 'read') {
   # handle display of a page
   global $DefaultPageTextFmt, $PageNotFoundHeaderFmt, $HTTPHeaders,
+    $EnableHTMLCache, $NoHTMLCache, $PageCacheFile, $LastModTime, $IsHTMLCached,
     $FmtV, $HandleBrowseFmt, $PageStartFmt, $PageEndFmt, $PageRedirectFmt;
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort('?cannot read $pagename');
@@ -1170,18 +1217,31 @@ function HandleBrowse($pagename, $auth = 'read') {
     SDV($PageNotFoundHeaderFmt, 'HTTP/1.1 404 Not Found');
     SDV($HTTPHeaders['status'], $PageNotFoundHeaderFmt);
   }
-  SDV($PageRedirectFmt,"<p><i>($[redirected from] 
-    <a rel='nofollow' href='{\$PageUrl}?action=edit'>{\$FullName}</a>)</i></p>\$HTMLVSpace\n");
-  if (@!$_GET['from']) {
-    $PageRedirectFmt = '';
-    if (preg_match('/\\(:redirect\\s+(.+?):\\)/',$text,$match)) {
-      $rname = MakePageName($pagename,$match[1]);
-      if (PageExists($rname)) Redirect($rname,"\$PageUrl?from=$pagename");
+  $opt = array();
+  SDV($PageRedirectFmt,"<p><i>($[redirected from] <a rel='nofollow' 
+    href='{\$PageUrl}?action=edit'>{\$FullName}</a>)</i></p>\$HTMLVSpace\n");
+  if (@!$_GET['from']) { $opt['redirect'] = 1; $PageRedirectFmt = ''; }
+  else $PageRedirectFmt = FmtPageName($PageRedirectFmt, $_GET['from']);
+  if (@$EnableHTMLCache && !$NoHTMLCache && $PageCacheFile && 
+      @filemtime($PageCacheFile) > $LastModTime) {
+    list($ctext) = unserialize(file_get_contents($PageCacheFile));
+    $FmtV['$PageText'] = "<!--cached-->$ctext";
+    $IsHTMLCached = 1;
+  } else {
+    $IsHTMLCached = 0;
+    $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
+    $t1 = time();
+    $FmtV['$PageText'] = MarkupToHTML($pagename, $text, $opt);
+    if (@$EnableHTMLCache > 0 && !$NoHTMLCache && $PageCacheFile
+        && (time() - $t1 + 1) >= $EnableHTMLCache) {
+      $fp = @fopen("$PageCacheFile,new", "x");
+      if ($fp) { 
+        fwrite($fp, serialize(array($FmtV['$PageText']))); fclose($fp);
+        rename("$PageCacheFile,new", $PageCacheFile);
+      }
     }
-  } else $PageRedirectFmt=FmtPageName($PageRedirectFmt,$_GET['from']);
-  $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
-  $FmtV['$PageText'] = MarkupToHTML($pagename,$text);
-  SDV($HandleBrowseFmt,array(&$PageStartFmt,&$PageRedirectFmt,'$PageText',
+  }
+  SDV($HandleBrowseFmt,array(&$PageStartFmt, &$PageRedirectFmt, '$PageText',
     &$PageEndFmt));
   PrintFmt($pagename,$HandleBrowseFmt);
 }
@@ -1250,17 +1310,16 @@ function ReplaceOnSave($pagename,&$page,&$new) {
 }
 
 function SaveAttributes($pagename,&$page,&$new) {
-  global $EnablePost, $SaveAttrExcerptLength, $LinkTargets, 
-    $SaveAttrPatterns, $PCache;
+  global $EnablePost, $LinkTargets, $SaveAttrPatterns, $PCache,
+    $SaveProperties;
   if (!$EnablePost) return;
-  SDV($SaveAttrExcerptLength, 600);
   $text = preg_replace(array_keys($SaveAttrPatterns), 
                        array_values($SaveAttrPatterns), $new['text']);
   $html = MarkupToHTML($pagename,$text);
   $new['targets'] = implode(',',array_keys((array)$LinkTargets));
   $p = & $PCache[$pagename];
-  foreach(array('title', 'description', 'keywords') as $k) {
-    if (@$p["=$k"]) $new[$k] = implode("\n", (array)$p["=$k"]);
+  foreach((array)$SaveProperties as $k) {
+    if (@$p["=p_$k"]) $new[$k] = $p["=p_$k"];
     else unset($new[$k]);
   }
   unset($new['excerpt']);
@@ -1388,7 +1447,7 @@ function HandleSource($pagename, $auth = 'read') {
 function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   global $DefaultPasswords, $GroupAttributesFmt,
     $AuthCascade, $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, 
-    $AuthId, $AuthList;
+    $AuthId, $AuthList, $NoHTMLCache;
   static $acache;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
@@ -1424,6 +1483,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   }
   if (@$page['=auth']['admin']) 
     foreach($page['=auth'] as $lv=>$a) @$page['=auth'][$lv] = 3;
+  if (@$page['=passwd']['read']) $NoHTMLCache |= 2;
   if (@$page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
   $GLOBALS['AuthNeeded'] = (@$_POST['authpw']) 
