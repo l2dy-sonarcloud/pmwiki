@@ -73,7 +73,7 @@ SDV($PageUploadFmt,array("
       <td><input type='text' name='upname' value='\$UploadName' /><input 
         type='submit' value=' $[Upload] ' /><br />
         </td></tr></table></form></div>",
-  'wiki:$[Site.UploadQuickReference]'));
+  'wiki:$[{$SiteGroup}/UploadQuickReference]'));
 XLSDV('en',array(
   'ULsuccess' => 'successfully uploaded',
   'ULbadname' => 'invalid attachment name',
@@ -111,7 +111,7 @@ function MakeUploadName($pagename,$x) {
   $x = preg_replace("/[^$UploadNameChars]/", '', $x);
   $x = preg_replace('/\\.[^.]*$/e', "strtolower('$0')", $x);
   $x = preg_replace('/^[^[:alnum:]]+/', '', $x);
-  return preg_replace('/[^[:alnum:]]+$/', '', $x);
+  return preg_replace('/[^[:alnum:]_]+$/', '', $x);
 }
 
 function LinkUpload($pagename, $imap, $path, $title, $txt, $fmt=NULL) {

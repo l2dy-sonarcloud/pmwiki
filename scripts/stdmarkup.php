@@ -20,9 +20,10 @@
 function PreserveText($sigil, $text, $lead) {
   if ($sigil=='=') return $lead.Keep($text);
   if (strpos($text, "\n")===false) 
-    return "$lead<code>".Keep($text)."</code>";
+    return "$lead<code class='escaped'>".Keep($text)."</code>";
   $text = preg_replace("/\n[^\\S\n]+$/", "\n", $text);
-  if ($lead == "" || $lead == "\n") return "$lead<pre>".Keep($text)."</pre>";
+  if ($lead == "" || $lead == "\n") 
+    return "$lead<pre class='escaped'>".Keep($text)."</pre>";
   return "$lead<:pre,1>".Keep($text);
 }
 
@@ -217,7 +218,8 @@ Markup('[[->','>[[|',
 
 ## [[#anchor]]
 Markup('[[#','<[[','/(?>\\[\\[#([A-Za-z][-.:\\w]*))\\]\\]/e',
-  "Keep(\"<a name='$1' id='$1'></a>\",'L')");
+  "Keep(TrackAnchors('$1') ? '' : \"<a name='$1' id='$1'></a>\", 'L')");
+function TrackAnchors($x) { global $SeenAnchor; return @$SeenAnchor[$x]++; }
 
 ## [[target |#]] reference links
 Markup('[[|#', '<[[|',
@@ -267,7 +269,7 @@ Markup('^<:','>block','/^(?=\\s*\\S)(<:([^>]+)>)?/e',"Block('$2')");
 
 ## unblocked lines w/block markup become anonymous <:block>
 Markup('^!<:', '<^<:',
-  '/^(?!<:)(?=.*<\\/?(form|div|table|p|ul|ol|dl|h[1-6]|blockquote|pre|hr|textarea)\\b)/',
+  "/^(?!<:)(?=.*(<\\/?($BlockPattern)\\b)|$KeepToken\\d+B$KeepToken)/",
   '<:block>');
 
 ## Lines that begin with displayed images receive their own block.  A
@@ -384,9 +386,8 @@ function MarkupMarkup($pagename, $text, $opt = '') {
   if (strpos($class, 'horiz') !== false) 
     { $sep = ''; $pretext = wordwrap($text, 40); } 
   else 
-    { $sep = '</tr><tr>'; $pretext = wordwrap($text, 80); }
-  return 
-    Keep("<table class='markup $class' align='center'>$caption
+    { $sep = '</tr><tr>'; $pretext = wordwrap($text, 75); }
+  return Keep("<table class='markup $class' align='center'>$caption
       <tr><td class='markup1' valign='top'><pre>$pretext</pre></td>$sep<td 
         class='markup2' valign='top'>$html</td></tr></table>");
 }
@@ -404,9 +405,8 @@ $HTMLStylesFmt['markup'] = "
   table.vert td.markup1 { border-bottom:1px solid #ccf; }
   table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
   table.markup caption { text-align:left; }
-  div.faq { margin-left:2em; }
-  div.faq p.question { margin:1em 0 0.75em -2em; font-weight:bold; }
-  div.faq hr { margin-left:-2em; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
   ";
 
 #### Special conditions ####

@@ -41,6 +41,7 @@ define('PmWiki',1);
 @include_once("$FarmD/scripts/version.php");
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
+$BlockPattern = 'form|div|table|t[rdh]|p|[uo]l|d[ltd]|h[1-6r]|pre|blockquote';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/{$FullName}');
 $WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/{$FullName}'));
@@ -48,7 +49,6 @@ $InterMapFiles = array("$FarmD/scripts/intermap.txt",
   "$FarmD/local/farmmap.txt", '$SiteGroup.InterMap', 'local/localmap.txt');
 $Newline = "\263";                                 # deprecated, 2.0.0
 $KeepToken = "\235\235";  
-$K0=array('='=>'','@'=>'<code>');  $K1=array('='=>'','@'=>'</code>');
 $Now=time();
 define('READPAGE_CURRENT', $Now+604800);
 $TimeFmt = '%B %d, %Y, at %I:%M %p';
@@ -152,7 +152,7 @@ $HTMLDoctypeFmt =
   <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  code { white-space: nowrap; }
+  code.escaped { white-space: nowrap; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   .outdent { margin-left:40px; text-indent:-40px; }
@@ -892,10 +892,11 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
   }
 }
 
-function Keep($x,$pool='') {
+function Keep($x, $pool=NULL) {
   # Keep preserves a string from being processed by wiki markups
-  global $KeepToken,$KPV,$KPCount;
+  global $BlockPattern, $KeepToken, $KPV, $KPCount;
   $x = preg_replace("/$KeepToken(\\d.*?)$KeepToken/e", "\$KPV['\$1']", $x);
+  if (is_null($pool) && preg_match("/<($BlockPattern)\\b/", $x)) $pool = 'B';
   $KPCount++; $KPV[$KPCount.$pool]=$x;
   return $KeepToken.$KPCount.$pool.$KeepToken;
 }
@@ -1593,7 +1594,8 @@ function PrintAttrForm($pagename) {
       <td><input type='text' name='$attr' value='$value' /></td>
       <td>$setting</td></tr>";
   }
-  echo "</table><input type='submit' /></form>";
+  echo FmtPageName("</table><input type='submit' value='$[Save]' /></form>",
+         $pagename);
 }
 
 function HandleAttr($pagename, $auth = 'attr') {
@@ -1606,7 +1608,7 @@ function HandleAttr($pagename, $auth = 'attr') {
     will leave the attribute unchanged.  To clear an attribute, enter
     'clear'."));
   SDV($PageAttrFmt,"<div class='wikiattr'>
-    <h2 class='wikiaction'>$[\$FullName Attributes]</h1>
+    <h2 class='wikiaction'>$[{\$FullName} Attributes]</h1>
     <p>$[EnterAttributes]</p></div>");
   SDV($HandleAttrFmt,array(&$PageStartFmt,&$PageAttrFmt,
     'function:PrintAttrForm',&$PageEndFmt));
