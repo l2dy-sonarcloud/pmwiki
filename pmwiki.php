@@ -70,7 +70,7 @@ $RecentChangesFmt = array(
     '* [[{$Group}/{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
 $ScriptUrl = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 $PubDirUrl = preg_replace('#/[^/]*$#','/pub',$ScriptUrl,1);
-$HTMLVSpace = "<p class='vspace'></p>";
+$HTMLVSpace = "<vspace>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
 $MarkupFrameBase = array('cs' => array(), 'vs' => '', 'ref' => 0,
@@ -339,7 +339,7 @@ function PZZ($x,$y='') { return ''; }
 function PRR($x=NULL) 
   { if ($x || is_null($x)) $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
-  { return preg_replace('/[\\x80-\\xff ]/e', "'%'.dechex(ord('$0'))", $x); }
+  { return preg_replace('/[\\x80-\\xff \'"]/e', "'%'.dechex(ord('$0'))", $x); }
 function PQA($x) { 
   return preg_replace('/([a-zA-Z])\\s*=\\s*([^\'">][^\\s>]*)/', "$1='$2'", $x);
 }
@@ -494,6 +494,8 @@ function ResolvePageName($pagename) {
   $pagename = preg_replace('!([./][^./]+)\\.html$!', '$1', $pagename);
   if ($pagename == '') return $DefaultPage;
   $p = MakePageName($DefaultPage, $pagename);
+  if (!preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $p))
+    Abort("?invalid page name");
   if (preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $pagename))
     return $p;
   if (IsEnabled($EnableFixedUrlRedirect, 1)
@@ -516,14 +518,18 @@ function MakePageName($basepage,$x) {
     "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
     "/((^|[^-\\w])\\w)/e" => "strtoupper('$1')",
     "/ /" => ''));
-  if (!preg_match('/(?:([^.\\/]+)[.\\/])?([^.\\/]+)$/',$x,$m)) return '';
-  $name = preg_replace(array_keys($MakePageNamePatterns),
-            array_values($MakePageNamePatterns), $m[2]);
-  if ($m[1]) {
+  $m = preg_split('/[.\\/]/', $x);
+  if (count($m)<1 || count($m)>2 || $m[0]=='') return '';
+  if ($m[1] > '') {
     $group = preg_replace(array_keys($MakePageNamePatterns),
-               array_values($MakePageNamePatterns), $m[1]);
+               array_values($MakePageNamePatterns), $m[0]);
+    $name = preg_replace(array_keys($MakePageNamePatterns),
+              array_values($MakePageNamePatterns), $m[1]);
     return "$group.$name";
   }
+  $name = preg_replace(array_keys($MakePageNamePatterns),
+            array_values($MakePageNamePatterns), $m[0]);
+  if (count($m)>1) { $basepage = "$name.$name"; }
   foreach((array)$PagePathFmt as $pg) {
     $pn = FmtPageName(str_replace('$1',$name,$pg),$basepage);
     if (PageExists($pn)) return $pn;
@@ -1126,8 +1132,10 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   else {
     if (is_null($txt)) {
       $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-      if ($m[1]=='<:page>') $txt = preg_replace('!^.*[^<]/!','',$txt);
-      $txt = $txt;
+      if ($m[1]=='<:page>') {
+        $txt = preg_replace('!/\\s*$!', '', $txt);
+        $txt = preg_replace('!^.*[^<]/!', '', $txt);
+      }
     }
     $txt .= $suffix;
   }
