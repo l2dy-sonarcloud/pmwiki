@@ -109,6 +109,9 @@ Markup('noleft', 'directives',
 Markup('noright', 'directives',
   '/\\(:noright:\\)/ei',
   "SetTmplDisplay('PageRightFmt',0)");
+Markup('noaction', 'directives',
+  '/\\(:noaction:\\)/ei',
+  "SetTmplDisplay('PageActionFmt',0)");
 
 ## (:spacewikiwords:)
 Markup('spacewikiwords', 'directives',
@@ -281,7 +284,7 @@ Markup('^!<:', '<^<:',
 ## Lines that begin with displayed images receive their own block.  A
 ## pipe following the image indicates a "caption" (generates a linebreak).
 Markup('^img', 'block',
-  "/^((?>(\\s+|%%|%[A-Za-z][-,=:#\\w\\s'\"]*%)*)$KeepToken(\\d+L)$KeepToken)(\\s*\\|\\s?)?(.*)$/e",
+  "/^((?>(\\s+|%%|%[A-Za-z][-,=:#\\w\\s'\".]*%)*)$KeepToken(\\d+L)$KeepToken)(\\s*\\|\\s?)?(.*)$/e",
   "PSS((strpos(\$GLOBALS['KPV']['$3'],'<img')===false) ? '$0' : 
        '<:block,1><div>$1' . ('$4' ? '<br />' : '') .'$5</div>')");
 
@@ -346,31 +349,30 @@ function Cells($name,$attr) {
   $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
   $tattr = @$MarkupFrame[0]['tattr'];
   $name = strtolower($name);
-  $out = '<:block>';
-  if (strncmp($name, 'cell', 4) != 0 || @$MarkupFrame[0]['closeall']['div']) {
-    $out .= @$MarkupFrame[0]['closeall']['div']; 
-    unset($MarkupFrame[0]['closeall']['div']);
-    $out .= @$MarkupFrame[0]['closeall']['table']; 
-    unset($MarkupFrame[0]['closeall']['table']);
-  }
-  if ($name == 'div') {
-    $MarkupFrame[0]['closeall']['div'] = "</div>";
-    $out .= "<div $attr>";
-  }
-  if ($name == 'table') $MarkupFrame[0]['tattr'] = $attr;
-  if (strncmp($name, 'cell', 4) == 0) {
+  $key = preg_replace('/end$/', '', $name);
+  if (strncmp($key, 'cell', 4) == 0) $key = 'cell';
+  $out = '<:block>'.MarkupClose($key);
+  if (substr($name, -3) == 'end') return $out;
+  $cf = & $MarkupFrame[0]['closeall'];
+  if ($name == 'table') $MarkupFrame[0]['tattr'] = $attr; 
+  else if (strncmp($name, 'cell', 4) == 0) {
     if (strpos($attr, "valign=")===false) $attr .= " valign='top'";
-    if (!@$MarkupFrame[0]['closeall']['table']) {
-       $MarkupFrame[0]['closeall']['table'] = "</td></tr></table>";
+    if (!@$cf['table']) {
+       $tattr = @$MarkupFrame[0]['tattr'];
        $out .= "<table $tattr><tr><td $attr>";
+       $cf['table'] = '</td></tr></table><!---->';
     } else if ($name == 'cellnr') $out .= "</td></tr><tr><td $attr>";
     else $out .= "</td><td $attr>";
+    $cf['cell'] = '';
+  } else {
+    $out .= "<div $attr>";
+    $cf[$key] = '</div>';
   }
   return $out;
 }
 
 Markup('table', '<block',
-  '/^\\(:(table|cell|cellnr|tableend|div|divend)(\\s.*?)?:\\)/ie',
+  '/^\\(:(table|cell|cellnr|tableend|div\\d*(?:end)?)(\\s.*?)?:\\)/ie',
   "Cells('$1',PSS('$2'))");
 Markup('^>>', '<table',
   '/^&gt;&gt;(.+?)&lt;&lt;(.*)$/',
