@@ -45,6 +45,7 @@ $BlockPattern = 'form|div|table|t[rdh]|p|[uo]l|d[ltd]|h[1-6r]|pre|blockquote';
 $WikiWordPattern = '[[:upper:]][[:alnum:]]*(?:[[:upper:]][[:lower:]0-9]|[[:lower:]0-9][[:upper:]])[[:alnum:]]*';
 $WikiDir = new PageStore('wiki.d/{$FullName}');
 $WikiLibDirs = array(&$WikiDir,new PageStore('$FarmD/wikilib.d/{$FullName}'));
+$LocalDir = 'local';
 $InterMapFiles = array("$FarmD/scripts/intermap.txt",
   "$FarmD/local/farmmap.txt", '$SiteGroup.InterMap', 'local/localmap.txt');
 $Newline = "\263";                                 # deprecated, 2.0.0
@@ -290,8 +291,8 @@ $FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
 if (IsEnabled($EnableLocalConfig,1)) {
-  if (file_exists('local/config.php')) 
-    include_once('local/config.php');
+  if (file_exists("$LocalDir/config.php")) 
+    include_once("$LocalDir/config.php");
   elseif (file_exists('config.php'))
     include_once('config.php');
 }
@@ -1495,18 +1496,19 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     $AuthList["id:*"] = 1;
   }
   $gn = FmtPageName($GroupAttributesFmt, $pagename);
-  if (!isset($acache[$gn])) $gp = ReadPage($gn, READPAGE_CURRENT);
-  foreach($DefaultPasswords as $k => $v) {
-    if (isset($gp)) {
+  if (!isset($acache[$gn])) {
+    $gp = ReadPage($gn, READPAGE_CURRENT);
+    foreach($DefaultPasswords as $k => $v) {
       $x = array(2, array(), '');
       $acache['@site'][$k] = IsAuthorized($v, 'site', $x);
       $AuthList["@_site_$k"] = $acache['@site'][$k][0] ? 1 : 0;
       $acache[$gn][$k] = IsAuthorized($gp["passwd$k"], 'group', 
                                       $acache['@site'][$k]);
     }
+  }
+  foreach($DefaultPasswords as $k => $v) 
     list($page['=auth'][$k], $page['=passwd'][$k], $page['=pwsource'][$k]) =
       IsAuthorized($page["passwd$k"], 'page', $acache[$gn][$k]);
-  }
   foreach($AuthCascade as $k => $t) {
     if ($page['=auth'][$k]+0 == 2) {
       $page['=auth'][$k] = $page['=auth'][$t];
@@ -1517,7 +1519,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   if (@$page['=auth']['admin']) 
     foreach($page['=auth'] as $lv=>$a) @$page['=auth'][$lv] = 3;
   if (@$page['=passwd']['read']) $NoHTMLCache |= 2;
-  if (@$page['=auth'][$level]) return $page;
+  if ($level=='ALWAYS' || @$page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
   $GLOBALS['AuthNeeded'] = (@$_POST['authpw']) 
     ? $page['=pwsource'][$level] . ' ' . $level : '';
