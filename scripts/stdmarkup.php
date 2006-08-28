@@ -331,7 +331,7 @@ Markup('^||||', 'block',
   "FormatTableRow(PSS('$0'))");
 ## ||table attributes
 Markup('^||','>^||||','/^\\|\\|(.*)$/e',
-  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = PQA(PSS('<table $1>')))
+  "PZZ(\$GLOBALS['BlockMarkups']['table'][0] = '<table '.PQA(PSS('$1')).'>')
     .'<:block,1>'");
 
 ## headings
@@ -346,7 +346,7 @@ Markup('^----','>^->','/^----+/','<:block,1><hr />');
 
 function Cells($name,$attr) {
   global $MarkupFrame;
-  $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
+  $attr = PQA($attr);
   $tattr = @$MarkupFrame[0]['tattr'];
   $name = strtolower($name);
   $key = preg_replace('/end$/', '', $name);
