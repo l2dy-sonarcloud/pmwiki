@@ -230,7 +230,7 @@ function MakePageList($pagename, $opt, $retpages = 1) {
         if ($exclp && preg_match($exclp, $text)) continue;
         foreach($inclp as $i) 
           if (!preg_match($i, $text)) 
-            { if ($inclx) $xlist[] = $pn; continue 2; }
+            { if (!$inclx) $xlist[] = $pn; continue 2; }
       }
       $page['size'] = strlen(@$page['text']);
     } else $page = array();
@@ -355,7 +355,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
     $grouppagecount++; $pagecount++;
 
     $item = str_replace($vk, $vv, $ttext);
-    $item = preg_replace('/\\{(=|&[lg]t;)(\\$\\w+)\\}/e',
+    $item = preg_replace('/\\{(=|&[lg]t;)(\\$:?\\w+)\\}/e',
                 "PageVar(\$pn, '$2', '$1')", $item);
     $out .= $item;
     $lgroup = $group;
