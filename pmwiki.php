@@ -31,8 +31,8 @@ StopWatch('PmWiki');
 @ini_set('magic_quotes_sybase', 0);
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { 
-    if (preg_match('/^(GLOBALS|_SERVER|_GET|_POST|_COOKIE|_FILES|_ENV|_REQUEST|_SESSION)$/i', $k)) exit();
-    unset(${$k}); 
+    if (preg_match('/^(GLOBALS|_SERVER|_GET|_POST|_COOKIE|_FILES|_ENV|_REQUEST|_SESSION|FarmD|WikiDir)$/i', $k)) exit();
+    ${$k}=''; unset(${$k}); 
   }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
@@ -589,7 +589,7 @@ function PageVar($pagename, $var, $pn = '') {
   if (preg_match('/^(.+)[.\\/]([^.\\/]+)$/', $pn, $match)
       && !isset($PCache[$pn]['time']) 
       && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) 
-    PCache($pn, ReadPage($pn, READPAGE_CURRENT));
+    { $page = ReadPage($pn, READPAGE_CURRENT); PCache($pn, $page); }
   @list($d, $group, $name) = $match;
   $page = &$PCache[$pn];
   if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
