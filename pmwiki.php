@@ -38,6 +38,7 @@ $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
+if (preg_match('/\\w\\w:/', $FarmD)) exit();
 @include_once("$FarmD/scripts/version.php");
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
@@ -716,7 +717,7 @@ class PageStore {
         if ($k == 'version') { 
           $ordered = (strpos($v, 'ordered=1') !== false); 
           $urlencoded = (strpos($v, 'urlencoded=1') !== false); 
-          if (strpos($v, 'pmwiki-0.')) $newline="\262";
+          if (strpos($v, 'pmwiki-0.')!==false) $newline="\262";
         }
         if ($k == 'newline') { $newline = $v; continue; }
         if ($since > 0 && preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
