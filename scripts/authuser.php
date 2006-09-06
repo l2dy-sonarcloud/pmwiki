@@ -40,7 +40,9 @@ else SessionAuth($pagename);
 function AuthUserId($pagename, $id, $pw=NULL) {
   global $AuthUser, $AuthUserPageFmt, $AuthUserFunctions, 
     $AuthId, $MessagesFmt;
-  $auth = $AuthUser; $authid = '';
+
+  foreach($AuthUser as $k=>$v) $auth[$k] = (array)$v;
+  $authid = '';
 
   # load information from Site.AuthUser (or page in $AuthUserPageFmt)
   SDV($AuthUserPageFmt, '$SiteGroup.AuthUser');
@@ -77,6 +79,12 @@ function AuthUserId($pagename, $id, $pw=NULL) {
     $authlist[$g] = 1;
   foreach(preg_grep('/^@/', (array)@$auth['*']) as $g) 
     $authlist[$g] = 1;
+  foreach(preg_grep('/^@/', array_keys($auth)) as $g) 
+    if (in_array($authid, $auth[$g])) $authlist[$g] = 1;
+  if ($auth['htgroup']) {
+    foreach(AuthUserHtGroup($pagename, $id, $pw, $auth['htgroup']) as $g)
+      $authlist["@$g"] = 1;
+  }
   SessionAuth($pagename, array('authid' => $authid, 'authlist' => $authlist));
 }
 
@@ -101,6 +109,22 @@ function AuthUserHtPasswd($pagename, $id, $pw, $pwlist) {
   return false;
 }
 
+
+function AuthUserHtGroup($pagename, $id, $pw, $pwlist) {
+  $groups = array();
+  foreach ((array)$pwlist as $f) {
+    $fp = fopen($f, 'r'); if (!$fp) continue;
+    while ($x = fgets($fp, 4096)) {
+      if (preg_match('/^(\\w[^\\s:]+)\\s*:(.*)$/', trim($x), $match)) {
+        $glist = preg_split('/[\\s,]+/', $match[2], -1, PREG_SPLIT_NO_EMPTY);
+        if (in_array($id, $glist)) $groups[$match[1]] = 1;
+      }
+    }
+    fclose($fp);
+  }
+  return array_keys($groups);
+}
+  
 
 function AuthUserLDAP($pagename, $id, $pw, $pwlist) {
   global $AuthLDAPBindDN, $AuthLDAPBindPassword;
