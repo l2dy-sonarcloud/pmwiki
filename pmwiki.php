@@ -96,8 +96,8 @@ $CookiePrefix = '';
 $SiteGroup = 'Site';
 $DefaultGroup = 'Main';
 $DefaultName = 'HomePage';
-$GroupHeaderFmt = '(:include {$Group}.GroupHeader self=0:)(:nl:)';
-$GroupFooterFmt = '(:nl:)(:include {$Group}.GroupFooter self=0:)';
+$GroupHeaderFmt = '(:include {$Group}.GroupHeader self=0 basepage={*$FullName}:)(:nl:)';
+$GroupFooterFmt = '(:nl:)(:include {$Group}.GroupFooter self=0 basepage={*$FullName}:)';
 $PagePathFmt = array('{$Group}.$1','$1.$1','$1.{$DefaultName}');
 $PageAttributes = array(
   'passwdread' => '$[Set new read password:]',
@@ -288,6 +288,7 @@ if (preg_match('/[\\x80-\\xbf]/',$pagename))
   $pagename=utf8_decode($pagename);
 $pagename = preg_replace('![^[:alnum:]\\x80-\\xff]+$!','',$pagename);
 $FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
+$Cursor['*'] = &$pagename;
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -529,10 +530,11 @@ function MakePageName($basepage,$x) {
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage,$x);
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
+    '/[#?].*$/' => '',                     # strip everything after ? or #
     "/'/" => '',			   # strip single-quotes
     "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
-    "/((^|[^-\\w])\\w)/e" => "strtoupper('$1')",
-    "/ /" => ''));
+    '/((^|[^-\\w])\\w)/e' => "strtoupper('$1')",
+    '/ /' => ''));
   $m = preg_split('/[.\\/]/', $x);
   if (count($m)<1 || count($m)>2 || $m[0]=='') return '';
   if ($m[1] > '') {
@@ -913,7 +915,7 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
       $page = ($auth) ? RetrieveAuthPage($p, $auth, false, READPAGE_CURRENT)
               : ReadPage($p, READPAGE_CURRENT);
       if ($page['text']) 
-        echo MarkupToHTML($pagename,$page['text']);
+        echo MarkupToHTML($pagename,Qualify($p, $page['text']));
       return;
     }
   }
@@ -927,6 +929,35 @@ function Keep($x, $pool=NULL) {
   $KPCount++; $KPV[$KPCount.$pool]=$x;
   return $KeepToken.$KPCount.$pool.$KeepToken;
 }
+
+
+##  MarkupEscape examines markup source and escapes any [@...@]
+##  and [=...=] sequences using Keep().  MarkupRestore undoes the
+##  effect of any MarkupEscape().
+function MarkupEscape($text) {
+  global $EscapePattern;
+  SDV($EscapePattern, '\\[([=@]).*?\\1\\]');
+  return preg_replace("/$EscapePattern/es", "Keep(PSS('$0'))", $text);
+}
+function MarkupRestore($text) {
+  global $KeepToken, $KPV;
+  return preg_replace("/$KeepToken(\\d.*?)$KeepToken/e", "\$KPV['$1']", $text);
+}
+
+
+##  Qualify() applies $QualifyPatterns to convert relative links
+##  and references into absolute equivalents.
+function Qualify($pagename, $text) {
+  global $QualifyPatterns, $KeepToken, $KPV;
+  if (!@$QualifyPatterns) return $text;
+  $text = MarkupEscape($text);
+  $group = PageVar($pagename, '$Group');
+  $name = PageVar($pagename, '$Name');
+  foreach((array)$QualifyPatterns as $pat => $rep) 
+    $text = preg_replace($pat, $rep, $text);
+  return MarkupRestore($text);
+}
+
 
 function CondText($pagename,$condspec,$condtext) {
   global $Conditions;
@@ -942,11 +973,12 @@ function CondText($pagename,$condspec,$condtext) {
 
 
 function IncludeText($pagename, $inclspec) {
-  global $MaxIncludes, $InclCount;
+  global $MaxIncludes, $IncludeOpt, $InclCount;
   SDV($MaxIncludes,50);
+  SDVA($IncludeOpt, array('self'=>1));
   $npat = '[[:alpha:]][-\\w]*';
   if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
-  $args = array_merge(array('self' => 1), ParseArgs($inclspec));
+  $args = array_merge($IncludeOpt, ParseArgs($inclspec));
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);
     if ($k=='') {
@@ -982,7 +1014,11 @@ function IncludeText($pagename, $inclspec) {
       continue;
     }
   }
-  return PVS(htmlspecialchars(@$itext, ENT_NOQUOTES));
+  $basepage = isset($args['basepage']) 
+              ? MakePageName($pagename, $args['basepage'])
+              : $iname;
+  if ($basepage) $itext = Qualify(@$basepage, @$itext);
+  return PVS(htmlspecialchars($itext, ENT_NOQUOTES));
 }
 
 
