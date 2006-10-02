@@ -61,12 +61,14 @@ XLSDV('en', array(
   'SearchFound' => 
     '$MatchCount pages found out of $MatchSearched pages searched.'));
 
+SDV($PageListArgPattern, '((?:\\$:?)?\\w+)[:=]');
+
 Markup('pagelist', 'directives',
   '/\\(:pagelist(\\s+.*?)?:\\)/ei',
   "FmtPageList('\$MatchList', \$pagename, array('o' => PSS('$1 ')))");
 Markup('searchbox', 'directives',
   '/\\(:searchbox(\\s.*?)?:\\)/e',
-  "SearchBox(\$pagename, ParseArgs(PSS('$1')))");
+  "SearchBox(\$pagename, ParseArgs(PSS('$1'), '$PageListArgPattern'))");
 Markup('searchresults', 'directives',
   '/\\(:searchresults(\\s+.*?)?:\\)/ei',
   "FmtPageList(\$GLOBALS['SearchResultsFmt'], \$pagename, 
@@ -81,6 +83,7 @@ SDV($ActionTitleFmt['search'], '| $[Search Results]');
 SDVA($PageListFilters, array(
   'PageListSources' => 100,
   'PageListTermsTargets' => 110,
+  'PageListVariables' => 120,
   'PageListSort' => 900,
 ));
 
@@ -124,7 +127,8 @@ function SearchBox($pagename, $opt) {
 ## FmtPageList combines options from markup, request form, and url,
 ## calls the appropriate formatting function, and returns the string.
 function FmtPageList($outfmt, $pagename, $opt) {
-  global $GroupPattern, $FmtV, $FPLFormatOpt, $FPLFunctions;
+  global $GroupPattern, $FmtV, $PageListArgPattern, 
+    $FPLFormatOpt, $FPLFunctions;
   # get any form or url-submitted request
   $rq = htmlspecialchars(stripmagic(@$_REQUEST['q']), ENT_NOQUOTES);
   # build the search string
@@ -135,7 +139,8 @@ function FmtPageList($outfmt, $pagename, $opt) {
     $rq = substr($rq, strlen(@$match[1])+1);
   }
   # merge markup options with form and url
-  $opt = array_merge($opt, ParseArgs($opt['o'] . ' ' . $rq), @$_REQUEST);
+  $opt = array_merge($opt, ParseArgs($opt['o'].' '.$rq, $PageListArgPattern), 
+                     @$_REQUEST);
   # non-posted blank search requests return nothing
   if (@($opt['req'] && !$opt['-'] && !$opt[''] && !$opt['+'] && !$opt['q']))
     return '';
@@ -193,7 +198,8 @@ function MakePageList($pagename, $opt, $retpages = 1) {
     if ($opt['readf'] >= 1000) 
       $page = RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT);
     else if ($opt['readf']) $page = ReadPage($pn, READPAGE_CURRENT);
-    else $page = array();
+    else $page = array('name' => $pn);
+    if (!$page) continue;
     foreach((array)$itemfilters as $fn) 
       if (!$fn($list, $opt, $pn, $page)) continue 2;
     $page['pagename'] = $page['name'] = $pn;
@@ -306,6 +312,27 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       return 0;
   }
 }
+
+
+function PageListVariables(&$list, &$opt, $pn, &$page) {
+  switch ($opt['=phase']) {
+    case PAGELIST_PRE:
+      $varlist = preg_grep('/^\\$/', array_keys($opt));
+      if (!$varlist) return 0;
+      foreach($varlist as $v) {
+        $pat = preg_quote($opt[$v], '/');
+        $pat = str_replace(array('\\*', '\\?', '\\[\\^', '\\[', '\\]', ','),
+                           array('.*', '.', '[^', '[', ']', '|'), $pat);
+        $opt['=varinclp'][$v] = "/^(?:$pat)$/i";
+      }
+      return PAGELIST_ITEM;
+
+    case PAGELIST_ITEM:
+      foreach($opt['=varinclp'] as $v => $pat) 
+        if (!preg_match($pat, PageVar($pn, $v))) return 0;
+      return 1;
+  }
+}        
 
 
 function PageListSort(&$list, &$opt, $pn, &$page) {
