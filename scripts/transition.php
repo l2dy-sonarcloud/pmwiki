@@ -58,6 +58,9 @@ if (@$_REQUEST['trans']==='0') return;
 if (@$Transition['version'] < 2001901) 
   SDVA($Transition, array('abslinks' => 1));
 
+## abslinks:
+##   This restores settings so that PmWiki treats all links
+##   as absolute (following the 2.1.x and earlier interpretation).
 if (@$Transition['abslinks']) {
   SDV($EnableRelativePageLinks, 0);
   SDV($EnableRelativePageVars, 0);
