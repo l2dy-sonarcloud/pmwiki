@@ -66,7 +66,6 @@ $EnablePost = 1;
 $ChangeSummary = substr(stripmagic(@$_REQUEST['csum']), 0, 100);
 $AsSpacedFunction = 'AsSpaced';
 $SpaceWikiWords = 0;
-$LinkWikiWords = 0;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   '$SiteGroup.AllRecentChanges' => 
@@ -426,7 +425,7 @@ function Lock($op) {
   if (!$lockfp) { 
     @unlink($LockFile); 
     $lockfp = fopen($LockFile,"w") or
-      Abort('?cannot acquire lockfile');
+      Abort('Cannot acquire lockfile', 'flock');
     fixperms($LockFile);
   }
   if ($op<0) { flock($lockfp,LOCK_UN); fclose($lockfp); $lockfp=0; $curop=0; }
@@ -906,11 +905,17 @@ function RetrieveAuthPage($pagename, $level, $authprompt=true, $since=0) {
   return $AuthFunction($pagename, $level, $authprompt, $since);
 }
 
-function Abort($msg) {
+function Abort($msg, $info='') {
   # exit pmwiki with an abort message
+  global $ScriptUrl;
+  if ($info) 
+    $info = "<p class='vspace'><a target='_blank' rel='nofollow' href='http://www.pmwiki.org/pmwiki/info/$info'>$[More information]</a></p>";
   $msg = "<h3>$[PmWiki can't process your request]</h3>
-    <p>$msg</p><p>We are sorry for any inconvenience.</p>";
-  echo preg_replace('/\\$\\[([^\\]]+)\\]/e',"XL(PSS('$1'))", $msg);
+    <p class='vspace'>$msg</p>
+    <p class='vspace'>We are sorry for any inconvenience.</p>
+    $info
+    <p class='vspace'><a href='$ScriptUrl'>$[Return to] $ScriptUrl</a></p>";
+  echo preg_replace('/\\$\\[([^\\]]+)\\]/e', "XL(PSS('$1'))", $msg);
   exit;
 }
 
@@ -1160,12 +1165,12 @@ function MarkupClose($key = '') {
 }
 
 
-function FormatTableRow($x) {
+function FormatTableRow($x, $sep = '\\|\\|') {
   global $Block, $TableCellAttrFmt, $MarkupFrame, $TableRowAttrFmt, 
     $TableRowIndexMax, $FmtV;
   static $rowcount;
-  $x = preg_replace('/\\|\\|\\s*$/','',$x);
-  $td = explode('||',$x); $y='';
+  $x = preg_replace("/$sep\\s*$/",'',$x);
+  $td = preg_split("/$sep/", $x); $y = '';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
     $FmtV['$TableCellCount'] = $i;
@@ -1192,18 +1197,6 @@ function FormatTableRow($x) {
   return "<:table,1><tr $trattr>$y</tr>";
 }
 
-function WikiLink($pagename, $word) {
-  global $LinkWikiWords, $WikiWordCount, $SpaceWikiWords, $AsSpacedFunction, 
-    $MarkupFrame, $WikiWordCountMax;
-  if (!$LinkWikiWords || ($WikiWordCount[$word] < 0)) return $word;
-  $text = ($SpaceWikiWords) ? $AsSpacedFunction($word) : $word;
-  $text = preg_replace('!.*/!', '', $text);
-  if (!isset($MarkupFrame[0]['wwcount'][$word]))
-    $MarkupFrame[0]['wwcount'][$word] = $WikiWordCountMax;
-  if ($MarkupFrame[0]['wwcount'][$word]-- < 1) return $text;
-  return MakeLink($pagename, $word, $text);
-}
-  
 function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt;
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
