@@ -49,19 +49,25 @@ SDVA($InputTags['select'], array(
   'class' => 'inputbox',
   ':html' => "<select \$InputSelectArgs>\$InputSelectOptions</select>"));
 
-Markup('input', 'directives', 
-  '/\\(:input\\s+(\\w+)(.*?):\\)/ei',
-  "InputMarkup(\$pagename, '$1', PSS('$2'))");
+##  (:input default:) needs to occur before all other input markups.
+Markup('input', 'directives',
+  '/\\(:input\\s+(default)\\b(.*?):\\)/ei',
+  "InputDefault(\$pagename, '$1', PSS('$2'))");
 
-Markup('input-select', '<input',
+##  (:input select:) has its own markup processing
+Markup('input-select', 'input',
   '/\\(:input\\s+select\\s.*?:\\)(?:\\s*\\(:input\\s+select\\s.*?:\\))*/ei',
   "InputSelect(\$pagename, 'select', PSS('$0'))");
 
+##  (:input ...:) goes after all other input markups
+Markup('input-type', '>input', 
+  '/\\(:input\\s+(\\w+)(.*?):\\)/ei',
+  "InputMarkup(\$pagename, '$1', PSS('$2'))");
+
 ##  The 'input+sp' rule combines multiple (:input select ... :)
-##  into a single markup line (to avoid split)
+##  into a single markup line (to avoid split line effects)
 Markup('input+sp', '<split', 
   '/(\\(:input\\s+select\\s(?>.*?:\\)))\\s+(?=\\(:input\\s)/', '$1');
-
 
 function InputToHTML($pagename, $type, $args, &$opt) {
   global $InputTags, $InputAttrs, $InputValues, $FmtV;
@@ -106,20 +112,20 @@ function InputToHTML($pagename, $type, $args, &$opt) {
 }
 
 
-function InputMarkup($pagename, $type, $args) {
+function InputDefault($pagename, $type, $args) {
   global $InputValues;
-  if ($type == 'default') {
-    $args = ParseArgs($args);
-    $args[''] = (array)@$args[''];
-    if (!isset($args['name'])) $args['name'] = array_shift($args['']);
-    if (!isset($args['value'])) $args['value'] = array_shift($args['']);
-    if (!isset($InputValues[$args['name']])) 
-      $InputValues[$args['name']] = $args['value'];
-    return '';
-  }
-  return Keep(InputToHTML($pagename, $type, $args, $opt));
+  $args = ParseArgs($args);
+  $args[''] = (array)@$args[''];
+  if (!isset($args['name'])) $args['name'] = array_shift($args['']);
+  if (!isset($args['value'])) $args['value'] = array_shift($args['']);
+  if (!isset($InputValues[$args['name']])) 
+    $InputValues[$args['name']] = $args['value'];
+  return '';
 }
 
+function InputMarkup($pagename, $type, $args) {
+  return Keep(InputToHTML($pagename, $type, $args, $opt));
+}
 
 function InputSelect($pagename, $type, $markup) {
   global $InputTags, $InputAttrs, $FmtV;
