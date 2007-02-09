@@ -82,6 +82,8 @@ SDV($HandleAuth['search'], 'read');
 SDV($ActionTitleFmt['search'], '| $[Search Results]');
 
 SDVA($PageListFilters, array(
+  'PageListCache' => 80,
+  'PageListProtect' => 90,
   'PageListSources' => 100,
   'PageListTermsTargets' => 110,
   'PageListVariables' => 120,
@@ -174,16 +176,14 @@ function FmtPageList($outfmt, $pagename, $opt) {
 ## MakePageList generates a list of pages using the specifications given
 ## by $opt.
 function MakePageList($pagename, $opt, $retpages = 1) {
-  global $MakePageListOpt, $PageListFilters, $EnablePageListProtect, $PCache;
+  global $MakePageListOpt, $PageListFilters, $PCache;
 
   StopWatch('MakePageList pre');
-  SDV($EnablePageListProtect, 1);
   SDVA($MakePageListOpt, array('list' => 'default'));
   $opt = array_merge((array)$MakePageListOpt, (array)$opt);
   if (!@$opt['order'] && !@$opt['trail']) $opt['order'] = 'name';
 
-  if (IsEnabled($EnablePageListProtect, 1)) $opt['readf'] = 1000;
-  else @$opt['readf'] += 0;
+  ksort($opt); $opt['=key'] = md5(serialize($opt));
 
   $itemfilters = array(); $postfilters = array();
   asort($PageListFilters);
@@ -194,26 +194,20 @@ function MakePageList($pagename, $opt, $retpages = 1) {
     if ($ret & PAGELIST_POST) $postfilters[] = $fn;
   }
 
-  StopWatch('MakePageList items');
+  StopWatch("MakePageList items count=".count($list).", filters=".implode(',',$itemfilters));
   $opt['=phase'] = PAGELIST_ITEM;
-  StopWatch("MakePageList scanning ".count($list).", readf={$opt['readf']}");
-  $matches = array();
+  $matches = array(); $opt['=readc'] = 0;
   foreach((array)$list as $pn) {
-    if ($opt['readf'] >= 1000) 
-      $page = RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT);
-    else if ($opt['readf']) $page = ReadPage($pn, READPAGE_CURRENT);
-    else $page = array('name' => $pn);
-    if (!$page) continue;
+    $page = array();
     foreach((array)$itemfilters as $fn) 
       if (!$fn($list, $opt, $pn, $page)) continue 2;
     $page['pagename'] = $page['name'] = $pn;
-    # StopWatch("MakePageList itemfilter count=".count($page));  
     PCache($pn, $page);
     $matches[] = $pn;
   }
   $list = $matches;
+  StopWatch("MakePageList post count=".count($list).", readc={$opt['=readc']}");
 
-  StopWatch('MakePageList post');
   $opt['=phase'] = PAGELIST_POST; $pn=NULL; $page=NULL;
   foreach((array)$postfilters as $fn) 
     $fn($list, $opt, $pagename, $page);
@@ -223,6 +217,37 @@ function MakePageList($pagename, $opt, $retpages = 1) {
       $list[$i] = &$PCache[$list[$i]];
   StopWatch('MakePageList end');
   return $list;
+}
+
+
+function PageListProtect(&$list, &$opt, $pn, &$page) {
+  global $EnablePageListProtect;
+
+  switch ($opt['=phase']) {
+    case PAGELIST_PRE:
+      if (!IsEnabled($EnablePageListProtect, 1) && @$opt['readf'] < 1000)
+        return 0;
+      StopWatch("PageListProtect enabled");
+      $opt['=protectexclude'] = array();
+      $opt['=protectsafe'] = (array)@$opt['=protectsafe'];
+      return PAGELIST_ITEM|PAGELIST_POST;
+
+    case PAGELIST_ITEM:
+      if (@$opt['=protectsafe'][$pn]) return 1;
+      $page = RetrieveAuthPage($pn, 'ALWAYS', false, READPAGE_CURRENT);
+      $opt['=readc']++;
+      if (!$page['=auth']['read']) $opt['=protectexclude'][$pn] = 1;
+      if (!$page['=passwd']['read']) $opt['=protectsafe'][$pn] = 1;
+      return 1;
+
+    case PAGELIST_POST:
+      $excl = array_keys($opt['=protectexclude']);
+      $safe = array_keys($opt['=protectsafe']);
+      StopWatch("PageListProtect excluded=" .count($excl)
+                . ", safe=" . count($safe));
+      $list = array_diff($list, $excl);
+      return 1;
+  }
 }
 
 
@@ -250,9 +275,9 @@ function PageListSources(&$list, &$opt, $pn, &$page) {
     foreach($trail as $tstop) 
       $PCache[$tstop['pagename']]['parentnames'][] = 
         @$trail[$tstop['parent']]['pagename'];
-  } else $list = ListPages($opt['=pnfilter']);
+  } else if (@!$opt['=cached']) $list = ListPages($opt['=pnfilter']);
 
-  StopWatch('PageListSources end');
+  StopWatch("PageListSources end count=".count($list));
   return 0;
 }
 
@@ -282,20 +307,20 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
         $indexterms[] = " $link ";
       }
 
+      if (@$opt['=cached']) return 0;
       if ($indexterms) {
+        StopWatch("PageListTermsTargets begin count=".count($list));
         $xlist = PageIndexGrep($indexterms, true);
-        $a = count($list);
         $list = array_diff($list, $xlist);
-        $a -= count($list);
-        StopWatch("PageListTermsTargets filtered $a pages");
+        StopWatch("PageListTermsTargets end count=".count($list));
       }
 
       if (@$opt['=inclp'] || @$opt['=exclp'] || @$opt['=linkp']) 
-        { $opt['readf']++; return PAGELIST_ITEM|PAGELIST_POST; }
+        return PAGELIST_ITEM|PAGELIST_POST; 
       return 0;
 
     case PAGELIST_ITEM:
-      if (!$page) $page = ReadPage($pn, READPAGE_CURRENT);
+      if (!$page) { $page = ReadPage($pn, READPAGE_CURRENT); $opt['=readc']++; }
       if (!$page) return 0;
       if (@$opt['=linkp'] && !preg_match($opt['=linkp'], @$page['targets'])) 
         { $opt['=reindex'][] = $pn; return 0; }
@@ -341,35 +366,47 @@ function PageListVariables(&$list, &$opt, $pn, &$page) {
 
 
 function PageListSort(&$list, &$opt, $pn, &$page) {
-  global $PageListSortCmp, $PCache;
+  global $PageListSortCmp, $PCache, $PageListSortRead;
+  SDVA($PageListSortRead, array('name' => 0, 'group' => 0, 'random' => 0,
+    'title' => 0));
 
-  $order = @$opt['order'];
   switch ($opt['=phase']) {
     case PAGELIST_PRE:
-      if (!preg_match('/^([\\s,|]*-?(name|group|random))*$/', $order))
-        $opt['readf']++;
-      if (preg_match('/random|group|title|\\$/', $order)) 
-        return PAGELIST_ITEM | PAGELIST_POST;
-      return PAGELIST_POST;
+      $ret = 0;
+      foreach(preg_split('/[\\s,|]+/', $opt['order'], -1, PREG_SPLIT_NO_EMPTY) 
+              as $o) {
+        $ret |= PAGELIST_POST;
+        $r = '+';
+        if ($o{0} == '-') { $r = '-'; $o = substr($o, 1); }
+        $opt['=order'][$o] = $r;
+        if (!isset($PageListSortRead[$o]) || $PageListSortRead[$o])
+          $ret |= PAGELIST_ITEM;
+      }
+      StopWatch("PageListSort pre ret=$ret order={$opt['order']}");
+      return $ret;
 
     case PAGELIST_ITEM:
-      if (!isset($page['title']) && strpos($order, 'title')!==false) 
-         $page['title'] = PageVar($pn, '$Title');
-      if (strpos($order, 'group')!==false) 
-         $page['group'] = PageVar($pn, '$Group');
-      if (strpos($order, 'random')!==false) 
-         $page['random'] = rand();
-      if (preg_match_all('/\\$:?\\w+/', $order, $match, PREG_PATTERN_ORDER)) 
-        foreach($match[0] as $m) $PCache[$pn][$m] = PageVar($pn, $m);
+      if (!$page) { $page = ReadPage($pn, READPAGE_CURRENT); $opt['=readc']++; }
       return 1;
   }
 
   ## case PAGELIST_POST
   StopWatch('PageListSort begin');
+  if ($opt['=order']['title'])
+    foreach($list as $pn) 
+      if (!isset($PCache[$pn]['title'])) 
+        $PCache[$pn]['title'] = PageVar($pn, '$Title');
+  if ($opt['=order']['group'])
+    foreach($list as $pn) $PCache[$pn]['group'] = PageVar($pn, '$Group');
+  if ($opt['=order']['random'])
+    foreach($list as $pn) $PCache[$pn]['random'] = rand();
+  $pvlist = preg_grep('/^\\$/', $opt['=order']);
+  foreach($pvlist as $pv) 
+    foreach($list as $pn) 
+      $PCache[$pn][$pv] = PageVar($pn, $pv);
+    
   $code = '';
-  foreach(preg_split('/[\\s,|]+/', $order, -1, PREG_SPLIT_NO_EMPTY) as $o) {
-    if ($o{0} == '-') { $r = '-'; $o = substr($o, 1); }
-    else $r = '';
+  foreach($opt['=order'] as $o => $r) {
     if (@$PageListSortCmp[$o]) 
       $code .= "\$c = {$PageListSortCmp[$o]}; "; 
     else 
@@ -380,6 +417,39 @@ function PageListSort(&$list, &$opt, $pn, &$page) {
     uasort($list,
            create_function('$x,$y', "global \$PCache; $code return 0;"));
   StopWatch('PageListSort end');
+}
+
+
+function PageListCache(&$list, &$opt, $pn, &$page) {
+  global $PageListCacheDir, $LastModTime, $PageIndexFile;
+
+  if (@!$PageListCacheDir) return 0;
+  if (isset($opt['cache']) && !$opt['cache']) return 0;
+ 
+  $key = $opt['=key'];
+  $cache = "$PageListCacheDir/$key.txt"; 
+  switch ($opt['=phase']) {
+    case PAGELIST_PRE:
+      if (!file_exists($cache) || filemtime($cache) <= $LastModTime)
+        return PAGELIST_POST;
+      StopWatch("PageListCache begin load key=$key");
+      list($list, $opt['=protectsafe']) = 
+        unserialize(file_get_contents($cache));
+      $opt['=cached'] = 1;
+      StopWatch("PageListCache end load");
+      return 0;
+
+    case PAGELIST_POST:
+      StopWatch("PageListCache begin save key=$key");
+      $fp = @fopen($cache, "w");
+      if ($fp) {
+        fputs($fp, serialize(array($list, $opt['=protectsafe'])));
+        fclose($fp);
+      }
+      StopWatch("PageListCache end save");
+      return 0;
+  }
+  return 0;
 }
 
 
@@ -417,6 +487,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
   SDV($FPLTemplatePageFmt, array('{$FullName}',
     '{$SiteGroup}.LocalTemplates','{$SiteGroup}.PageListTemplates'));
 
+  StopWatch("FPLTemplate begin");
   $template = @$opt['template'];
   if (!$template) $template = @$opt['fmt'];
 
@@ -433,6 +504,8 @@ function FPLTemplate($pagename, &$matches, $opt) {
 
   ##   remove any anchor markups to avoid duplications
   $ttext = preg_replace('/\\[\\[#[A-Za-z][-.:\\w]*\\]\\]/', '', $ttext);
+  ##   save any escapes
+  $ttext = MarkupEscape($ttext);
 
   $matches = array_values(MakePageList($pagename, $opt, 0));
   if (@$opt['count']) array_splice($matches, $opt['count']);
@@ -461,7 +534,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
     if ($group != $lgroup) { $groupcount++; $grouppagecount = 0; }
     $grouppagecount++; $pagecount++;
 
-    $item = str_replace($vk, $vv, MarkupEscape($ttext));
+    $item = str_replace($vk, $vv, $ttext);
     $item = preg_replace('/\\{(=|&[lg]t;)(\\$:?\\w+)\\}/e',
                 "PVSE(PageVar(\$pn, '$2', '$1'))", $item);
     $out .= MarkupRestore($item);
@@ -469,7 +542,9 @@ function FPLTemplate($pagename, &$matches, $opt) {
   }
   $class = preg_replace('/[^-a-zA-Z0-9\\x80-\\xff]/', ' ', @$opt['class']);
   $div = ($class) ? "<div class='$class'>" : '<div>';
-  return $div.MarkupToHTML($pagename, $out, array('escape' => 0)).'</div>';
+  $out = $div.MarkupToHTML($pagename, $out, array('escape' => 0)).'</div>';
+  StopWatch("FPLTemplate end");
+  return $out;
 }
 
 

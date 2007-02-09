@@ -21,7 +21,9 @@ global $HTTPHeaders, $KeepToken, $pagename,
   $PageNameChars, $MakePageNamePatterns, $CaseConversions, $Charset;
 
 $Charset = 'UTF-8';
-$HTTPHeaders[] = 'Content-type: text/html; charset=UTF-8';
+$HTTPHeaders['utf-8'] = 'Content-type: text/html; charset=UTF-8';
+$HTMLHeaderFmt['utf-8'] = 
+  "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />";
 $pagename = @$_REQUEST['n'];
 if (!$pagename) $pagename = @$_REQUEST['pagename'];
 if (!$pagename &&
@@ -29,12 +31,13 @@ if (!$pagename &&
           $_SERVER['REQUEST_URI'],$match))
     $pagename = urldecode($match[1]);
 $pagename = preg_replace('!/+$!','',$pagename);
+$FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
 
 $GroupPattern = '[\\w\\x80-\\xfe]+(?:-[[\\w\\x80-\\xfe]+)*';
 $NamePattern = '[\\w\\x80-\\xfe]+(?:-[[\\w\\x80-\\xfe]+)*';
 $WikiWordPattern = 
   '[A-Z][A-Za-z0-9]*(?:[A-Z][a-z0-9]|[a-z0-9][A-Z])[A-Za-z0-9]*';
-$SuffixPattern = '(?:-?[[:alnum:]\\x80-\\xd6]+)*';
+$SuffixPattern = '(?:-?[A-Za-z0-9\\x80-\\xd6]+)*';
 
 SDV($PageNameChars, '-[:alnum:]\\x80-\\xfe');
 SDV($MakePageNamePatterns, array(
@@ -44,6 +47,8 @@ SDV($MakePageNamePatterns, array(
     '/(?<=^| )([a-z])/e' => "strtoupper('$1')", 
     '/(?<=^| )([\\xc0-\\xdf].)/e' => "utf8toupper('$1')", 
     '/ /' => ''));
+
+$AsSpacedFunction = 'AsSpacedUTF8';
 
 function utf8toupper($x) {
   global $CaseConversions;
@@ -55,6 +60,18 @@ function utf8toupper($x) {
   }
   return str_replace($lower, $upper, $x);
 }
+
+
+function AsSpacedUTF8($text) {
+  global $CaseConversions;
+  if (!@$CaseConversions) return AsSpaced($text);
+  $lower = implode('|', array_keys($CaseConversions));
+  $upper = implode('|', array_values($CaseConversions));
+  $text = preg_replace("/($lower|\\d)($upper)/", '$1 $2', $text);
+  $text = preg_replace('/(?<![-\\d])(\\d+( |$))/', ' $1', $text);
+  return preg_replace("/($upper)(($upper)($lower|\\d))/", '$1 $2', $text);
+}
+
 
 SDV($CaseConversions, array(
   'a' => 'A', 'b' => 'B', 'c' => 'C', 'd' => 'D', 'e' => 'E', 'f' => 'F',
