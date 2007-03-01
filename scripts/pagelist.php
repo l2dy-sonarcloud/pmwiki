@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2006 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2007 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -350,16 +350,19 @@ function PageListVariables(&$list, &$opt, $pn, &$page) {
       $varlist = preg_grep('/^\\$/', array_keys($opt));
       if (!$varlist) return 0;
       foreach($varlist as $v) {
-        $pat = preg_quote($opt[$v], '/');
-        $pat = str_replace(array('\\*', '\\?', '\\[\\^', '\\[', '\\]', ','),
-                           array('.*', '.', '[^', '[', ']', '|'), $pat);
-        $opt['=varinclp'][$v] = "/^(?:$pat)$/i";
+        list($inclp, $exclp) = GlobToPCRE($opt[$v]);
+        if ($inclp) $opt['=varinclp'][$v] = "/$inclp/i";
+        if ($exclp) $opt['=varexclp'][$v] = "/$exclp/i";
       }
       return PAGELIST_ITEM;
 
     case PAGELIST_ITEM:
-      foreach($opt['=varinclp'] as $v => $pat) 
-        if (!preg_match($pat, PageVar($pn, $v))) return 0;
+      if (@$opt['=varinclp'])
+        foreach($opt['=varinclp'] as $v => $pat) 
+          if (!preg_match($pat, PageVar($pn, $v))) return 0;
+      if (@$opt['=varexclp'])
+        foreach($opt['=varexclp'] as $v => $pat) 
+           if (preg_match($pat, PageVar($pn, $v))) return 0;
       return 1;
   }
 }        
