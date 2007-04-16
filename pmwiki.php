@@ -418,12 +418,15 @@ function AsSpaced($text) {
 ## Lock is used to make sure only one instance of PmWiki is running when
 ## files are being written.  It does not "lock pages" for editing.
 function Lock($op) { 
-  global $WorkDir,$LockFile;
-  SDV($LockFile,"$WorkDir/.flock");
+  global $WorkDir, $LockFile, $EnableReadOnly;
+  if ($op > 0 && IsEnabled($EnableReadOnly, 0))
+    Abort('Cannot modify site -- $EnableReadOnly is set', 'readonly');
+  SDV($LockFile, "$WorkDir/.flock");
   mkdirp(dirname($LockFile));
   static $lockfp,$curop;
-  if (!$lockfp) $lockfp = @fopen($LockFile,"w");
+  if (!$lockfp) $lockfp = @fopen($LockFile, "w");
   if (!$lockfp) { 
+    if ($op <= 0) return;
     @unlink($LockFile); 
     $lockfp = fopen($LockFile,"w") or
       Abort('Cannot acquire lockfile', 'flock');
@@ -1589,7 +1592,10 @@ function HandleEdit($pagename, $auth = 'edit') {
     str_replace('$','&#036;',htmlspecialchars(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
   if (@$PageEditForm) {
-    $form = ReadPage(FmtPageName($PageEditForm, $pagename), READPAGE_CURRENT);
+    $efpage = FmtPageName($PageEditForm, $pagename);
+    $form = RetrieveAuthPage($efpage, 'read', false, READPAGE_CURRENT);
+    if (!$form || !@$form['text']) 
+      Abort("?unable to retrieve edit form $efpage", 'editform');
     $FmtV['$EditForm'] = MarkupToHTML($pagename, $form['text']);
   }
   SDV($PageEditFmt, "<div id='wikiedit'>
