@@ -406,6 +406,41 @@ function StopWatch($x) {
     sprintf("%05.2f %05.2f %s", $wtime-$wstart, $utime-$ustart, $x);
 }
 
+
+## DRange converts a variety of string formats into date (ranges).
+## It returns the start and end timestamps (+1 second) of the specified date.
+function DRange($when) {
+  ##  unix/posix @timestamp dates
+  if (preg_match('/^\\s*@(\\d+)\\s*(.*)$/', $when, $m)) {
+    $t0 = $m[2] ? strtotime($m[2], $m[1]) : $m[1];
+    return array($t0, $t0+1);
+  }
+  ##  ISO-8601 dates
+  $dpat = '#(?<!\\d)(19\\d\\d|20[0-3]\\d)([-./]?)([01]\\d)(?:\\2([0-3]\\d))?(?!\
+\d)(.*)#';
+  if (preg_match($dpat, $when, $m)) {
+    if ($m[4] == '') { $m[4] = 1; $d1 = 0; $m1 = 1; }
+    else { $d1 = 1; $m1 = 0; }
+    $t0 = mktime(0, 0, 0, $m[3],       $m[4],       $m[1]);
+    $t1 = mktime(0, 0, 0, $m[3] + $m1, $m[4] + $d1, $m[1]);
+    if ($m[5] > '') 
+      { $t0 = strtotime($m[5], $t0); $t1 = strtotime($m[5], $t1); }
+    return array($t0, $t1);
+  }
+  ##  today, tomorrow, yesterday
+  NoCache();
+  $m = localtime(time());
+  if ($when == 'tomorrow') { $m[3]++; $when = 'today'; }
+  if ($when == 'yesterday') { $m[3]--; $when = 'today'; }
+  if ($when == 'today') 
+    return array(mktime(0, 0, 0, $m[4]+1, $m[3]  , $m[5]+1900),
+                 mktime(0, 0, 0, $m[4]+1, $m[3]+1, $m[5]+1900));
+  if (preg_match('/^\\s*$/', $when)) return array(-1, -1);
+  $t0 = strtotime($when);
+  $t1 = strtotime("+1 day", $t0);
+  return array($t0, $t1);
+}
+
 ## AsSpaced converts a string with WikiWords into a spaced version
 ## of that string.  (It can be overridden via $AsSpacedFunction.)
 function AsSpaced($text) {
@@ -647,7 +682,7 @@ function PageTextVar($pagename, $var) {
             $pc["=p_{$m[1]}"] = Qualify($pagename, $m[2]);
     }
   }
-  return $PCache[$pagename]["=p_$var"];
+  return @$PCache[$pagename]["=p_$var"];
 }
 
 
@@ -658,13 +693,14 @@ function PageVar($pagename, $var, $pn = '') {
   if ($pn) {
     $pn = isset($Cursor[$pn]) ? $Cursor[$pn] : MakePageName($pagename, $pn);
   } else $pn = $pagename;
-  if ($pn == '') return '';
-  if (preg_match('/^(.+)[.\\/]([^.\\/]+)$/', $pn, $match)
-      && !isset($PCache[$pn]['time']) 
-      && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) 
-    { $page = ReadPage($pn, READPAGE_CURRENT); PCache($pn, $page); }
-  @list($d, $group, $name) = $match;
-  $page = &$PCache[$pn];
+  if ($pn) {
+    if (preg_match('/^(.+)[.\\/]([^.\\/]+)$/', $pn, $match)
+        && !isset($PCache[$pn]['time']) 
+        && (!@$FmtPV[$var] || strpos($FmtPV[$var], '$page') !== false)) 
+      { $page = ReadPage($pn, READPAGE_CURRENT); PCache($pn, $page); }
+    @list($d, $group, $name) = $match;
+    $page = &$PCache[$pn];
+  } else { $group = ''; $name = ''; }
   if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
   if (strncmp($var, '$:', 2)==0) return PageTextVar($pn, substr($var, 2));
   return '';
@@ -1055,6 +1091,54 @@ function CondText($pagename,$condspec,$condtext) {
 }
 
 
+##  TextSection extracts a section of text delimited by page anchors.
+##  The $sections parameter can have the form
+##    #abc           - [[#abc]] to next anchor
+##    #abc#def       - [[#abc]] up to [[#def]]
+##    #abc#, #abc..  - [[#abc]] to end of text
+##    ##abc, ..#abc  - beginning of text to [[#abc]]
+##  Returns the text unchanged if no sections are requested,
+##  or false if a requested beginning anchor isn't in the text.
+function TextSection($text, $sections) {
+  $npat = '[[:alpha:]][-\\w*]*';
+  if (!preg_match("/#($npat)?(\\.\\.)?(#($npat)?)?/", $sections, $match))
+    return $text;
+  @list($x, $aa, $dots, $b, $bb) = $match;
+  if (!$dots && !$b) $bb = $npat;
+  if ($aa) {
+    if (strpos($text, "[[#$aa]]") === false) return false;
+    $text = preg_replace("/^.*?\n([^\n]*\\[\\[#$aa\\]\\])/s", '$1', $text, 1);
+  }
+  if ($bb)
+    $text = preg_replace("/(\n)[^\n]*\\[\\[#$bb\\]\\].*$/s", '$1', $text, 1);
+  return $text;
+}
+
+
+##  RetrieveAuthSection extracts a section of text from a page.
+##  If $pagesection starts with anything other than '#', it identifies
+##  the page to extract text from.  Otherwise RetrieveAuthSection looks
+##  in the pages given by $list, or in $pagename if $list is not specified.
+##  Any page variables in the text are pagename-qualified.
+##                    WARNING WARNING WARNING
+##  The return values of this function are likely to change, so don't
+##  rely on it just yet.
+function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') {
+  if ($pagesection{0} != '#')
+    $list = array(MakePageName($pagename, $pagesection));
+  else if (is_null($list)) $list = array($pagename);
+  foreach((array)$list as $t) {
+    $t = FmtPageName($t, $pagename);
+    if (!PageExists($t)) continue;
+    $tpage = RetrieveAuthPage($t, $auth, false, READPAGE_CURRENT);
+    if (!$tpage) continue;
+    $text = TextSection($tpage['text'], $pagesection);
+    if ($text !== false) return Qualify($t, $text);
+  }
+  return false;
+}
+
+
 function IncludeText($pagename, $inclspec) {
   global $MaxIncludes, $IncludeOpt, $InclCount;
   SDV($MaxIncludes,50);
@@ -1065,28 +1149,17 @@ function IncludeText($pagename, $inclspec) {
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);
     if ($k=='') {
-      preg_match('/^([^#\\s]*)(.*)$/', $v, $match);
-      if ($match[1]) {                                 # include a page
+      if ($v{0} != '#') {
         if (isset($itext)) continue;
-        $iname = MakePageName($pagename, $match[1]);
+        $iname = MakePageName($pagename, $v);
         if (!$args['self'] && $iname == $pagename) continue;
-        if (!PageExists($iname)) continue;
         $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
         $itext = @$ipage['text'];
       }
-      if (preg_match("/^#($npat)?(\\.\\.)?(#($npat)?)?$/", $match[2], $m)) {
-        @list($x, $aa, $dots, $b, $bb) = $m;
-        if (!$dots && !$b) $bb = $npat;
-        if ($aa)
-          $itext=preg_replace("/^.*?\n([^\n]*\\[\\[#$aa\\]\\])/s",
-                              '$1', $itext, 1);
-        if ($bb)
-          $itext=preg_replace("/(\n)[^\n]*\\[\\[#$bb\\]\\].*$/s",
-                              '$1', $itext, 1);
-      }
+      $itext = TextSection($itext, $v);
       continue;
     }
-    if (in_array($k, array('line', 'lines', 'para', 'paras'))) {
+    if (preg_match('/^(?:line|para)s?$/', $k)) {
       preg_match('/^(\\d*)(\\.\\.(\\d*))?$/', $v, $match);
       @list($x, $a, $dots, $b) = $match;
       $upat = ($k{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*(?:\n|$)";
@@ -1232,8 +1305,9 @@ function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
 }
 
 function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
-  global $QueryFragPattern,$LinkPageExistsFmt,$LinkPageSelfFmt,
-    $LinkPageCreateSpaceFmt,$LinkPageCreateFmt,$FmtV,$LinkTargets;
+  global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
+    $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
+    $EnableLinkPageRelative;
   if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     return ($path) ? "<a href='#$path'>$txt</a>" : '';
@@ -1252,8 +1326,11 @@ function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
       $fmt = ($tgtname == $pagename && $qf == '') 
              ? $LinkPageSelfFmt : $LinkPageExistsFmt;
   }
+  $url = PageVar($tgtname, '$PageUrl');
+  if (@$EnableLinkPageRelative) 
+    $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText'),
-           array(PageVar($tgtname, '$PageUrl').PUE($qf), $txt), $fmt);
+                     array($url.PUE($qf), $txt), $fmt);
   return FmtPageName($fmt,$tgtname);
 }
 
@@ -1468,14 +1545,17 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
   return $new['text'];
 }
 
-## ReplaceOnSave performs any text replacements (held in $ROSPatterns)
-## on the new text prior to saving the page.
+## ReplaceOnSave performs text replacements on the text being posted.
+## Patterns held in $ROEPatterns are replaced on every edit request,
+## patterns held in $ROSPatterns are replaced only when the page
+## is being posted (as signaled by $EnablePost).
 function ReplaceOnSave($pagename,&$page,&$new) {
-  global $EnablePost, $ROSPatterns;
+  global $EnablePost, $ROSPatterns, $ROEPatterns;
+  foreach ((array)@$ROEPatterns as $pat => $rep)
+    $new['text'] = preg_replace($pat, $rep, $new['text']);
   if (!$EnablePost) return;
-  foreach((array)$ROSPatterns as $pat=>$repfmt) 
-    $new['text'] = 
-      preg_replace($pat,FmtPageName($repfmt,$pagename),$new['text']);
+  foreach((array)@$ROSPatterns as $pat=>$rep) 
+    $new['text'] = preg_replace($pat, $rep, $new['text']);
 }
 
 function SaveAttributes($pagename,&$page,&$new) {

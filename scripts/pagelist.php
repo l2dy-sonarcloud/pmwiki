@@ -86,6 +86,7 @@ SDVA($PageListFilters, array(
   'PageListCache' => 80,
   'PageListProtect' => 90,
   'PageListSources' => 100,
+  'PageListIf' => 108,
   'PageListTermsTargets' => 110,
   'PageListVariables' => 120,
   'PageListSort' => 900,
@@ -285,6 +286,29 @@ function PageListSources(&$list, &$opt, $pn, &$page) {
 }
 
 
+function PageListIf(&$list, &$opt, $pn, &$page) {
+  global $Conditions, $Cursor;
+
+  ##  See if we have any "if" processing to perform
+  if ($opt['=phase'] == PAGELIST_PRE) 
+    return (@$opt['if'] > '') ? PAGELIST_ITEM : 0;
+
+  $condspec = $opt['if'];
+  $Cursor['='] = $pn;
+  $varpat = '\\{([=*]|!?[-\\w.\\/\\x80-\\xff]*)(\\$:?\\w+)\\}';
+  while (preg_match("/$varpat/", $condspec, $match)) {
+    $condspec = preg_replace("/$varpat/e", 
+                    "PVSE(PageVar(\$pn, '$2', '$1'))", $condspec);
+  }
+  if (!preg_match("/^\\s*(!?)\\s*(\\S*)\\s*(.*?)\\s*$/", $condspec, $match)) 
+    return 0;
+  list($x, $not, $condname, $condparm) = $match;
+  if (!isset($Conditions[$condname])) return 1;
+  $tf = (int)@eval("return ({$Conditions[$condname]});");
+  return (boolean)($tf xor $not);
+}
+
+
 function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
   global $FmtV;
   $fold = $GLOBALS['StrFoldFunction'];
@@ -400,11 +424,11 @@ function PageListSort(&$list, &$opt, $pn, &$page) {
   ## case PAGELIST_POST
   StopWatch('PageListSort begin');
   $order = $opt['=order'];
-  if ($order['title'])
+  if (@$order['title'])
     foreach($list as $pn) $PCache[$pn]['=title'] = PageVar($pn, '$Title');
-  if ($order['group'])
+  if (@$order['group'])
     foreach($list as $pn) $PCache[$pn]['group'] = PageVar($pn, '$Group');
-  if ($order['random'])
+  if (@$order['random'])
     foreach($list as $pn) $PCache[$pn]['random'] = rand();
   foreach(preg_grep('/^\\$/', array_keys($order)) as $o) 
     foreach($list as $pn) 
@@ -513,17 +537,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
   StopWatch("FPLTemplate begin");
   $template = @$opt['template'];
   if (!$template) $template = @$opt['fmt'];
-
-  list($tname, $qf) = explode('#', $template, 2);
-  if ($tname) $tname = array(MakePageName($pagename, $tname));
-  else $tname = (array)$FPLTemplatePageFmt;
-  foreach ($tname as $t) {
-    $t = FmtPageName($t, $pagename);
-    if (!PageExists($t)) continue;
-    if ($qf) $t .= "#$qf";
-    $ttext = IncludeText($pagename, $t, true);
-    if (!$qf || strpos($ttext, "[[#$qf]]") !== false) break;
-  }
+  $ttext = PVSE(RetrieveAuthSection($pagename, $template, $FPLTemplatePageFmt));
 
   ##  save any escapes
   $ttext = MarkupEscape($ttext);
@@ -673,7 +687,7 @@ function PageIndexUpdate($pagelist, $dir = '') {
       foreach($terms as $t) { if (strpos($x, $t) === false) $x .= " $t"; }
       fputs($ofp, "$pn:$Now: $targets :$x\n");
     }
-    $updated[$pn]++;
+    @$updated[$pn]++;
   }
   $ifp = @fopen($PageIndexFile, 'r');
   if ($ifp) {

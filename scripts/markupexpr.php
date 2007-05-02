@@ -61,7 +61,7 @@ Markup('{(', '>{$var}',
 SDVA($MarkupExpr, array(
   'substr' => 'call_user_func_array("substr", $args)',
   'strlen' => 'strlen($args[0])',
-  'ftime' => 'ME_ftime($args[0], $args[1], $argp)',
+  'ftime' => 'ME_ftime(@$args[0], @$args[1], $argp)',
   'rand'   => '($args) ? rand($args[0], $args[1]) : rand()',
   'ucfirst' => 'ucfirst($args[0])',
   'ucwords' => 'ucwords($args[0])',
@@ -114,26 +114,13 @@ function ME_ftime($arg0 = '', $arg1 = '', $argp = NULL) {
   if (@$argp['fmt']) $fmt = $argp['fmt']; 
   else if (strpos($arg0, '%') !== false) { $fmt = $arg0; $arg0 = $arg1; }
   else if (strpos($arg1, '%') !== false) $fmt = $arg1;
-  if (@$argp['when']) $when = $argp['when'];
-  else $when = $arg0;
-  $dpat = '#^\\s*(\\d{4})([.-/]?)?(\\d\\d)\\2?(\\d\\d)?(?!\\d)(.*)#';
-  if (preg_match('/^\\s*@(\\d+)\\s*(.*)$/', $when, $match)) {
-    ##  unix timestamp dates
-    $time = $match[2] ? strtotime($match[2], $match[1]) : $match[1];
-  } else if (preg_match($dpat, $when, $match)) {
-    ##  ISO-8601 dates
-    if ($match[4] == '') $match[4] = '01';
-    $time = mktime(0, 0, 0, $match[3], $match[4], $match[1]);
-    if ($match[5] > '') $time = strtotime($match[5], $time);
-  } else if (preg_match('/^\\s*$/', $when)) {
-    ##  empty dates
-    $time = $Now;
-  } else 
-    ##  call strtotime for everything else
-    $time = strtotime($when);
-  if ($fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
+  ## determine the timestamp
+  if (isset($argp['when'])) list($time, $x) = DRange($argp['when']);
+  else if ($arg0 > '') list($time, $x) = DRange($arg0);
+  else $time = $Now;
+  if (@$fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
   ##  make sure we have %F available for ISO dates
-  $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $Now), $fmt);
+  $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $time), $fmt);
   return strftime($fmt, $time);
 }
 

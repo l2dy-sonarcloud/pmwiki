@@ -33,7 +33,8 @@ SDV($InputTags['end'][':html'], '</form>');
 
 # (:input textarea:)
 SDVA($InputTags['textarea'], array(
-  ':html' => "<textarea \$InputFormArgs></textarea>"));
+  ':content' => array('value'),
+  ':html' => "<textarea \$InputFormArgs>\$InputFormContent</textarea>"));
 
 # (:input image:)
 SDV($InputTags['image'][':args'], array('name', 'src', 'alt'));
@@ -86,7 +87,8 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   ##  convert any remaining positional args to flags
   foreach ((array)@$opt[''] as $a) 
     { $a = strtolower($a); if (!isset($opt[$a])) $opt[$a] = $a; }
-  $name = @$opt['name'];
+  $opt['name'] = preg_replace('/^\\$:/', 'ptv_', @$opt['name']);
+  $name = $opt['name'];
   ##  set control values from $InputValues array
   ##  radio, checkbox, select, etc. require a flag of some sort,
   ##  others just set 'value'
@@ -113,13 +115,31 @@ function InputToHTML($pagename, $type, $args, &$opt) {
 
 
 function InputDefault($pagename, $type, $args) {
-  global $InputValues;
+  global $InputValues, $PageTextVarPatterns;
   $args = ParseArgs($args);
   $args[''] = (array)@$args[''];
-  if (!isset($args['name'])) $args['name'] = array_shift($args['']);
-  if (!isset($args['value'])) $args['value'] = array_shift($args['']);
-  if (!isset($InputValues[$args['name']])) 
-    $InputValues[$args['name']] = $args['value'];
+  $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
+  $name = str_replace('/^\\$:/', 'ptv_', $name);
+  $value = (isset($args['value'])) ? $args['value'] : array_shift($args['']);
+  if (!isset($InputValues[$name])) $InputValues[$name] = $value;
+  if (@$args['request']) {
+    $req = array_merge($_GET, $_POST);
+    foreach($req as $k => $v) 
+      if (!isset($InputValues[$k])) 
+        $InputValues[$k] = htmlspecialchars(stripmagic($v), ENT_NOQUOTES);
+  }
+  if (@$args['source']) {
+    $source = MakePageName($pagename, $args['source']);
+    $page = RetrieveAuthPage($source, 'read', false, READPAGE_CURRENT);
+    if ($page) {
+      foreach((array)$PageTextVarPatterns as $pat)
+        if (preg_match_all($pat, $page['text'], $match, PREG_SET_ORDER))
+          foreach($match as $m)
+            if (!isset($InputValues['ptv_'.$m[1]]))
+              $InputValues['ptv_'.$m[1]] = 
+                htmlspecialchars(Qualify($source, $m[2]), ENT_NOQUOTES);
+    }
+  }
   return '';
 }
 
