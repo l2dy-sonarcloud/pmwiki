@@ -145,6 +145,11 @@ $FmtPV = array(
   '$Action'       => '$GLOBALS["action"]',
   );
 $SaveProperties = array('title', 'description', 'keywords');
+$PageTextVarPatterns = array(
+  'var:'        => '/^(:*\\s*(\\w[-\\w]*)\\s*:[ \\t]?)(.*)($)/m',
+  '(:var:...:)' => '/(\\(: *(\\w[-\\w]*) *:(?!\\))\\s?)(.*?)(:\\))/s'
+  );
+
 
 $WikiTitle = 'PmWiki';
 $Charset = 'ISO-8859-1';
@@ -213,7 +218,7 @@ function CompareArgs($arg)
 $Conditions['auth'] = 'CondAuth($pagename, $condparm)';
 function CondAuth($pagename, $condparm) {
   NoCache();
-  list($level, $pn) = explode(' ', $condparm, 2);
+  @list($level, $pn) = explode(' ', $condparm, 2);
   $pn = ($pn > '') ? MakePageName($pagename, $pn) : $pagename;
   return (boolean)RetrieveAuthPage($pn, $level, false, READPAGE_CURRENT);
 }
@@ -335,11 +340,21 @@ SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
 $ActionTitle = FmtPageName(@$ActionTitleFmt[$action], $pagename);
 if (!@$HandleActions[$action] || !function_exists($HandleActions[$action])) 
   $action='browse';
-SDV($HandleAuth[$action], 'read');
-if (IsEnabled($EnableActions, 1))
-  $HandleActions[$action]($pagename, $HandleAuth[$action]);
+if (IsEnabled($EnableActions, 1)) HandleDispatch($pagename, $action);
 Lock(0);
 return;
+
+##  HandleDispatch() is used to dispatch control to the appropriate
+##  action handler with the appropriate permissions.
+##  If a message is supplied, it is added to $MessagesFmt.
+function HandleDispatch($pagename, $action, $msg=NULL) {
+  global $MessagesFmt, $HandleActions, $HandleAuth;
+  if ($msg) $MessagesFmt[] = "<div class='wikimessage'>$msg</div>";
+  $fn = $HandleActions[$action];
+  $auth = $HandleAuth[$action];
+  if (!$auth) $auth = 'read';
+  return $fn($pagename, $auth);
+}
 
 ## helper functions
 function stripmagic($x) 
@@ -679,7 +694,7 @@ function PageTextVar($pagename, $var) {
       foreach((array)$PageTextVarPatterns as $pat) 
         if (preg_match_all($pat, $page['text'], $match, PREG_SET_ORDER))
           foreach($match as $m)  
-            $pc["=p_{$m[1]}"] = Qualify($pagename, $m[2]);
+            $pc["=p_{$m[2]}"] = Qualify($pagename, $m[3]);
     }
   }
   return @$PCache[$pagename]["=p_$var"];
@@ -747,6 +762,21 @@ function FmtPageName($fmt, $pagename) {
   $fmt = preg_replace('/(?>(\\$[[:alpha:]]\\w+))/e', 
           "isset(\$FmtV['$1']) ? \$FmtV['$1'] : '$1'", $fmt); 
   return $fmt;
+}
+
+##  FmtTemplateVars uses $vars to replace all occurrences of 
+##  {$$key} in $text with $vars['key'].
+function FmtTemplateVars($text, $vars, $pagename = NULL) {
+  global $FmtPV;
+  if ($pagename) {
+    $pat = implode('|', array_map('preg_quote', array_keys($FmtPV)));
+    $text = preg_replace("/\\{\\$($pat)\\}/e", 
+                         "PageVar('$pagename', '$1')", $text);
+  }
+  foreach(preg_grep('/^[\\w$]/', array_keys($vars)) as $k)
+    if (!is_array($vars[$k]))
+      $text = str_replace("{\$\$$k}", $vars[$k], $text);
+  return $text;
 }
 
 ## The XL functions provide translation tables for $[i18n] strings
@@ -1099,7 +1129,8 @@ function CondText($pagename,$condspec,$condtext) {
 ##    ##abc, ..#abc  - beginning of text to [[#abc]]
 ##  Returns the text unchanged if no sections are requested,
 ##  or false if a requested beginning anchor isn't in the text.
-function TextSection($text, $sections) {
+function TextSection($text, $sections, $args = NULL) {
+  $args = (array)$args;
   $npat = '[[:alpha:]][-\\w*]*';
   if (!preg_match("/#($npat)?(\\.\\.)?(#($npat)?)?/", $sections, $match))
     return $text;
@@ -1107,7 +1138,8 @@ function TextSection($text, $sections) {
   if (!$dots && !$b) $bb = $npat;
   if ($aa) {
     if (strpos($text, "[[#$aa]]") === false) return false;
-    $text = preg_replace("/^.*?\n([^\n]*\\[\\[#$aa\\]\\])/s", '$1', $text, 1);
+    $rep = (@$args['anchors']) ? '$1' : '';
+    $text = preg_replace("/^.*?\n([^\n]*\\[\\[#$aa\\]\\])/s", $rep, $text, 1);
   }
   if ($bb)
     $text = preg_replace("/(\n)[^\n]*\\[\\[#$bb\\]\\].*$/s", '$1', $text, 1);
@@ -1156,7 +1188,7 @@ function IncludeText($pagename, $inclspec) {
         $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
         $itext = @$ipage['text'];
       }
-      $itext = TextSection($itext, $v);
+      $itext = TextSection($itext, $v, array('anchors' => 1));
       continue;
     }
     if (preg_match('/^(?:line|para)s?$/', $k)) {
@@ -1174,7 +1206,7 @@ function IncludeText($pagename, $inclspec) {
               ? MakePageName($pagename, $args['basepage'])
               : $iname;
   if ($basepage) $itext = Qualify(@$basepage, @$itext);
-  return PVSE($itext);
+  return FmtTemplateVars(PVSE($itext), $args);
 }
 
 
@@ -1394,7 +1426,7 @@ function BuildMarkupRules() {
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if (@$m['pat']) 
+      if (@$m['pat'] && @$m['seq']) 
         $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
   }
   return $MarkupRules;
