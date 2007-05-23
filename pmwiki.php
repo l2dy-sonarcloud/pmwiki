@@ -215,9 +215,8 @@ $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
 
-$Conditions['auth'] = 'CondAuth($pagename, $condparm)';
+$Conditions['auth'] = 'NoCache(CondAuth($pagename, $condparm))';
 function CondAuth($pagename, $condparm) {
-  NoCache();
   @list($level, $pn) = explode(' ', $condparm, 2);
   $pn = ($pn > '') ? MakePageName($pagename, $pn) : $pagename;
   return (boolean)RetrieveAuthPage($pn, $level, false, READPAGE_CURRENT);
@@ -1485,6 +1484,7 @@ function HandleBrowse($pagename, $auth = 'read') {
     list($ctext) = unserialize(file_get_contents($PageCacheFile));
     $FmtV['$PageText'] = "<!--cached-->$ctext";
     $IsHTMLCached = 1;
+    StopWatch("HandleBrowse: using cached copy");
   } else {
     $IsHTMLCached = 0;
     $text = '(:groupheader:)'.@$text.'(:groupfooter:)';
@@ -1494,6 +1494,7 @@ function HandleBrowse($pagename, $auth = 'read') {
         && (time() - $t1 + 1) >= $EnableHTMLCache) {
       $fp = @fopen("$PageCacheFile,new", "x");
       if ($fp) { 
+        StopWatch("HandleBrowse: caching page");
         fwrite($fp, serialize(array($FmtV['$PageText']))); fclose($fp);
         rename("$PageCacheFile,new", $PageCacheFile);
       }
