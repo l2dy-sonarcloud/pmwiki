@@ -143,6 +143,9 @@ $FmtPV = array(
   '$DefaultName'  => '$GLOBALS["DefaultName"]',
   '$BaseName'     => 'MakeBaseName($pn)',
   '$Action'       => '$GLOBALS["action"]',
+  '$PasswdRead'   => 'PasswdVar($pn, "read")',
+  '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
+  '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
   );
 $SaveProperties = array('title', 'description', 'keywords');
 $PageTextVarPatterns = array(
@@ -335,6 +338,13 @@ foreach((array)$InterMapFiles as $f) {
 
 $LinkPattern = implode('|',array_keys($LinkFunctions));
 SDV($LinkPageCreateSpaceFmt,$LinkPageCreateFmt);
+
+$keys = array_keys($AuthCascade);
+while ($keys) {
+  $k = array_shift($keys); $t = $AuthCascade[$k];
+  if (in_array($t, $keys)) 
+    { unset($AuthCascade[$k]); $AuthCascade[$k] = $t; array_push($keys, $k); }
+}
 
 $ActionTitle = FmtPageName(@$ActionTitleFmt[$action], $pagename);
 if (!@$HandleActions[$action] || !function_exists($HandleActions[$action])) 
@@ -821,8 +831,9 @@ function CmpPageAttr($a, $b) {
 class PageStore {
   var $dirfmt;
   var $iswrite;
-  function PageStore($d='$WorkDir/$FullName', $w=0) { 
-    $this->dirfmt = $d; $this->iswrite = $w; 
+  var $attr;
+  function PageStore($d='$WorkDir/$FullName', $w=0, $a=NULL) { 
+    $this->dirfmt = $d; $this->iswrite = $w; $this->attr = (array)$a;
     $GLOBALS['PageExistsCache'] = array();
   }
   function pagefile($pagename) {
@@ -844,6 +855,7 @@ class PageStore {
     $urlencoded = false;
     $pagefile = $this->pagefile($pagename);
     if ($pagefile && ($fp=@fopen($pagefile, "r"))) {
+      $page = $this->attr;
       while (!feof($fp)) {
         $line = fgets($fp, 4096);
         while (substr($line, -1, 1) != "\n" && !feof($fp)) 
@@ -1865,6 +1877,30 @@ function SessionAuth($pagename, $auth = NULL) {
 }
 
 
+function PasswdVar($pagename, $level) {
+  global $PCache, $PasswdVarAuth, $FmtV;
+  $page = $PCache[$pagename];
+  if (!isset($page['=passwd'][$level])) {
+    $page = RetrieveAuthPage($pagename, 'ALWAYS', false, READPAGE_CURRENT);
+    if ($page) PCache($pagename, $page);
+  }
+  SDV($PasswdVarAuth, 'attr');
+  if ($PasswdVarAuth && !@$page['=auth'][$PasswdVarAuth]) return '(protected)';
+  $pwsource = $page['=pwsource'][$level];
+  if (strncmp($pwsource, 'cascade:', 8) == 0) {
+    $FmtV['$PWCascade'] = substr($pwsource, 8);
+    return FmtPageName('$[(using $PWCascade password)]', $pagename);
+  }
+  $setting = implode(' ', preg_replace('/^(?!@|\\w+:).+$/', '****',
+                                       (array)$page['=passwd'][$level]));
+  if ($pwsource == 'group' || $pwsource == 'site') {
+    $FmtV['$PWSource'] = $pwsource;
+    $setting = FmtPageName('$[(set by $PWSource)] ', $pagename) . $setting;
+  }
+  return $setting;
+}
+
+
 function PrintAttrForm($pagename) {
   global $PageAttributes, $PCache, $FmtV;
   echo FmtPageName("<form action='\$PageUrl' method='post'>
@@ -1874,21 +1910,10 @@ function PrintAttrForm($pagename) {
   $page = $PCache[$pagename];
   foreach($PageAttributes as $attr=>$p) {
     if (!$p) continue;
-    $setting = @$page[$attr];
-    $value = @$page[$attr];
     if (strncmp($attr, 'passwd', 6) == 0) {
-      $a = substr($attr, 6);
+      $setting = PageVar($pagename, '$Passwd'.ucfirst(substr($attr, 6)));
       $value = '';
-      $setting = implode(' ', 
-        preg_replace('/^(?!@|\\w+:).+$/', '****', (array)$page['=passwd'][$a]));
-      $pwsource = $page['=pwsource'][$a];
-      $FmtV['$PWSource'] = $pwsource;
-      $FmtV['$PWCascade'] = substr($pwsource, 8);
-      if ($pwsource == 'group' || $pwsource == 'site')
-        $setting = FmtPageName('$[(set by $PWSource)]', $pagename)." $setting";
-      if (strncmp($pwsource, 'cascade:', 8) == 0)
-        $setting = FmtPageName('$[(using $PWCascade password)]', $pagename);
-     }
+    } else { $setting = @$page[$attr]; $value = @$page[$attr]; }
     $prompt = FmtPageName($p,$pagename);
     echo "<tr><td>$prompt</td>
       <td><input type='text' name='$attr' value='$value' /></td>

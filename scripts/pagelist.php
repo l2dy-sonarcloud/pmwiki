@@ -87,9 +87,10 @@ SDVA($PageListFilters, array(
   'PageListCache' => 80,
   'PageListProtect' => 90,
   'PageListSources' => 100,
-  'PageListIf' => 108,
-  'PageListTermsTargets' => 110,
-  'PageListVariables' => 120,
+  'PageListPasswords' => 120,
+  'PageListIf' => 140,
+  'PageListTermsTargets' => 160,
+  'PageListVariables' => 180,
   'PageListSort' => 900,
 ));
 
@@ -115,19 +116,20 @@ function SearchBox($pagename, $opt) {
   $opt['action'] = 'search';
   $target = (@$opt['target']) 
             ? MakePageName($pagename, $opt['target']) : $pagename;
+  $opt['n'] = IsEnabled($EnablePathInfo, 0) ? '' : $target;
   $out = FmtPageName(" class='wikisearch' action='\$PageUrl' method='get'>",
                      $target);
-  $opt['n'] = IsEnabled($EnablePathInfo, 0) ? '' : $target;
+  foreach($opt as $k => $v) {
+    if ($v == '' || is_array($v)) continue;
+    $v = str_replace("'", "&#039;", $v);
+    $opt[$k] = $v;
+    if ($k == 'q' || $k == 'label' || $k == 'value' || $k == 'size') continue;
+    $k = str_replace("'", "&#039;", $k);
+    $out .= "<input type='hidden' name='$k' value='$v' />";
+  }
   $out .= "<input type='text' name='q' value='{$opt['value']}' 
     class='inputbox searchbox' size='{$opt['size']}' /><input type='submit' 
     class='inputbutton searchbutton' value='{$opt['label']}' />";
-  foreach($opt as $k => $v) {
-    if ($v == '' || is_array($v)) continue;
-    if ($k == 'q' || $k == 'label' || $k == 'value' || $k == 'size') continue;
-    $k = str_replace("'", "&#039;", $k);
-    $v = str_replace("'", "&#039;", $v);
-    $out .= "<input type='hidden' name='$k' value='$v' />";
-  }
   return '<form '.Keep($out).'</form>';
 }
 
@@ -285,6 +287,16 @@ function PageListSources(&$list, &$opt, $pn, &$page) {
 
   StopWatch("PageListSources end count=".count($list));
   return 0;
+}
+
+
+function PageListPasswords(&$list, &$opt, $pn, &$page) {
+  if ($opt['=phase'] == PAGELIST_PRE)
+    return (@$opt['passwd'] > '' && !@$opt['=cached']) ? PAGELIST_ITEM : 0;
+
+  if (!$page) { $page = ReadPage($pn, READPAGE_CURRENT); $opt['=readc']++; }
+  if (!$page) return 0;
+  return (boolean)preg_grep('/^passwd/', array_keys($page));
 }
 
 
