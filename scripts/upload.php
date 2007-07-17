@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2006 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2007 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -105,8 +105,8 @@ SDVA($HandleActions, array('upload' => 'HandleUpload',
   'postupload' => 'HandlePostUpload',
   'download' => 'HandleDownload'));
 SDVA($HandleAuth, array('upload' => 'upload',
-  'postupload' => 'upload',
   'download' => 'read'));
+SDV($HandleAuth['postupload'], $HandleAuth['upload']);
 SDV($UploadVerifyFunction, 'UploadVerifyBasic');
 
 function MakeUploadName($pagename,$x) {
@@ -114,7 +114,7 @@ function MakeUploadName($pagename,$x) {
   SDV($UploadNameChars, "-\\w. ");
   $x = preg_replace("/[^$UploadNameChars]/", '', $x);
   $x = preg_replace('/\\.[^.]*$/e', "strtolower('$0')", $x);
-  $x = preg_replace('/^[^[:alnum:]]+/', '', $x);
+  $x = preg_replace('/^[^[:alnum:]_]+/', '', $x);
   return preg_replace('/[^[:alnum:]_]+$/', '', $x);
 }
 
