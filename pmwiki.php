@@ -29,6 +29,8 @@ error_reporting(E_ALL ^ E_NOTICE);
 StopWatch('PmWiki');
 @ini_set('magic_quotes_runtime', 0);
 @ini_set('magic_quotes_sybase', 0);
+if (@ini_get('pcre.backtrack_limit') < 1000000) 
+  @ini_set('pcre.backtrack_limit', 1000000);
 if (ini_get('register_globals')) 
   foreach($_REQUEST as $k=>$v) { 
     if (preg_match('/^(GLOBALS|_SERVER|_GET|_POST|_COOKIE|_FILES|_ENV|_REQUEST|_SESSION|FarmD|WikiDir)$/i', $k)) exit();
@@ -435,22 +437,46 @@ function StopWatch($x) {
 ## DRange converts a variety of string formats into date (ranges).
 ## It returns the start and end timestamps (+1 second) of the specified date.
 function DRange($when) {
+  global $Now;
   ##  unix/posix @timestamp dates
   if (preg_match('/^\\s*@(\\d+)\\s*(.*)$/', $when, $m)) {
     $t0 = $m[2] ? strtotime($m[2], $m[1]) : $m[1];
     return array($t0, $t0+1);
   }
   ##  ISO-8601 dates
-  $dpat = '#(?<!\\d)(19\\d\\d|20[0-3]\\d)([-./]?)([01]\\d)(?:\\2([0-3]\\d))?(?!\\d)#';
+  $dpat = '/
+    (?<!\\d)                 # non-digit
+    (19\\d\\d|20[0-3]\\d)    # year ($1)
+    ([-.\\/]?)               # date separator ($2)
+    (0\\d|1[0-2])            # month ($3)
+    (?: \\2                  # repeat date separator
+      ([0-2]\\d|3[0-1])      # day ($4)
+      (?: T                  # time marker
+        ([01]\\d|2[0-4])     # hour ($5)
+        ([.:]?)              # time separator ($6)
+        ([0-5]\\d)           # minute ($7)
+        (?: \\6              # repeat time separator
+          ([0-5]\\d|60)      # seconds ($8)
+        )?                   # optional :ss
+      )?                     # optional Thh:mm:ss
+    )?                       # optional -ddThh:mm:ss
+    (?!\d)                   # non-digit
+    /x';
   if (preg_match($dpat, $when, $m)) {
-    if ($m[4] == '') { $m[4] = 1; $d1 = 0; $m1 = 1; }
-    else { $d1 = 1; $m1 = 0; }
-    $t0 = mktime(0, 0, 0, $m[3],       $m[4],       $m[1]);
-    $t1 = mktime(0, 0, 0, $m[3] + $m1, $m[4] + $d1, $m[1]);
+    $n = $m;
+    ##  if no day given, assume 1st of month and full month range
+    if (@$m[4] == '') { $m[4] = 1; $n[4] = 1; $n[3]++; }
+    ##  if no time given, assume range of 1 day
+    if (@$m[5] == '') { @$n[4]++; }
+    ##  if no seconds given, assume range of 1 minute
+    if (@$m[8] == '') { @$n[7]++; }
+    $t0 = @mktime($m[5], $m[7], $m[8], $m[3], $m[4], $m[1]);
+    $t1 = @mktime($n[5], $n[7], $n[8], $n[3], $n[4], $n[1]);
     return array($t0, $t1);
   }
-  ##  today, tomorrow, yesterday
+  ##  now, today, tomorrow, yesterday
   NoCache();
+  if ($when == 'now') return array($Now, $Now+1);
   $m = localtime(time());
   if ($when == 'tomorrow') { $m[3]++; $when = 'today'; }
   if ($when == 'yesterday') { $m[3]--; $when = 'today'; }
@@ -814,7 +840,7 @@ function XLPage($lang,$p) {
     }
     if (@$xl['Locale']) setlocale(LC_ALL,$xl['Locale']);
     if (@$xl['TimeFmt']) $TimeFmt=$xl['TimeFmt'];
-    array_unshift($XLLangs,$lang);
+    if (!in_array($lang, $XLLangs)) array_unshift($XLLangs, $lang);
     XLSDV($lang,$xl);
   }
 }
@@ -1342,17 +1368,17 @@ function FormatTableRow($x, $sep = '\\|\\|') {
   return "<:table,1><tr $trattr>$y</tr>";
 }
 
-function LinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
+function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt;
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
-  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$title);
+  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
-function LinkPage($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
+function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
     $EnableLinkPageRelative;
@@ -1405,13 +1431,13 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   return $out;
 }
 
-function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
+function Markup($id, $when, $pat=NULL, $rep=NULL) {
   global $MarkupTable,$MarkupRules;
   unset($MarkupRules);
-  if (preg_match('/^([<>])?(.+)$/',$cmd,$m)) {
-    $MarkupTable[$id]['cmd']=$cmd;
+  if (preg_match('/^([<>])?(.+)$/', $when, $m)) {
+    $MarkupTable[$id]['cmd'] = $when;
     $MarkupTable[$m[2]]['dep'][$id] = $m[1];
-    if (!$m[1]) $m[1]='=';
+    if (!$m[1]) $m[1] = '=';
     if (@$MarkupTable[$m[2]]['seq']) {
       $MarkupTable[$id]['seq'] = $MarkupTable[$m[2]]['seq'].$m[1];
       foreach((array)@$MarkupTable[$id]['dep'] as $i=>$m)
@@ -1420,8 +1446,8 @@ function Markup($id,$cmd,$pat=NULL,$rep=NULL) {
     }
   }
   if ($pat && !isset($MarkupTable[$id]['pat'])) {
-    $MarkupTable[$id]['pat']=$pat;
-    $MarkupTable[$id]['rep']=$rep;
+    $MarkupTable[$id]['pat'] = $pat;
+    $MarkupTable[$id]['rep'] = $rep;
   }
 }
 

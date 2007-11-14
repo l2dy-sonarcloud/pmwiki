@@ -64,6 +64,7 @@ if (IsEnabled($EnableRelativePageVars, 0))
 ## character entities
 Markup('&','<if','/&amp;(?>([A-Za-z0-9]+|#\\d+|#[xX][A-Fa-f0-9]+));/',
   '&$1;');
+Markup('&amp;amp;', '<&', '/&amp;amp;/', Keep('&amp;'));
 
 
 ## (:if:)/(:elseif:)/(:else:)
@@ -476,8 +477,8 @@ function CondDate($condparm) {
     if ($x0 < $t0) return false;
     if ($match[2] == '' && $x0 >= $t1) return false;
   }
-  if ($match[3]) {
-    list($t0, $t1) = Drange($match[3]);
+  if ($match[3] > '') {
+    list($t0, $t1) = DRange($match[3]);
     if ($x0 >= $t1) return false;
   }
   return true;
