@@ -1034,7 +1034,7 @@ function RetrieveAuthPage($pagename, $level, $authprompt=true, $since=0) {
 
 function Abort($msg, $info='') {
   # exit pmwiki with an abort message
-  global $ScriptUrl;
+  global $ScriptUrl, $Charset;
   if ($info) 
     $info = "<p class='vspace'><a target='_blank' rel='nofollow' href='http://www.pmwiki.org/pmwiki/info/$info'>$[More information]</a></p>";
   $msg = "<h3>$[PmWiki can't process your request]</h3>
@@ -1042,6 +1042,7 @@ function Abort($msg, $info='') {
     <p class='vspace'>We are sorry for any inconvenience.</p>
     $info
     <p class='vspace'><a href='$ScriptUrl'>$[Return to] $ScriptUrl</a></p>";
+  @header("Content-type: text/html; charset=$Charset");
   echo preg_replace('/\\$\\[([^\\]]+)\\]/e', "XL(PSS('$1'))", $msg);
   exit;
 }
@@ -1166,7 +1167,7 @@ function CondText($pagename,$condspec,$condtext) {
 ##    #abc           - [[#abc]] to next anchor
 ##    #abc#def       - [[#abc]] up to [[#def]]
 ##    #abc#, #abc..  - [[#abc]] to end of text
-##    ##abc, ..#abc  - beginning of text to [[#abc]]
+##    ##abc, #..#abc - beginning of text to [[#abc]]
 ##  Returns the text unchanged if no sections are requested,
 ##  or false if a requested beginning anchor isn't in the text.
 function TextSection($text, $sections, $args = NULL) {
@@ -1848,9 +1849,10 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
   }
   $FmtV['$PostVars'] = $postvars;
+  $r = str_replace("'", '%37', stripmagic($_SERVER['REQUEST_URI']));
   SDV($AuthPromptFmt,array(&$PageStartFmt,
     "<p><b>$[Password required]</b></p>
-      <form name='authform' action='{$_SERVER['REQUEST_URI']}' method='post'>
+      <form name='authform' action='$r' method='post'>
         $[Password]: <input tabindex='1' type='password' name='authpw' 
           value='' />
         <input type='submit' value='OK' />\$PostVars</form>

@@ -199,6 +199,7 @@ function InputSelect($pagename, $type, $markup) {
     $opt = array_merge($opt, $oo);
   }
   $attrlist = array_diff($InputAttrs, array('value'));
+  $attr = array();
   foreach($attrlist as $a) {
     if (!isset($opt[$a]) || $opt[$a]===false) continue;
     $attr[] = "$a='".str_replace("'", '&#39;', $opt[$a])."'";
@@ -235,8 +236,9 @@ function RequestArgs($req = NULL) {
 
 ## Form-based authorization prompts (for use with PmWikiAuth)
 
+$r = str_replace("'", '%37', stripmagic($_SERVER['REQUEST_URI']));
 SDVA($InputTags['auth_form'], array(
-  ':html' => "<form action='{$_SERVER['REQUEST_URI']}' method='post' 
+  ':html' => "<form action='$r' method='post' 
     name='authform'>\$PostVars"));
 SDV($AuthPromptFmt, array(&$PageStartFmt, 'page:$SiteGroup.AuthForm',
   "<script language='javascript' type='text/javascript'><!--
