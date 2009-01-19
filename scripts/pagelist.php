@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2009 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2007 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -554,11 +554,9 @@ function FPLCountA($pagename, &$matches, $opt) {
 
 ##  FPLTemplate handles PagelistTemplates
 function FPLTemplate($pagename, &$matches, $opt) {
-  global $Cursor, $FPLTemplatePageFmt, $FPLTemplateMarkupFunction, $RASPageName,
-    $PageListArgPattern;
+  global $Cursor, $FPLTemplatePageFmt, $RASPageName, $PageListArgPattern;
   SDV($FPLTemplatePageFmt, array('{$FullName}',
     '{$SiteGroup}.LocalTemplates', '{$SiteGroup}.PageListTemplates'));
-  SDV($FPLTemplateMarkupFunction, 'MarkupToHTML');
 
   StopWatch("FPLTemplate begin");
   $template = @$opt['template'];
@@ -570,7 +568,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
   $ttext = MarkupEscape($ttext);
   ##  remove any anchor markups to avoid duplications
   $ttext = preg_replace('/\\[\\[#[A-Za-z][-.:\\w]*\\]\\]/', '', $ttext);
-
+  
   ##  extract portions of template
   $tparts = preg_split('/\\(:(template)\\s+(\\w+)\\s*(.*?):\\)/i', $ttext, -1,
                        PREG_SPLIT_DELIM_CAPTURE);
@@ -661,7 +659,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
   if ($class) $class = " class='$class'";
   $wrap = @$opt['wrap'];
   if ($wrap != 'inline') {
-    $out = $FPLTemplateMarkupFunction($pagename, $out, array('escape' => 0, 'redirect'=>1));
+    $out = MarkupToHTML($pagename, $out, array('escape' => 0, 'redirect'=>1));
     if ($wrap != 'none') $out = "<div$class>$out</div>";
   }
   $Cursor = $savecursor;
