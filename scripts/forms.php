@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2009 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -175,7 +175,7 @@ function InputDefault($pagename, $type, $args) {
       foreach((array)$PageTextVarPatterns as $pat)
         if (preg_match_all($pat, $page['text'], $match, PREG_SET_ORDER))
           foreach($match as $m)
-            if (!isset($InputValues['ptv_'.$m[1]]))
+            if (!isset($InputValues['ptv_'.$m[2]]))
               $InputValues['ptv_'.$m[2]] = 
                 htmlspecialchars(Qualify($source, $m[3]), ENT_NOQUOTES);
     }
@@ -257,7 +257,7 @@ if (@$_REQUEST['editform']) {
   $PageEditForm=$_REQUEST['editform'];
   $PageEditFmt='$EditForm';
 }
-$Conditions['e_preview'] = '(boolean)$_POST["preview"]';
+$Conditions['e_preview'] = '(boolean)$_REQUEST["preview"]';
 
 XLSDV('en', array(
   'ak_save' => 's',
