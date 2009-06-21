@@ -203,7 +203,8 @@ $HandleAuth = array(
   'logout' => 'read', 'login' => 'login');
 $ActionTitleFmt = array(
   'edit' => '| $[Edit]',
-  'attr' => '| $[Attributes]');
+  'attr' => '| $[Attributes]',
+  'login' => '| $[Login]');
 $DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
 $AuthCascade = array('edit'=>'read', 'attr'=>'edit');
 $AuthList = array('' => 1, 'nopass:' => 1, '@nopass' => 1);
@@ -1042,7 +1043,7 @@ function Abort($msg, $info='') {
     $info = "<p class='vspace'><a target='_blank' rel='nofollow' href='http://www.pmwiki.org/pmwiki/info/$info'>$[More information]</a></p>";
   $msg = "<h3>$[PmWiki can't process your request]</h3>
     <p class='vspace'>$msg</p>
-    <p class='vspace'>We are sorry for any inconvenience.</p>
+    <p class='vspace'>$[We are sorry for any inconvenience].</p>
     $info
     <p class='vspace'><a href='$ScriptUrl'>$[Return to] $ScriptUrl</a></p>";
   @header("Content-type: text/html; charset=$Charset");
@@ -1408,7 +1409,8 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
              ? $LinkPageSelfFmt : $LinkPageExistsFmt;
   }
   $url = PageVar($tgtname, '$PageUrl');
-  if (@$EnableLinkPageRelative) 
+  $txt = str_replace("$", "&#036;", $txt);
+  if (@$EnableLinkPageRelative)
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText'),
                      array($url.PUE($qf), $txt), $fmt);
