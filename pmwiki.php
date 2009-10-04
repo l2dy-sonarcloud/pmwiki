@@ -468,12 +468,12 @@ function DRange($when) {
     /x';
   if (preg_match($dpat, $when, $m)) {
     $n = $m;
+    ##  if no time given, assume range of 1 day (except when full month)
+    if (@$m[4]>'' && @$m[5] == '') { @$n[4]++; }
     ##  if no day given, assume 1st of month and full month range
     if (@$m[4] == '') { $m[4] = 1; $n[4] = 1; $n[3]++; }
-    ##  if no time given, assume range of 1 day
-    if (@$m[5] == '') { @$n[4]++; }
-    ##  if no seconds given, assume range of 1 minute
-    if (@$m[8] == '') { @$n[7]++; }
+    ##  if no seconds given, assume range of 1 minute (except when full day)
+    if (@$m[7]>'' && @$m[8] == '') { @$n[7]++; }
     $t0 = @mktime($m[5], $m[7], $m[8], $m[3], $m[4], $m[1]);
     $t1 = @mktime($n[5], $n[7], $n[8], $n[3], $n[4], $n[1]);
     return array($t0, $t1);
@@ -1444,8 +1444,8 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
 }
 
 function Markup($id, $when, $pat=NULL, $rep=NULL) {
-  global $MarkupTable,$MarkupRules;
-  unset($MarkupRules);
+  global $MarkupTable;
+  unset($GLOBALS['MarkupRules']);
   if (preg_match('/^([<>])?(.+)$/', $when, $m)) {
     $MarkupTable[$id]['cmd'] = $when;
     $MarkupTable[$m[2]]['dep'][$id] = $m[1];
@@ -1454,7 +1454,7 @@ function Markup($id, $when, $pat=NULL, $rep=NULL) {
       $MarkupTable[$id]['seq'] = $MarkupTable[$m[2]]['seq'].$m[1];
       foreach((array)@$MarkupTable[$id]['dep'] as $i=>$m)
         Markup($i,"$m$id");
-      unset($MarkupTable[$id]['dep']);
+      unset($GLOBALS['MarkupTable'][$id]['dep']);
     }
   }
   if ($pat && !isset($MarkupTable[$id]['pat'])) {
@@ -1466,7 +1466,7 @@ function Markup($id, $when, $pat=NULL, $rep=NULL) {
 function DisableMarkup() {
   global $MarkupTable;
   $idlist = func_get_args();
-  unset($MarkupRules);
+  unset($GLOBALS['MarkupRules']);
   while (count($idlist)>0) {
     $id = array_shift($idlist);
     if (is_array($id)) { $idlist = array_merge($idlist, $id); continue; }
@@ -1495,7 +1495,6 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
   StopWatch('MarkupToHTML begin');
   array_unshift($MarkupFrame, array_merge($MarkupFrameBase, (array)$opt));
   $MarkupFrame[0]['wwcount'] = $WikiWordCount;
-  $markrules = BuildMarkupRules();
   foreach((array)$text as $l) 
     $lines[] = $MarkupFrame[0]['escape'] ? PVSE($l) : $l;
   $lines[] = '(:closeall:)';
@@ -1503,6 +1502,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
   while (count($lines)>0) {
     $x = array_shift($lines);
     $RedoMarkupLine=0;
+    $markrules = BuildMarkupRules();
     foreach($markrules as $p=>$r) {
       if ($p{0} == '/') $x=preg_replace($p,$r,$x); 
       elseif (strstr($x,$p)!==false) $x=eval($r);
@@ -1699,10 +1699,11 @@ function PostPage($pagename, &$page, &$new) {
   }
 }
 
-function PostRecentChanges($pagename,&$page,&$new) {
+function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax;
-  if (!$IsPagePosted) return;
-  foreach($RecentChangesFmt as $rcfmt=>$pgfmt) {
+  if (!$IsPagePosted && $Fmt==null) return;
+  if ($Fmt==null) $Fmt = $RecentChangesFmt;
+  foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
