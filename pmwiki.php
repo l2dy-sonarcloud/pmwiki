@@ -310,6 +310,9 @@ if (preg_match('/[\\x80-\\xbf]/',$pagename))
 $pagename = preg_replace('![^[:alnum:]\\x80-\\xff]+$!','',$pagename);
 $FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
 $Cursor['*'] = &$pagename;
+if (function_exists("date_default_timezone_get") ) { # fix PHP5.3 warnings
+  @date_default_timezone_set(@date_default_timezone_get());
+}
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
@@ -573,8 +576,8 @@ function fixperms($fname, $add = 0) {
 ## are treated as things to be excluded.
 function GlobToPCRE($pat) {
   $pat = preg_quote($pat, '/');
-  $pat = str_replace(array('\\*', '\\?', '\\[', '\\]', '\\^'),
-                     array('.*',  '.',   '[',   ']',   '^'), $pat);
+  $pat = str_replace(array('\\*', '\\?', '\\[', '\\]', '\\^', '\\-', '\\!'),
+                     array('.*',  '.',   '[',   ']',   '^', '-', '!'), $pat);
   $excl = array(); $incl = array();
   foreach(preg_split('/,+\s?/', $pat, -1, PREG_SPLIT_NO_EMPTY) as $p) {
     if ($p{0} == '-' || $p{0} == '!') $excl[] = '^'.substr($p, 1).'$';
@@ -1927,7 +1930,8 @@ function SessionAuth($pagename, $auth = NULL) {
   static $called;
 
   @$called++;
-  if (!$auth && ($called > 1 || !@$_REQUEST[session_name()])) return;
+  $sn = session_name(); # in PHP5.3, $_REQUEST doesn't contain $_COOKIE
+  if (!$auth && ($called > 1 || (!@$_REQUEST[$sn] && !@$_COOKIE[$sn]))) return;
 
   $sid = session_id();
   @session_start();
