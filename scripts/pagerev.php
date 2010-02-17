@@ -83,8 +83,10 @@ function PrintDiff($pagename) {
     $FmtV['$DiffHost'] = @$page["host:$diffgmt"];
     $FmtV['$DiffAuthor'] = $diffauthor;
     $FmtV['$DiffId'] = $k;
+    $html = $DiffHTMLFunction($pagename, $v);
+    if(!$html) continue;
     echo FmtPageName($DiffStartFmt,$pagename);
-    echo $DiffHTMLFunction($pagename, $v);
+    echo $html;
     echo FmtPageName($DiffEndFmt,$pagename);
     echo FmtPageName($DiffRestoreFmt,$pagename);
   }
@@ -95,9 +97,8 @@ function PrintDiff($pagename) {
 # into HTML, ready for display.
 function DiffHTML($pagename, $diff) {
   global $FmtV, $DiffShow, $DiffAddFmt, $DiffDelFmt, $DiffEndDelAddFmt,
-  $DiffRenderFromFunction, $DiffRenderToFunction;
-  SDV($DiffRenderFromFunction, 'DiffRenderFrom');
-  SDV($DiffRenderToFunction, 'DiffRenderTo');
+  $DiffRenderSourceFunction;
+  SDV($DiffRenderSourceFunction, 'DiffRenderSource');
   $difflines = explode("\n",$diff."\n");
   $in=array(); $out=array(); $dtype=''; $html = '';
   foreach($difflines as $d) {
@@ -120,7 +121,7 @@ function DiffHTML($pagename, $diff) {
         $html .= FmtPageName($txt,$pagename);
         if ($DiffShow['source']=='y') 
           $html .= "<div class='diffmarkup'>"
-            .$DiffRenderFromFunction($in, $out)
+            .$DiffRenderSourceFunction($in, $out, 0)
             ."</div>";
         else $html .= MarkupToHTML($pagename,
           preg_replace('/\\(:.*?:\\)/e',"Keep(htmlspecialchars(PSS('$0')))", join("\n",$in)));
@@ -131,7 +132,7 @@ function DiffHTML($pagename, $diff) {
         $html .= FmtPageName($txt,$pagename);
         if ($DiffShow['source']=='y') 
           $html .= "<div class='diffmarkup'>"
-            .$DiffRenderToFunction($in, $out)
+            .$DiffRenderSourceFunction($in, $out, 1)
             ."</div>";
         else $html .= MarkupToHTML($pagename,
           preg_replace('/\\(:.*?:\\)/e',"Keep(htmlspecialchars(PSS('$0')))",join("\n",$out)));
@@ -142,12 +143,10 @@ function DiffHTML($pagename, $diff) {
   }
   return $html;
 }
-# Such 2 parametrizable functions allow custom diff rendering (inline...)
-function DiffRenderFrom($in, $out) {
-  return str_replace("\n","<br />",htmlspecialchars(join("\n",$in)));
-}
-function DiffRenderTo($in, $out) {
-  return str_replace("\n","<br />",htmlspecialchars(join("\n",$out)));
+# Such parametrizable function allows custom diff rendering (inline...)
+function DiffRenderSource($in, $out, $x) {
+  $a = $x? $out : $in;
+  return str_replace("\n","<br />",htmlspecialchars(join("\n",$a)));
 }
 function HandleDiff($pagename, $auth='read') {
   global $HandleDiffFmt, $PageStartFmt, $PageDiffFmt, $PageEndFmt;
@@ -160,3 +159,51 @@ function HandleDiff($pagename, $auth='read') {
   PrintFmt($pagename,$HandleDiffFmt);
 }
 
+##### Functions for simple word-diff (written by Petko Yotov)
+if(IsEnabled($EnableDiffInline, 0)) {
+  $DiffRenderSourceFunction = 'DiffRenderInline';
+  SDV($HTMLStylesFmt['diffinline'], " 
+    .diffmarkup del { background:#fdd; }
+    .diffmarkup ins { background:#dfd; }");
+}
+## Split a line into pieces before passing it through `diff`
+function DiffPrepareInline($x) { 
+  global $DiffSplitInlineDelims;
+  SDV($DiffSplitInlineDelims, "-@!?#$%^&*()=+[]{}.'\"\\:|,<>");
+  $y = preg_split("/([".preg_quote($DiffSplitInlineDelims)."\\s])/", 
+    $x, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+  return implode("\n", $y);
+}
+function DiffRenderInline($in, $out, $which) {
+  global $DiffFunction;
+  $linesx = $linesy = array();
+  for($i=0; $i<max(count($in), count($out)); $i++) {
+    $x = DiffPrepareInline($in[$i]);
+    $y = DiffPrepareInline($out[$i]);
+    $z = $DiffFunction($x, $y);
+
+    $x2 = split("\n", htmlspecialchars("\n$x"));
+    $y2 = split("\n", htmlspecialchars("\n$y"));
+    foreach (split("\n", $z) as $zz) {
+      if (preg_match('/^(\\d+)(,(\\d+))?([adc])(\\d+)(,(\\d+))?/',$zz,$m)) {
+        $a1 = $a2 = $m[1];
+        if ($m[3]) $a2=$m[3];
+        $b1 = $b2 = $m[5];
+        if ($m[7]) $b2=$m[7];
+
+        if($m[4]=='c'||$m[4]=='d') {
+          $x2[$a1] = '<del>'. $x2[$a1];
+          $x2[$a2] .= '</del>';
+        }
+        if($m[4]=='c'||$m[4]=='a') {
+          $y2[$b1] = '<ins>'.$y2[$b1];
+          $y2[$b2] .= '</ins>';
+        }
+      }
+    }
+    $linesx[] = implode('', $x2);
+    $linesy[] = implode('', $y2);
+  }
+  $ret = trim(implode("\n", ($which? $linesy : $linesx)));
+  return str_replace("\n","<br />",$ret);
+}
