@@ -98,7 +98,7 @@ $LinkPageCreateFmt =
     href='{\$PageUrl}?action=edit'>\$LinkText</a><a rel='nofollow' 
     class='createlink' href='{\$PageUrl}?action=edit'>?</a>";
 $UrlLinkFmt = 
-  "<a class='urllink' href='\$LinkUrl' rel='nofollow'>\$LinkText</a>";
+  "<a class='urllink' href='\$LinkUrl' title='\$LinkAlt' rel='nofollow'>\$LinkText</a>";
 umask(002);
 $CookiePrefix = '';
 $SiteGroup = 'Site';
@@ -127,17 +127,14 @@ $FmtPV = array(
   '$Namespaced'   => '$AsSpacedFunction($name)',
   '$Group'        => '$group',
   '$Name'         => '$name',
-  '$Titlespaced'  => '@$page["title"] ?
-     str_replace("$", "&#036;", $page["title"]) : $AsSpacedFunction($name)',
-  '$Title'        =>  '@$page["title"] ?
-     str_replace("$", "&#036;", $page["title"]) :
-     ($GLOBALS["SpaceWikiWords"] ? $AsSpacedFunction($name) : $name)',
+  '$Titlespaced'  => 'FmtPageTitle(@$page["title"], $name, 1)',
+  '$Title'        => 'FmtPageTitle(@$page["title"], $name, 0)',
   '$LastModifiedBy' => '@$page["author"]',
   '$LastModifiedHost' => '@$page["host"]',
   '$LastModified' => 'strftime($GLOBALS["TimeFmt"], $page["time"])',
   '$LastModifiedSummary' => '@$page["csum"]',
   '$LastModifiedTime' => '$page["time"]',
-  '$Description' => '@$page["description"]',
+  '$Description'  => '@$page["description"]',
   '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
   '$VersionNum'   => '$GLOBALS["VersionNum"]',
   '$Version'      => '$GLOBALS["Version"]',
@@ -815,10 +812,27 @@ function FmtPageName($fmt, $pagename) {
   return $fmt;
 }
 
+## FmtPageTitle returns the page title, or the page name
+## It localizes standard technical pages (RecentChanges...)
+function FmtPageTitle($title, $name, $spaced=0) {
+  if($title>'') return str_replace("$", "&#036;", $title);
+  global $SpaceWikiWords, $AsSpacedFunction;
+  if(preg_match("/^(Site(Admin)?
+    |(All)?(Site|Group)(Header|Footer|Attributes)
+    |(Side|Left|Right)Bar
+    |(Wiki)?Sand[Bb]ox
+    |(All)?Recent(Changes|Uploads)
+    |InterMap|PageActions|\\w+QuickReference|\\w+Templates
+    |NotifyList|AuthUser|ApprovedUrls|(Block|Auth)List
+    )$/x", $name) && $name != XL($name))
+      return XL($name);
+  return ($spaced || $SpaceWikiWords) ? $AsSpacedFunction($name) : $name;
+}
+
 ##  FmtTemplateVars uses $vars to replace all occurrences of 
 ##  {$$key} in $text with $vars['key'].
 function FmtTemplateVars($text, $vars, $pagename = NULL) {
-  global $FmtPV;
+  global $FmtPV, $EnableUndefinedTemplateVars;
   if ($pagename) {
     $pat = implode('|', array_map('preg_quote', array_keys($FmtPV)));
     $text = preg_replace("/\\{\\$($pat)\\}/e", 
@@ -827,6 +841,8 @@ function FmtTemplateVars($text, $vars, $pagename = NULL) {
   foreach(preg_grep('/^[\\w$]/', array_keys($vars)) as $k)
     if (!is_array($vars[$k]))
       $text = str_replace("{\$\$$k}", $vars[$k], $text);
+  if(! IsEnabled($EnableUndefinedTemplateVars, 0))
+    $text = preg_replace("/\\{\\$\\$\\w+\\}/", '', $text);
   return $text;
 }
 
