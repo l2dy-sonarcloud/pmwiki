@@ -224,8 +224,10 @@ function CompareArgs($arg)
 
 $Conditions['auth'] = 'NoCache(CondAuth($pagename, $condparm))';
 function CondAuth($pagename, $condparm) {
+  global $HandleAuth;
   @list($level, $pn) = explode(' ', $condparm, 2);
   $pn = ($pn > '') ? MakePageName($pagename, $pn) : $pagename;
+  if (@$HandleAuth[$level]>'') $level = $HandleAuth[$level];
   return (boolean)RetrieveAuthPage($pn, $level, false, READPAGE_CURRENT);
 }
 
@@ -821,7 +823,7 @@ function FmtPageTitle($title, $name, $spaced=0) {
     |(All)?(Site|Group)(Header|Footer|Attributes)
     |(Side|Left|Right)Bar
     |(Wiki)?Sand[Bb]ox
-    |(All)?Recent(Changes|Uploads)
+    |(All)?Recent(Changes|Uploads)|(Auth|Edit)Form
     |InterMap|PageActions|\\w+QuickReference|\\w+Templates
     |NotifyList|AuthUser|ApprovedUrls|(Block|Auth)List
     )$/x", $name) && $name != XL($name))
