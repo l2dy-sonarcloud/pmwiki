@@ -217,7 +217,7 @@ $Conditions['name'] =
   "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['authid'] = 'NoCache(@$GLOBALS["AuthId"] > "")';
-$Conditions['exists'] = 'PageExists(MakePageName($pagename, $condparm))';
+$Conditions['exists'] = "(boolean)ListPages(FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
@@ -396,8 +396,8 @@ function PQA($x) {
     foreach($attr as $a) {
       if (preg_match('/^on/i', $a[1])) continue;
       $out .= $a[1] . '=' 
-              . preg_replace( '/^(?![\'"]).*$/e', 
-                  "\"'\".str_replace(\"'\", '&#39;', PSS('$0')).\"'\"", $a[2])
+              . preg_replace( '/^([\'"]?)(.*)\\1$/e', 
+                  "\"'\".str_replace(\"'\", '&#39;', PSS('$2')).\"'\"", $a[2])
               . ' ';
     }
   }
