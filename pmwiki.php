@@ -217,7 +217,8 @@ $Conditions['name'] =
   "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['authid'] = 'NoCache(@$GLOBALS["AuthId"] > "")';
-$Conditions['exists'] = "(boolean)ListPages(FixGlob(\$condparm, '$1*.$2'))";
+$Conditions['exists'] = "(boolean)ListPages(FixGlob(
+  str_replace(array('[[',']]'), array('', ''), \$condparm) , '$1*.$2'))";
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
@@ -327,6 +328,15 @@ SDV($CurrentTimeISO, strftime($TimeISOFmt, $Now));
 
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
+
+if (is_array($PostConfig) && IsEnabled($EnablePostConfig, 1)) {
+  asort($PostConfig, SORT_NUMERIC);
+  foreach ($PostConfig as $k=>$v) {
+    if (!$k || !$v) continue;
+    if (function_exists($k)) $k($pagename);
+    elseif (file_exists($k)) include_once($k);
+  }
+}
 
 foreach((array)$InterMapFiles as $f) {
   $f = FmtPageName($f, $pagename);
