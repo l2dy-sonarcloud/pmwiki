@@ -784,7 +784,7 @@ function PageVar($pagename, $var, $pn = '') {
   
 ## FmtPageName handles $[internationalization] and $Variable 
 ## substitutions in strings based on the $pagename argument.
-function FmtPageName($fmt, $pagename) {
+function FmtPageName($fmt, $pagename, $expand_globals=1) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern, $NamePattern, $EnablePathInfo, $ScriptUrl,
     $GCount, $UnsafeGlobals, $FmtV, $FmtP, $FmtPV, $PCache, $AsSpacedFunction;
@@ -812,7 +812,7 @@ function FmtPageName($fmt, $pagename) {
     $g = array();
     foreach($GLOBALS as $n=>$v) {
       if (is_array($v) || is_object($v) ||
-         isset($FmtV["\$$n"]) || in_array($n,$UnsafeGlobals)) continue;
+        isset($FmtV["\$$n"]) || in_array($n,$UnsafeGlobals)) continue;
       $g["\$$n"] = $v;
     }
     $GCount = count($GLOBALS)+count($FmtV);
@@ -1760,7 +1760,7 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
       $rcpage['text'] .= "$pgtext\n";
     else
       $rcpage['text'] = preg_replace("/([^\n]*$RCDelimPattern.*\n)/",
-        "$pgtext\n$1", $rcpage['text'], 1);
+        str_replace("$", "\\$", $pgtext) . "\n$1", $rcpage['text'], 1);
     if (@$RCLinesMax > 0) 
       $rcpage['text'] = implode("\n", array_slice(
           explode("\n", $rcpage['text'], $RCLinesMax + 1), 0, $RCLinesMax));
