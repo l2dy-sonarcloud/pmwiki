@@ -80,14 +80,12 @@ function AuthUserId($pagename, $id, $pw=NULL) {
     $authlist[$g] = 1;
   foreach(preg_grep('/^@/', (array)@$auth['*']) as $g) 
     $authlist[$g] = 1;
-  foreach(preg_grep('/^@/', array_keys($auth)) as $g) # useless? PITS:01201
+  foreach(preg_grep('/^@/', array_keys($auth)) as $g) 
     if (in_array($authid, $auth[$g])) $authlist[$g] = 1;
   if ($auth['htgroup']) {
     foreach(AuthUserHtGroup($pagename, $id, $pw, $auth['htgroup']) as $g)
       $authlist["@$g"] = 1;
   }
-  foreach(preg_grep('/^@/', (array)@$auth["-$authid"]) as $g) 
-    unset($authlist[$g]);
   SessionAuth($pagename, array('authid' => $authid, 'authlist' => $authlist));
 }
 
