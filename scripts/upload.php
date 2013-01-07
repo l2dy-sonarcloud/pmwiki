@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2011 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2013 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -62,6 +62,8 @@ foreach($UploadExts as $k=>$v)
   if (!isset($UploadExtSize[$k])) $UploadExtSize[$k]=$UploadMaxSize;
 
 SDV($UploadDir,'uploads');
+SDV($UploadPermAdd,0444);
+SDV($UploadPermSet,0);
 SDV($UploadPrefixFmt,'/$Group');
 SDV($UploadFileFmt,"$UploadDir$UploadPrefixFmt");
 $v = preg_replace('#^/(.*/)#', '', $UploadDir);
@@ -215,7 +217,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
   global $UploadVerifyFunction, $UploadFileFmt, $LastModFile, 
     $EnableUploadVersions, $Now, $RecentUploadsFmt, $FmtV,
     $NotifyItemUploadFmt, $NotifyItemFmt, $IsUploadPosted,
-    $UploadRedirectFunction;
+    $UploadRedirectFunction, $UploadPermAdd, $UploadPermSet;
   UploadAuth($pagename, $auth);
   $uploadfile = $_FILES['uploadfile'];
   $upname = $_REQUEST['upname'];
@@ -232,7 +234,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
       @rename($filepath, "$filepath,$Now");
     if (!move_uploaded_file($uploadfile['tmp_name'],$filepath))
       { Abort("?cannot move uploaded file to $filepath"); return; }
-    fixperms($filepath,0444);
+    fixperms($filepath, $UploadPermAdd, $UploadPermSet);
     if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
     $result = "upresult=success";
     $FmtV['$upname'] = $upname;
