@@ -463,8 +463,9 @@ function PPRE($pat, $rep, $x) {
 }
 function PPRA($array, $x) {
   foreach($array as $pat => $rep) {
-     if(is_callable($rep)) $x = preg_replace_callback($pat,$rep,$x);
-     else $x = preg_replace($pat,$rep,$x);
+    $fmt = $x; # for $FmtP
+    if(is_callable($rep)) $x = preg_replace_callback($pat,$rep,$x);
+    else $x = preg_replace($pat,$rep,$x);
   }
   return $x;
 }
@@ -700,16 +701,17 @@ function ResolvePageName($pagename) {
 ## group of the returned pagename.
 function MakePageName($basepage, $str) {
   global $MakePageNameFunction, $PageNameChars, $PagePathFmt,
-    $MakePageNamePatterns;
+    $MakePageNamePatterns, $MakePageNameSplitPattern;
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage, $str);
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
     "/'/" => '',			   # strip single-quotes
     "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
-    '/((^|[^-\\w])\\w)/' => PCCF("return strtoupper(\$m[1]);"), # TODO
+    '/((^|[^-\\w])\\w)/' => PCCF("return strtoupper(\$m[1]);"),
     '/ /' => ''));
+  SDV($MakePageNameSplitPattern, '/[.\\/]/');
   $str = preg_replace('/[#?].*$/', '', $str);
-  $m = preg_split('/[.\\/]/', $str);
+  $m = preg_split($MakePageNameSplitPattern, $str);
   if (count($m)<1 || count($m)>2 || $m[0]=='') return '';
   ##  handle "Group.Name" conversions
   if (@$m[1] > '') {
@@ -741,7 +743,7 @@ function MakeBaseName($pagename, $patlist = NULL) {
   global $BaseNamePatterns;
   if (is_null($patlist)) $patlist = (array)@$BaseNamePatterns;
   foreach($patlist as $pat => $rep) 
-    $pagename = preg_replace($pat, $rep, $pagename);
+    $pagename = preg_replace($pat, $rep, $pagename); # TODO
   return $pagename;
 }
 
@@ -843,7 +845,7 @@ function FmtPageName($fmt, $pagename) {
   $fmt = 
     PPRE('/\\{(\\$[A-Z]\\w+)\\}/', "PageVar('$pagename', \$m[1])", $fmt);
   if (strpos($fmt,'$')===false) return $fmt;
-  if ($FmtP) $fmt = PPRA($FmtP, $fmt);
+  if ($FmtP) $fmt = PPRA($FmtP, $fmt); # FIXME
   static $pv, $pvpat;
   if ($pv != count($FmtPV)) {
     $pvpat = str_replace('$', '\\$', implode('|', array_keys($FmtPV)));
@@ -965,9 +967,9 @@ class PageStore {
     $this->dirfmt = $d; $this->iswrite = $w; $this->attr = (array)$a;
     $GLOBALS['PageExistsCache'] = array();
     # can we rely on iconv() or on mb_convert_encoding() ?
-    if (function_exists('iconv') && @iconv("UTF-8", "WINDOWS-1252//IGNORE", 'teЯst')=='test' )
+    if (function_exists('iconv') && @iconv("UTF-8", "WINDOWS-1252//IGNORE", "te\xd0\xafst")=='test' )
       $this->recodefn = create_function('$s,$from,$to', 'return @iconv($from,"$to//IGNORE",$s);');
-    elseif (function_exists('mb_convert_encoding') && @mb_convert_encoding("teЯst", "WINDOWS-1252", "UTF-8")=="te?st")
+    elseif (function_exists('mb_convert_encoding') && @mb_convert_encoding("te\xd0\xafst", "WINDOWS-1252", "UTF-8")=="te?st")
       $this->recodefn = create_function('$s,$from,$to', 'return @mb_convert_encoding($s,$to,$from);');
     else $this->recodefn = false;
   }

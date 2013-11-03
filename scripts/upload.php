@@ -136,8 +136,8 @@ function MakeUploadName($pagename,$x) {
 }
 
 function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
-  global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt, $UploadUrlFmt,
-    $UploadPrefixFmt, $EnableDirectDownload;
+  global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt,
+    $UploadUrlFmt, $UploadPrefixFmt, $EnableDirectDownload;
   if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
     $pagename = MakePageName($pagename, $match[1]);
     $path = $match[2];
@@ -145,7 +145,7 @@ function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
   $upname = MakeUploadName($pagename, $path);
   $encname = rawurlencode($upname);
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
-  $FmtV['$LinkUpload'] = 
+  $FmtV['$LinkUpload'] =
     FmtPageName("\$PageUrl?action=upload&amp;upname=$encname", $pagename);
   $FmtV['$LinkText'] = $txt;
   if (!file_exists($filepath)) 
@@ -305,7 +305,7 @@ function dirsize($dir) {
 
 function FmtUploadList($pagename, $args) {
   global $UploadDir, $UploadPrefixFmt, $UploadUrlFmt, $EnableUploadOverwrite,
-    $TimeFmt, $EnableDirectDownload;
+    $TimeFmt, $EnableDirectDownload, $IMapLinkFmt, $UrlLinkFmt, $FmtV;
 
   $opt = ParseArgs($args);
   if (@$opt[''][0]) $pagename = MakePageName($pagename, $opt[''][0]);
@@ -332,14 +332,17 @@ function FmtUploadList($pagename, $args) {
   $out = array();
   natcasesort($filelist);
   $overwrite = '';
+  $fmt = IsEnabled($IMapLinkFmt['Attach:'], $UrlLinkFmt);
   foreach($filelist as $file=>$encfile) {
-    $name = PUE("$uploadurl$encfile");
+    $FmtV['$LinkUrl'] = PUE("$uploadurl$encfile");
+    $FmtV['$LinkText'] = $file;
     $stat = stat("$uploaddir/$file");
     if ($EnableUploadOverwrite) 
       $overwrite = FmtPageName("<a rel='nofollow' class='createlink'
         href='\$PageUrl?action=upload&amp;upname=$encfile'>&nbsp;&Delta;</a>", 
         $pagename);
-    $out[] = "<li> <a href='$name'>$file</a>$overwrite ... ".
+    $lnk = FmtPageName($fmt, $pagename);
+    $out[] = "<li> $lnk$overwrite ... ".
       number_format($stat['size']) . " bytes ... " . 
       strftime($TimeFmt, $stat['mtime']) . "</li>";
   }
