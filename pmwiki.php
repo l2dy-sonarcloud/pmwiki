@@ -212,7 +212,7 @@ $SessionDecode = 'base64_decode';
 
 $CallbackFnTemplates = array(
   'default' => '%s',
-  'markup_e' => 'global $m2h_pn; $pagename = $m2h_pn; return %s;',
+  'markup_e' => 'extract($GLOBALS["MarkupToHTML"]); return %s;',
   'qualify'  => 'global $tmp_qualify; extract($tmp_qualify); return %s;',
 );
 
@@ -1480,7 +1480,7 @@ function MarkupClose($key = '') {
 
 
 function FormatTableRow($x, $sep = '\\|\\|') {
-  global $Block, $TableCellAttrFmt, $MarkupFrame, $TableRowAttrFmt, 
+  global $TableCellAttrFmt, $MarkupFrame, $TableRowAttrFmt,
     $TableRowIndexMax, $FmtV;
   static $rowcount;
   $x = preg_replace("/$sep\\s*$/",'',$x);
@@ -1637,8 +1637,8 @@ function BuildMarkupRules() {
 function MarkupToHTML($pagename, $text, $opt = NULL) {
   # convert wiki markup text to HTML output
   global $MarkupRules, $MarkupFrame, $MarkupFrameBase, $WikiWordCount,
-    $K0, $K1, $RedoMarkupLine, $m2h_pn;
-  $m2h_pn = $pagename;
+    $K0, $K1, $RedoMarkupLine, $MarkupToHTML;
+  $MarkupToHTML['pagename'] = $pagename;
 
   StopWatch('MarkupToHTML begin');
   array_unshift($MarkupFrame, array_merge($MarkupFrameBase, (array)$opt));
