@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2013 Patrick R. Michaud
+    Copyright 2001-2014 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -296,7 +296,7 @@ foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
   { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
-$q = preg_replace('/(\\?|%3f)([-\\w]+=)/', '&$2', @$_SERVER['QUERY_STRING']);
+$q = preg_replace('/(\\?|%3f)([-\\w]+=)/i', '&$2', @$_SERVER['QUERY_STRING']);
 if ($q != @$_SERVER['QUERY_STRING']) {
   unset($_GET);
   parse_str($q, $_GET);
@@ -1532,6 +1532,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
+    if (trim($txt) == '+') $txt = PageVar($pagename, '$Title');
     if($alt) $alt = " title='$alt'";
     return ($path) ? "<a href='#$path'$alt>".str_replace("$", "&#036;", $txt)."</a>" : '';
   }
@@ -1607,7 +1608,8 @@ function Markup($id, $when, $pat=NULL, $rep=NULL) {
 }
 
 function Markup_e($id, $when, $pat, $rep) {
-  Markup($id, $when, $pat, PCCF($rep, 'markup_e'));
+  if (!is_callable($rep)) $rep = PCCF($rep, 'markup_e');
+  Markup($id, $when, $pat, $rep);
 }
 
 function DisableMarkup() {
