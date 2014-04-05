@@ -9,7 +9,9 @@
 # $InputAttrs are the attributes we allow in output tags
 SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols', 
   'size', 'maxlength', 'action', 'method', 'accesskey', 'tabindex', 'multiple',
-  'checked', 'disabled', 'readonly', 'enctype', 'src', 'alt'));
+  'checked', 'disabled', 'readonly', 'enctype', 'src', 'alt',
+  'required', 'placeholder', 'autocomplete'
+  ));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
 foreach(array('text', 'submit', 'hidden', 'password', 'radio', 'checkbox',
@@ -81,7 +83,7 @@ function InputToHTML($pagename, $type, $args, &$opt) {
     $InputFocusLevel, $InputFocusId, $InputFocusFmt, $HTMLFooterFmt;
   if (!@$InputTags[$type]) return "(:input $type $args:)";
   ##  get input arguments
-  if (!is_array($args)) $args = ParseArgs($args);
+  if (!is_array($args)) $args = ParseArgs($args, '(?>([\\w-]+)[:=])');
   ##  convert any positional arguments to named arguments
   $posnames = @$InputTags[$type][':args'];
   if (!$posnames) $posnames = array('name', 'value');
