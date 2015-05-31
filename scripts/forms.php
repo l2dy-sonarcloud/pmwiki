@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2014 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2015 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -14,15 +14,19 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
   ));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
-foreach(array('text', 'submit', 'hidden', 'password', 'radio', 'checkbox',
+foreach(array('text', 'submit', 'hidden', 'password',
               'reset', 'file', 'image') as $t) 
   SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
 SDV($InputTags['text']['class'], 'inputbox');
 SDV($InputTags['password']['class'], 'inputbox');
 SDV($InputTags['submit']['class'], 'inputbutton');
 SDV($InputTags['reset']['class'], 'inputbutton');
-SDV($InputTags['radio'][':checked'], 'checked');
-SDV($InputTags['checkbox'][':checked'], 'checked');
+
+foreach(array('radio', 'checkbox') as $t) 
+  SDVA($InputTags[$t], array(
+    ':html' => "<input type='$t' \$InputFormArgs />\$InputFormLabel",
+    ':args' => array('name', 'value', 'label'),
+    ':checked' => 'checked'));
 
 # (:input form:)
 SDVA($InputTags['form'], array(
@@ -116,7 +120,10 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   ##  build $InputFormContent
   $FmtV['$InputFormContent'] = '';
   foreach((array)@$opt[':content'] as $a)
-    if (isset($opt[$a])) { $FmtV['$InputFormContent'] = $opt[$a]; break; }
+    if (isset($opt[$a])) { 
+      $FmtV['$InputFormContent'] = is_array($opt[$a]) ? $opt[$a][0]: $opt[$a];
+      break; 
+    }
   ##  hash and store any "secure" values
   if (@$opt['secure'] == '#') $opt['secure'] = rand();
   if (@$opt['secure'] > '') {
@@ -124,6 +131,13 @@ function InputToHTML($pagename, $type, $args, &$opt) {
     @session_start(); 
     $_SESSION['forms'][$md5] = $opt['value'];
     $opt['value'] = $md5;
+  }
+  ## labels for checkbox and radio
+  $FmtV['$InputFormLabel'] = '';
+  if (isset($opt['label'])) {
+    static $labelcnt=0;
+    if (!isset($opt['id'])) $opt['id'] = "lbl_". (++$labelcnt);
+    $FmtV['$InputFormLabel'] = " <label for=\"{$opt['id']}\">{$opt['label']}</label> ";
   }
   ##  handle focus=# option
   $focus = @$opt['focus'];
@@ -139,6 +153,7 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   $attr = array();
   foreach ($attrlist as $a) {
     if (!isset($opt[$a]) || $opt[$a]===false) continue;
+    if (is_array($opt[$a])) $opt[$a] = $opt[$a][0];
     if(strpos($opt[$a], $KeepToken)!== false) # multiline textarea/hidden fields
       $opt[$a] = Keep(str_replace("'", '&#39;', MarkupRestore($opt[$a]) ));
     $attr[] = "$a='".str_replace("'", '&#39;', $opt[$a])."'";
@@ -166,13 +181,22 @@ function InputDefault($pagename, $type, $args) {
   $args[''] = (array)@$args[''];
   $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
   $name = preg_replace('/^\\$:/', 'ptv_', $name);
-  $value = (isset($args['value'])) ? $args['value'] : array_shift($args['']);
+  $value = (isset($args['value'])) ? $args['value'] : $args[''];
   if (!isset($InputValues[$name])) $InputValues[$name] = $value;
   if (@$args['request']) {
-    $req = array_merge($_GET, $_POST);
-    foreach($req as $k => $v) 
-      if (!isset($InputValues[$k])) 
-        $InputValues[$k] = PHSC(stripmagic($v), ENT_NOQUOTES);
+    $req = RequestArgs();
+    foreach($req as $k => $v) {
+      if (is_array($v)) {
+        foreach($v as $vk=>$vv) {
+          if(is_numeric($vk)) $InputValues["{$k}[]"][] = PHSC($vv, ENT_NOQUOTES);
+          else $InputValues["{$k}[{$vk}]"] = PHSC($vv, ENT_NOQUOTES);
+        }
+      }
+      else {
+        if (!isset($InputValues[$k])) 
+          $InputValues[$k] = PHSC($v, ENT_NOQUOTES);
+      }
+    }
   }
   $sources = @$args['source'];
   if ($sources) {
@@ -240,7 +264,10 @@ function InputActionForm($pagename, $type, $args) {
 ## in $_GET and $_POST).
 function RequestArgs($req = NULL) {
   if (is_null($req)) $req = array_merge($_GET, $_POST);
-  foreach ($req as $k => $v) $req[$k] = stripmagic($req[$k]);
+  foreach ($req as $k => $v) {
+    if (is_array($v)) $req[$k] = RequestArgs($v);
+    else $req[$k] = stripmagic($req[$k]);
+  }
   return $req;
 }
 

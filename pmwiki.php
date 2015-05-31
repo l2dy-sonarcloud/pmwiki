@@ -444,8 +444,10 @@ function ParseArgs($x, $optpat = '(?>(\\w+)[:=])') {
   return $z;
 }
 function PHSC($x, $flags=ENT_COMPAT, $enc=null) { # for PHP 5.4
-  if(is_null($enc)) $enc = "ISO-8859-1"; # $GLOBALS['Charset']
-  return htmlspecialchars($x, $flags, $enc);
+  if(is_null($enc)) $enc = "ISO-8859-1"; # single-byte charset
+  if(! is_array($x)) return htmlspecialchars($x, $flags, $enc);
+  foreach($x as $k=>$v) $x[$k] = PHSC($v, $flags, $enc);
+  return $x;  
 }
 function PCCF($code, $template = 'default', $args = '$m') {
   global $CallbackFnTemplates, $CallbackFunctions;
@@ -2054,9 +2056,19 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   foreach($_POST as $k=>$v) {
     if ($k == 'authpw' || $k == 'authid') continue;
     $k = PHSC(stripmagic($k), ENT_QUOTES);
-    $v = str_replace('$', '&#036;', 
-             PHSC(stripmagic($v), ENT_COMPAT));
-    $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
+    if (is_array($v)) {
+      foreach($v as $vk=>$vv) {
+        $vk = PHSC(stripmagic($vk), ENT_QUOTES);
+        $vv = str_replace('$', '&#036;', 
+                PHSC(stripmagic($vv), ENT_COMPAT));
+        $postvars .= "<input type='hidden' name='{$k}[{$vk}]' value=\"$vv\" />\n"; 
+      }
+    }
+    else {
+      $v = str_replace('$', '&#036;', 
+              PHSC(stripmagic($v), ENT_COMPAT));
+      $postvars .= "<input type='hidden' name='$k' value=\"$v\" />\n";
+    }
   }
   $FmtV['$PostVars'] = $postvars;
   $r = str_replace("'", '%37', stripmagic($_SERVER['REQUEST_URI']));
