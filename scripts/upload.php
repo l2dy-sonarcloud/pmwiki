@@ -165,8 +165,8 @@ function UploadAuth($pagename, $auth, $cache=0){
     $pn_upload = FmtPageName($GroupAttributesFmt, $pagename);
   } else $pn_upload = $pagename;
   $page = RetrieveAuthPage($pn_upload, $auth, true, READPAGE_CURRENT);
-  if(!$page) Abort("?No '$auth' permissions for $pagename");
-  if($cache) PCache($pn_upload,$page);
+  if (!$page) Abort("?No '$auth' permissions for $pagename");
+  if ($cache) PCache($pn_upload,$page);
   return true;
 }
 
@@ -226,7 +226,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
     $UploadRedirectFunction, $UploadPermAdd, $UploadPermSet,
     $EnableReadOnly;
     
-  if(IsEnabled($EnableReadOnly, 0))
+  if (IsEnabled($EnableReadOnly, 0))
     Abort('Cannot modify site -- $EnableReadOnly is set', 'readonly');
 
   UploadAuth($pagename, $auth);
@@ -358,17 +358,21 @@ function FmtUploadList($pagename, $args) {
   return implode("\n",$out);
 }
 
-# this adds (:if [!]attachments:) to the markup
-$Conditions['attachments'] = "AttachExist(\$pagename)";
-function AttachExist($pagename) {
-  global $UploadDir, $UploadPrefixFmt;
-  $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
-  $count = 0;
+# this adds (:if [!]attachments filepattern pagename:) to the markup
+$Conditions['attachments'] = "AttachExist(\$pagename, \$condparm)";
+function AttachExist($pagename, $condparm='*') {
+  global $UploadFileFmt;
+  @list($fpat, $pn) = explode(' ', $condparm, 2);
+  $pn = ($pn > '') ? MakePageName($pagename, $pn) : $pagename;
+    
+  $uploaddir = FmtPageName($UploadFileFmt, $pn);
+  $flist = array();
   $dirp = @opendir($uploaddir);
   if ($dirp) {
     while (($file = readdir($dirp)) !== false)
-      if ($file{0} != '.') $count++;
+      if ($file{0} != '.') $flist[] = $file;
     closedir($dirp);
+    $flist = MatchNames($flist, $fpat);
   }
-  return $count;
+  return count($flist);
 }

@@ -140,6 +140,7 @@ $FmtPV = array(
   '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
   '$VersionNum'   => '$GLOBALS["VersionNum"]',
   '$Version'      => '$GLOBALS["Version"]',
+  '$WikiTitle'    => '$GLOBALS["WikiTitle"]',
   '$Author'       => 'NoCache($GLOBALS["Author"])',
   '$AuthId'       => 'NoCache($GLOBALS["AuthId"])',
   '$DefaultGroup' => '$GLOBALS["DefaultGroup"]',
@@ -444,19 +445,19 @@ function ParseArgs($x, $optpat = '(?>(\\w+)[:=])') {
   return $z;
 }
 function PHSC($x, $flags=ENT_COMPAT, $enc=null) { # for PHP 5.4
-  if(is_null($enc)) $enc = "ISO-8859-1"; # single-byte charset
-  if(! is_array($x)) return htmlspecialchars($x, $flags, $enc);
+  if (is_null($enc)) $enc = "ISO-8859-1"; # single-byte charset
+  if (! is_array($x)) return htmlspecialchars($x, $flags, $enc);
   foreach($x as $k=>$v) $x[$k] = PHSC($v, $flags, $enc);
   return $x;  
 }
 function PCCF($code, $template = 'default', $args = '$m') {
   global $CallbackFnTemplates, $CallbackFunctions;
-  if(!isset($CallbackFnTemplates[$template]))
+  if (!isset($CallbackFnTemplates[$template]))
     Abort("No \$CallbackFnTemplates[$template]).");
   $code = sprintf($CallbackFnTemplates[$template], $code);
-  if(!isset($CallbackFunctions[$code])) {
+  if (!isset($CallbackFunctions[$code])) {
     $fn = create_function($args, $code);
-    if($fn) $CallbackFunctions[$code] = $fn;
+    if ($fn) $CallbackFunctions[$code] = $fn;
     else StopWatch("Failed to create callback function: ".PHSC($code));
   }
   return $CallbackFunctions[$code];
@@ -468,7 +469,7 @@ function PPRE($pat, $rep, $x) {
 function PPRA($array, $x) {
   foreach($array as $pat => $rep) {
     $fmt = $x; # for $FmtP
-    if(is_callable($rep) && $rep != '_') $x = preg_replace_callback($pat,$rep,$x);
+    if (is_callable($rep) && $rep != '_') $x = preg_replace_callback($pat,$rep,$x);
     else $x = preg_replace($pat,$rep,$x);
   }
   return $x;
@@ -660,6 +661,12 @@ function FixGlob($x, $rep = '$1*.$2') {
 ## regexes to include ('/'), regexes to exclude ('!'), or
 ## wildcard patterns (all others).
 function MatchPageNames($pagelist, $pat) {
+  # Note: MatchNames() is the generic function matching patterns,
+  # works for attachments and other arrays. We can commit to 
+  # keep it generic, even if we someday change MatchPageNames().
+  return MatchNames($pagelist, $pat);
+}
+function MatchNames($pagelist, $pat) {
   global $Charset, $EnableRangeMatchUTF8;
   # allow range matches in utf8; doesn't work on pmwiki.org and possibly elsewhere
   $pcre8 = (IsEnabled($EnableRangeMatchUTF8,0) && $Charset=='UTF-8')? 'u' : '';
@@ -795,7 +802,7 @@ function PageTextVar($pagename, $var) {
   global $PCache, $PageTextVarPatterns, $MaxPageTextVars;
   SDV($MaxPageTextVars, 500);
   static $status;
-  if(@$status["$pagename:$var"]++ > $MaxPageTextVars) return '';
+  if (@$status["$pagename:$var"]++ > $MaxPageTextVars) return '';
   if (!@$PCache[$pagename]['=pagetextvars']) {
     $pc = &$PCache[$pagename];
     $pc['=pagetextvars'] = 1;
@@ -830,12 +837,12 @@ function PageVar($pagename, $var, $pn = '') {
     }
     @list($d, $group, $name) = $match;
     $page = &$PCache[$pn];
-    if(strpos($FmtPV[$var], '$authpage') !== false) {
-      if(!isset($page['=auth']['read'])) {
+    if (strpos($FmtPV[$var], '$authpage') !== false) {
+      if (!isset($page['=auth']['read'])) {
         $x = RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT);
-        if($x) PCache($pn, $x);
+        if ($x) PCache($pn, $x);
       }
-      if(@$page['=auth']['read']) $authpage = &$page;
+      if (@$page['=auth']['read']) $authpage = &$page;
     }
   } else { $group = ''; $name = ''; }
   if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
@@ -889,9 +896,9 @@ function FmtPageName($fmt, $pagename) {
 ## FmtPageTitle returns the page title, or the page name
 ## It localizes standard technical pages (RecentChanges...)
 function FmtPageTitle($title, $name, $spaced=0) {
-  if($title>'') return str_replace("$", "&#036;", $title);
+  if ($title>'') return str_replace("$", "&#036;", $title);
   global $SpaceWikiWords, $AsSpacedFunction;
-  if(preg_match("/^(Site(Admin)?
+  if (preg_match("/^(Site(Admin)?
     |(All)?(Site|Group)(Header|Footer|Attributes)
     |(Side|Left|Right)Bar
     |(Wiki)?Sand[Bb]ox
@@ -915,7 +922,7 @@ function FmtTemplateVars($text, $vars, $pagename = NULL) {
   foreach(preg_grep('/^[\\w$]/', array_keys($vars)) as $k)
     if (!is_array($vars[$k]))
       $text = str_replace("{\$\$$k}", $vars[$k], $text);
-  if(! IsEnabled($EnableUndefinedTemplateVars, 0))
+  if (! IsEnabled($EnableUndefinedTemplateVars, 0))
     $text = preg_replace("/\\{\\$\\$\\w+\\}/", '', $text);
   return $text;
 }
@@ -931,8 +938,8 @@ function XLSDV($lang,$a) {
   global $XL;
   foreach($a as $k=>$v) {
     if (!isset($XL[$lang][$k])) {
-      if(preg_match('/^e_(rows|cols)$/', $k)) $v = intval($v);
-      elseif(preg_match('/^ak_/', $k)) $v = $v{0};
+      if (preg_match('/^e_(rows|cols)$/', $k)) $v = intval($v);
+      elseif (preg_match('/^ak_/', $k)) $v = $v{0};
       $XL[$lang][$k]=$v;
     }
   }
@@ -975,6 +982,8 @@ class PageStore {
   var $encodefilenames;
   var $attr;
   var $recodefn;
+  var $u8decode;
+  var $u8encode;
   function PageStore($d='$WorkDir/$FullName', $w=0, $a=NULL) { 
     $this->dirfmt = $d; $this->iswrite = $w; $this->attr = (array)$a;
     $GLOBALS['PageExistsCache'] = array();
@@ -984,6 +993,8 @@ class PageStore {
     elseif (function_exists('mb_convert_encoding') && @mb_convert_encoding("te\xd0\xafst", "WINDOWS-1252", "UTF-8")=="te?st")
       $this->recodefn = create_function('$s,$from,$to', 'return @mb_convert_encoding($s,$to,$from);');
     else $this->recodefn = false;
+    $this->u8decode = create_function('$s,$from,$to', 'return utf8_decode($s);');
+    $this->u8encode = create_function('$s,$from,$to', 'return utf8_encode($s);');
   }
   function pagefile($pagename) {
     global $FarmD;
@@ -1113,7 +1124,7 @@ class PageStore {
     return $out;
   }
   function recode($pagename, $a) {
-    if(!$a) return false;
+    if (!$a) return false;
     global $Charset, $PageRecodeFunction, $DefaultPageCharset, $EnableOldCharset;
     if (function_exists($PageRecodeFunction)) return $PageRecodeFunction($a);
     if (IsEnabled($EnableOldCharset)) $a['=oldcharset'] = @$a['charset'];
@@ -1125,9 +1136,9 @@ class PageStore {
     $to = ($Charset=='ISO-8859-1') ? 'WINDOWS-1252' : $Charset;
     if ($this->recodefn) $F = $this->recodefn;
     elseif ($to=='UTF-8' && $from=='WINDOWS-1252') # utf8 wiki & pre-2.2.30 doc
-      $F = create_function('$s,$from,$to', 'return utf8_encode($s);');
+      $F = $this->u8encode;
     elseif ($to=='WINDOWS-1252' && $from=='UTF-8') # 2.2.31+ documentation
-      $F = create_function('$s,$from,$to', 'return utf8_decode($s);');
+      $F = $this->u8decode;
     else return $a;
     foreach($a as $k=>$v) $a[$k] = $F($v,$from,$to);
     $a['charset'] = $Charset;
@@ -1187,7 +1198,7 @@ function RetrieveAuthPage($pagename, $level, $authprompt=true, $since=0) {
 function Abort($msg, $info='') {
   # exit pmwiki with an abort message
   global $ScriptUrl, $Charset, $AbortFunction;
-  if(@$AbortFunction) return $AbortFunction($msg, $info);
+  if (@$AbortFunction) return $AbortFunction($msg, $info);
   if ($info) 
     $info = "<p class='vspace'><a target='_blank' rel='nofollow' href='http://www.pmwiki.org/pmwiki/info/$info'>$[More information]</a></p>";
   $msg = "<h3>$[PmWiki can't process your request]</h3>
@@ -1530,7 +1541,7 @@ function FormatTableRow($x, $sep = '\\|\\|') {
 function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt, $IMapLocalPath;
   SDVA($IMapLocalPath, array('Path:'=>1));
-  if(@$IMapLocalPath[$imap]) {
+  if (@$IMapLocalPath[$imap]) {
     $path = preg_replace('/^(\\w+):/', "$1%3a", $path); # PITS:01260
   }
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
@@ -1549,7 +1560,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     if (trim($txt) == '+') $txt = PageVar($pagename, '$Title');
-    if($alt) $alt = " title='$alt'";
+    if ($alt) $alt = " title='$alt'";
     return ($path) ? "<a href='#$path'$alt>".str_replace("$", "&#036;", $txt)."</a>" : '';
   }
   if (!preg_match("/^\\s*([^#?]+)($QueryFragPattern)?$/",$path,$match))
@@ -1681,7 +1692,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
     $markrules = BuildMarkupRules();
     foreach($markrules as $p=>$r) {
       if ($p{0} == '/') {
-        if(is_callable($r)) $x = preg_replace_callback($p,$r,$x);
+        if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
         else $x=preg_replace($p,$r,$x);
       }
       elseif (strstr($x,$p)!==false) $x=eval($r);
@@ -1876,11 +1887,11 @@ function PostPage($pagename, &$page, &$new) {
     foreach($keys as $k)
       if (preg_match("/^\\w+:(\\d+)/",$k,$match)) {
         $keepnum[$match[1]] = 1;
-        if(count($keepnum)>$DiffKeepNum && $match[1]<$keepgmt) 
+        if (count($keepnum)>$DiffKeepNum && $match[1]<$keepgmt) 
           unset($new[$k]);
       }
     if (preg_match("/$DeleteKeyPattern/",$new['text'])){
-      if(@$new['passwdattr']>'' && !CondAuth($pagename, 'attr'))
+      if (@$new['passwdattr']>'' && !CondAuth($pagename, 'attr'))
         Abort('$[The page has an "attr" attribute and cannot be deleted.]');
       else  $WikiDir->delete($pagename);
     }
