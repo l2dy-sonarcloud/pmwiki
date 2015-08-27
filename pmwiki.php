@@ -24,6 +24,8 @@
     more comments?  If you want help with any of the code here,
     write me at <pmichaud@pobox.com> with your question(s) and I'll
     provide explanations (and add comments) that answer them.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 error_reporting(E_ALL ^ E_NOTICE);
 StopWatch('PmWiki');
@@ -1840,12 +1842,15 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
 ## patterns held in $ROSPatterns are replaced only when the page
 ## is being posted (as signaled by $EnablePost).
 function ReplaceOnSave($pagename,&$page,&$new) {
-  global $EnablePost, $ROSPatterns, $ROEPatterns;
-  $new['text'] = PPRA((array)@$ROEPatterns, $new['text']);
+  global $EnablePost, $ROSPatterns, $ROEPatterns, $EnableROSEscape;
+  $t = $new['text'];
+  if (IsEnabled($EnableROSEscape, 0)) $t = MarkupEscape($t);
+  $t = PPRA((array)@$ROEPatterns, $t);
   if ($EnablePost) {
-    $new['text'] = PPRA((array)@$ROSPatterns, $new['text']);
+    $t = PPRA((array)@$ROSPatterns, $t);
   }
-  $new['=preview'] = $new['text'];
+  if (IsEnabled($EnableROSEscape, 0)) $t = MarkupRestore($t);
+  $new['=preview'] = $new['text'] = $t;
   PCache($pagename, $new);
 }
 
