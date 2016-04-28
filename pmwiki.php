@@ -207,7 +207,7 @@ $ActionTitleFmt = array(
   'edit' => '| $[Edit]',
   'attr' => '| $[Attributes]',
   'login' => '| $[Login]');
-$DefaultPasswords = array('admin'=>'*','read'=>'','edit'=>'','attr'=>'');
+$DefaultPasswords = array('admin'=>'@lock','read'=>'','edit'=>'','attr'=>'');
 $AuthCascade = array('edit'=>'read', 'attr'=>'edit');
 $AuthList = array('' => 1, 'nopass:' => 1, '@nopass' => 1);
 $SessionEncode = 'base64_encode';
@@ -991,6 +991,9 @@ class PageStore {
   var $recodefn;
   var $u8decode;
   var $u8encode;
+  public function __construct($d='$WorkDir/$FullName', $w=0, $a=NULL) {
+    $this->PageStore($d, $w, $a);
+  }
   function PageStore($d='$WorkDir/$FullName', $w=0, $a=NULL) { 
     $this->dirfmt = $d; $this->iswrite = $w; $this->attr = (array)$a;
     $GLOBALS['PageExistsCache'] = array();
