@@ -169,11 +169,12 @@ $HTTPHeaders = array(
 $CacheActions = array('browse','diff','print');
 $EnableHTMLCache = 0;
 $NoHTMLCache = 0;
+$HTMLTagAttr = '';
 $HTMLDoctypeFmt = 
   "<!DOCTYPE html 
     PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
     \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
-  <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'><head>\n";
+  <html xmlns='http://www.w3.org/1999/xhtml' \$HTMLTagAttr><head>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
   code.escaped { white-space: nowrap; }
@@ -1062,12 +1063,13 @@ class PageStore {
     return $this->recode($pagename, @$page);
   }
   function write($pagename,$page) {
-    global $Now, $Version, $Charset;
+    global $Now, $Version, $Charset, $EnableRevUserAgent;
     $page['charset'] = $Charset;
     $page['name'] = $pagename;
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
     $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
+    if(IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
     $page['rev'] = @$page['rev']+1;
     unset($page['version']); unset($page['newline']);
     uksort($page, 'CmpPageAttr');
