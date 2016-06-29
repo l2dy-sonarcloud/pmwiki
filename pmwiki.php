@@ -140,6 +140,7 @@ $FmtPV = array(
   '$LastModifiedTime' => '$page["time"]',
   '$Description'  => '@$page["description"]',
   '$SiteGroup'    => '$GLOBALS["SiteGroup"]',
+  '$SiteAdminGroup' => '$GLOBALS["SiteAdminGroup"]',
   '$VersionNum'   => '$GLOBALS["VersionNum"]',
   '$Version'      => '$GLOBALS["Version"]',
   '$WikiTitle'    => '$GLOBALS["WikiTitle"]',
@@ -452,10 +453,10 @@ function ParseArgs($x, $optpat = '(?>(\\w+)[:=])') {
   }
   return $z;
 }
-function PHSC($x, $flags=ENT_COMPAT, $enc=null) { # for PHP 5.4
+function PHSC($x, $flags=ENT_COMPAT, $enc=null, $dbl_enc=true) { # for PHP 5.4
   if (is_null($enc)) $enc = "ISO-8859-1"; # single-byte charset
-  if (! is_array($x)) return htmlspecialchars($x, $flags, $enc);
-  foreach($x as $k=>$v) $x[$k] = PHSC($v, $flags, $enc);
+  if (! is_array($x)) return htmlspecialchars($x, $flags, $enc, $dbl_enc);
+  foreach($x as $k=>$v) $x[$k] = PHSC($v, $flags, $enc, $dbl_enc);
   return $x;  
 }
 function PCCF($code, $template = 'default', $args = '$m') {
@@ -1569,6 +1570,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
     $EnableLinkPageRelative, $EnableLinkPlusTitlespaced;
   $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
+  $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', $path); # PITS:01388
   if (!$fmt && $path{0} == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     if (trim($txt) == '+') $txt = PageVar($pagename, '$Title');
