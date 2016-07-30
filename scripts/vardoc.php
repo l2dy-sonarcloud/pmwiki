@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2015 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2016 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -16,15 +16,15 @@
 */
 
 SDV($VarPagesFmt,array('$[PmWiki.Variables]'));
-Markup_e('varlink','<wikilink',"/\\$($WikiWordPattern)\\b/",
+Markup_e('varlink','<wikilink',"/\\$($WikiWordPattern|Author|Skin|pagename)\\b/",
   "Keep(VarLink(\$pagename,\$m[1],'$'.\$m[1]))");
-Markup('vardef','<links',"/^:\\$($WikiWordPattern):/",
+Markup('vardef','<links',"/^:\\$($WikiWordPattern|Author|Skin|pagename):/",
   ':[[#$1]]$$1:');
 Markup_e('varindex', 'directives',
   '/\\(:varindex:\\)/i',
   "Keep(VarIndexList(\$pagename))");
 
-$HTMLStylesFmt['vardoc'] = "a.varlink { text-decoration:none; }\n";
+SDVA($HTMLStylesFmt, array('vardoc' => "a.varlink { text-decoration:none;}\n"));
 
 function VarLink($pagename,$tgt,$txt) {
   global $VarIndex,$FmtV,$VarLinkMissingFmt,$VarLinkExistsFmt;
@@ -43,6 +43,7 @@ function VarIndexLoad($pagename) {
   static $loaded;
   $VarIndex = (array)@$VarIndex;
   if ($loaded) return;
+  $tmp = array();
   foreach($VarPagesFmt as $vf) {
     $v = FmtPageName($vf, $pagename);
     if (@$loaded[$v]) continue;
@@ -54,13 +55,18 @@ function VarIndexLoad($pagename) {
     foreach($vlist as $vname) {
       $vpage = ReadPage($vname, READPAGE_CURRENT); @$loaded[$vname]++;
       if (!$vpage) continue;
-      if (!preg_match_all("/\n:\\$([[:upper:]]\\w+):/",@$vpage['text'],$match))
+      if (!preg_match_all("/\n:\\$([[:upper:]]\\w+|pagename):/",@$vpage['text'],$match))
         continue;
       foreach($match[1] as $n) {
-        $VarIndex[$n]['pagename'] = $vname;
-        $VarIndex[$n]['url'] = FmtPageName("{\$PageUrl}#$n",$vname);
+        $tmp[$n]['pagename'] = $vname;
+        $tmp[$n]['url'] = FmtPageName("{\$PageUrl}#$n",$vname);
       }
     }
+  }
+  $keys = array_keys($tmp);
+  natcasesort($keys); # ksort requires PHP 5.4 for caseless sort
+  foreach($keys as $k) {
+    $VarIndex[$k] = $tmp[$k];
   }
 }
 
@@ -68,7 +74,6 @@ function VarIndexLoad($pagename) {
 function VarIndexList($pagename) {
   global $VarIndex;
   if (!isset($VarIndex)) VarIndexLoad($pagename);
-  ksort($VarIndex);
   $out = "<table><tr><th>Variable</th><th>Documented in</th></tr>\n";
   foreach($VarIndex as $v=>$a) 
     $out .= FmtPageName("<tr><td><a class='varlink' 
