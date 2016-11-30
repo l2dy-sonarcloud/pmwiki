@@ -871,7 +871,7 @@ function FmtPageName($fmt, $pagename) {
   $fmt = PPRE('/\\$\\[(?>([^\\]]+))\\]/',"XL(\$m[1])",$fmt);
   $fmt = str_replace('{$ScriptUrl}', '$ScriptUrl', $fmt);
   $fmt = 
-    PPRE('/\\{(\\$[A-Z]\\w+)\\}/', "PageVar('$pagename', \$m[1])", $fmt);
+    PPRE('/\\{\\*?(\\$[A-Z]\\w+)\\}/', "PageVar('$pagename', \$m[1])", $fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   if ($FmtP) $fmt = PPRA($FmtP, $fmt); # FIXME
   static $pv, $pvpat;
@@ -2140,9 +2140,9 @@ function IsAuthorized($chal, $source, &$from) {
         if (@$AuthList[$pw]) $auth = $AuthList[$pw];
         continue;
       }
-      if (pmcrypt($AllowPassword, $pw) == $pw)           # nopass
+      if ($AllowPassword && pmcrypt($AllowPassword, $pw) == $pw) # nopass
         { $auth=1; continue; }
-      foreach((array)$AuthPw as $pwresp)                       # password
+      foreach((array)$AuthPw as $pwresp)                         # password
         if (pmcrypt($pwresp, $pw) == $pw) { $auth=1; continue; }
     }
   }
