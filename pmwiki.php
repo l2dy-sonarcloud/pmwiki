@@ -322,7 +322,9 @@ if (!$pagename &&
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
 $pagename = preg_replace('![^[:alnum:]\\x80-\\xff]+$!','',$pagename);
-$FmtPV['$RequestedPage'] = "'".PHSC($pagename, ENT_QUOTES)."'";
+$pagename_unfiltered = $pagename;
+$pagename = preg_replace('![${}\'"\\\\]+!', '', $pagename);
+$FmtPV['$RequestedPage'] = 'PHSC($GLOBALS["pagename_unfiltered"], ENT_QUOTES)';
 $Cursor['*'] = &$pagename;
 if (function_exists("date_default_timezone_get") ) { # fix PHP5.3 warnings
   @date_default_timezone_set(@date_default_timezone_get());
@@ -881,8 +883,8 @@ function FmtPageName($fmt, $pagename) {
   }
   $fmt = PPRE("/(?:$pvpat)\\b/", "PageVar('$pagename', \$m[0])", $fmt);
   $fmt = PPRE('!\\$ScriptUrl/([^?#\'"\\s<>]+)!',
-    (@$EnablePathInfo) ? "'$ScriptUrl/'.PUE(\$m[1])" :
-        "'$ScriptUrl?n='.str_replace('/','.',PUE(\$m[1]))",
+    (@$EnablePathInfo) ? "'$ScriptUrl'.PUE(\$m[1])" :
+        "'$ScriptUrl?n='.str_replace('/','.',PUE(\$m[1]))", 
     $fmt);
   if (strpos($fmt,'$')===false) return $fmt;
   static $g;
