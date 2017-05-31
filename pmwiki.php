@@ -358,7 +358,7 @@ foreach((array)$InterMapFiles as $f) {
   $f = FmtPageName($f, $pagename);
   if (($v = @file($f))) 
     $v = preg_replace('/^\\s*(?>\\w[-\\w]*)(?!:)/m', '$0:', implode('', $v));
-  else if (PageExists($f)) {
+  else if (@PageExists($f)) {
     $p = ReadPage($f, READPAGE_CURRENT);
     $v = $p['text'];
   } else continue;
@@ -1399,7 +1399,7 @@ function IncludeText($pagename, $inclspec) {
   global $MaxIncludes, $IncludeOpt, $InclCount, $PCache;
   SDV($MaxIncludes,50);
   SDVA($IncludeOpt, array('self'=>1));
-  if ($InclCount++>=$MaxIncludes) return Keep($inclspec);
+  if ($InclCount[$pagename]++>=$MaxIncludes) return Keep($inclspec);
   $args = array_merge($IncludeOpt, ParseArgs($inclspec));
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);
@@ -1692,8 +1692,10 @@ function BuildMarkupRules() {
   if (!$MarkupRules) {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
-      if (@$m['pat'] && @$m['seq']) 
-        $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]=$m['rep'];
+      if (@$m['pat'] && @$m['seq']) {
+        $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]
+          = array($m['rep'], $id);
+      }
   }
   return $MarkupRules;
 }
@@ -1717,6 +1719,8 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
     $RedoMarkupLine=0;
     $markrules = BuildMarkupRules();
     foreach($markrules as $p=>$r) {
+      list($r, $id) = (array)$r;
+      $MarkupToHTML['markupid'] = $id;
       if ($p{0} == '/') {
         if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
         else $x=preg_replace($p,$r,$x);
@@ -1866,16 +1870,20 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
 ## patterns held in $ROSPatterns are replaced only when the page
 ## is being posted (as signaled by $EnablePost).
 function ReplaceOnSave($pagename,&$page,&$new) {
-  global $EnablePost, $ROSPatterns, $ROEPatterns, $EnableROSEscape;
-  $t = $new['text'];
-  if (IsEnabled($EnableROSEscape, 0)) $t = MarkupEscape($t);
-  $t = PPRA((array)@$ROEPatterns, $t);
+  global $EnablePost, $ROSPatterns, $ROEPatterns;
+  $new['text'] = ProcessROESPatterns($new['text'], $ROEPatterns);
   if ($EnablePost) {
-    $t = PPRA((array)@$ROSPatterns, $t);
+    $new['text'] = ProcessROESPatterns($new['text'], $ROSPatterns);
   }
-  if (IsEnabled($EnableROSEscape, 0)) $t = MarkupRestore($t);
-  $new['=preview'] = $new['text'] = $t;
+  $new['=preview'] = $new['text'];
   PCache($pagename, $new);
+}
+function ProcessROESPatterns($text, $patterns) {
+  global $EnableROSEscape;
+  if (IsEnabled($EnableROSEscape, 0)) $text = MarkupEscape($text);
+  $text = PPRA((array)@$patterns, $text);
+  if (IsEnabled($EnableROSEscape, 0)) $text = MarkupRestore($text);
+  return $text;
 }
 
 function SaveAttributes($pagename,&$page,&$new) {

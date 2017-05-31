@@ -28,7 +28,7 @@ $WikiTitle = 'PmWiki';
 ## If you want to have a custom skin, then set $Skin to the name
 ## of the directory (in pub/skins/) that contains your skin files.
 ## See PmWiki.Skins and Cookbook.Skins.
-# $Skin = 'pmwiki';
+# $Skin = 'pmwiki-responsive';
 
 ## You'll probably want to set an administrative password that you
 ## can use to get into password-protected pages.  Also, by default 
@@ -130,8 +130,8 @@ include_once("scripts/xlpage-utf-8.php");
 ##  To add support for '*bold*' and '~italic~' markup (the single quotes
 ##  are part of the markup), uncomment the following lines. 
 ##  (See PmWiki.CustomMarkup and the Cookbook for details and examples.)
-# Markup("'~", "inline", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
-# Markup("'*", "inline", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
+# Markup("'~", "<'''''", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
+# Markup("'*", "<'''''", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
 
 ##  If you want to have to approve links to external sites before they
 ##  are turned into links, uncomment the line below.  See PmWiki.UrlApprovals.
