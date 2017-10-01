@@ -24,8 +24,19 @@ SDV($TableCellAlignFmt, " class='%s'");
 $SearchBoxInputType = "search";
 
 # remove deprecated "name=" parameter from anchor tags
-Markup_e('[[#','<[[','/(?>\\[\\[#([A-Za-z][-.:\\w]*))\\]\\]/',
-  "Keep(TrackAnchors(\$m[1]) ? '' : \"<a id='{\$m[1]}'></a>\", 'L')");
+if($GLOBALS['VersionNum'] < 2002056) {
+  # we want the skin to also work with older PmWiki versions
+  Markup('[[#','<[[','/(?>\\[\\[#([A-Za-z][-.:\\w]*))\\]\\]/e',
+    "Keep(TrackAnchors('$1') ? '' : \"<a id='$1'></a>\", 'L')");
+}
+else {
+  Markup('[[#','<[[','/(?>\\[\\[#([A-Za-z][-.:\\w]*))\\]\\]/',
+    "MarkupKeepTrackAnchors");
+}
+function MarkupKeepTrackAnchors($m) {
+  return Keep(TrackAnchors($m[1]) ? '' : "<a id='{$m[1]}'></a>", 'L');
+}
+
 # in HTML5 "clear" is a style not an attribute
 Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br style='clear:both;' />");
 

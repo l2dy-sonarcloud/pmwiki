@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2016 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2017 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -41,6 +41,24 @@ SDVA($SearchPatterns['normal'], array(
   'group' => '!\.Group(Print)?(Header|Footer|Attributes)$!',
   'self' => str_replace('.', '\\.', "!^$pagename$!")));
 
+# The list=grouphomes search pattern requires to scan 
+# all PageStore directories to get the pagenames.
+# This takes (a tiny amoint of) time, so we only do it when needed.
+function EnablePageListGroupHomes() { 
+  global $SearchPatterns;
+  if(isset($SearchPatterns['grouphomes'])) return;
+  
+  $groups = $homes = array();
+  foreach(ListPages() as $pn) {
+    list($g, $n) = explode(".", $pn);
+    @$groups[$g]++;
+  }
+  foreach($groups as $g => $cnt) {
+    $homes[] = MakePageName("$g.$g", "$g.");
+  }
+  $SearchPatterns['grouphomes'] = array('/^('.implode('|', $homes).')$/');
+}
+
 ## $FPLFormatOpt is a list of options associated with fmt=
 ## values.  'default' is used for any undefined values of fmt=.
 SDVA($FPLFormatOpt, array(
@@ -68,16 +86,34 @@ XLSDV('en', array(
 
 SDV($PageListArgPattern, '((?:\\$:?)?\\w+)[:=]');
 
-Markup_e('pagelist', 'directives',
-  '/\\(:pagelist(\\s+.*?)?:\\)/i',
-  "FmtPageList('\$MatchList', \$pagename, array('o' => \$m[1].' '))");
-Markup_e('searchbox', 'directives',
-  '/\\(:searchbox(\\s.*?)?:\\)/',
-  "SearchBox(\$pagename, ParseArgs(\$m[1], '$PageListArgPattern'))");
-Markup_e('searchresults', 'directives',
-  '/\\(:searchresults(\\s+.*?)?:\\)/i',
-  "FmtPageList(\$GLOBALS['SearchResultsFmt'], \$pagename, 
-       array('req' => 1, 'request'=>1, 'o' => \$m[1]))");
+Markup('pagelist', 'directives',
+  '/\\(:pagelist(\\s+.*?)?:\\)/i', "MarkupPageList");
+Markup('searchbox', 'directives',
+  '/\\(:searchbox(\\s.*?)?:\\)/', "MarkupPageList");
+Markup('searchresults', 'directives',
+  '/\\(:searchresults(\\s+.*?)?:\\)/i', "MarkupPageList");
+
+function MarkupPageList($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
+  switch ($markupid) {
+    case 'pagelist': 
+      return FmtPageList('$MatchList', $pagename, array('o' => $m[1].' '));
+    case 'searchbox': 
+      return SearchBox($pagename, 
+        ParseArgs($m[1], $GLOBALS['PageListArgPattern']));
+    case 'searchresults': 
+      return FmtPageList($GLOBALS['SearchResultsFmt'], 
+        $pagename, array('req' => 1, 'request'=>1, 'o' => $m[1]));
+  }
+}
+
+# called from PageListIf and FPLExpandItemVars
+class cb_pl_expandvars extends PPRC { 
+  function pl_expandvars($m) {
+    $pn = $this->vars;
+    return PVSE(PageVar($pn, $m[2], $m[1]));
+  }
+}
 
 SDV($SaveAttrPatterns['/\\(:(searchresults|pagelist)(\\s+.*?)?:\\)/i'], ' ');
 
@@ -283,6 +319,7 @@ function PageListSources(&$list, &$opt, $pn, &$page) {
   global $SearchPatterns;
 
   StopWatch('PageListSources begin');
+  if ($opt['list'] == 'grouphomes') EnablePageListGroupHomes();
   ## add the list= option to our list of pagename filter patterns
   $opt['=pnfilter'] = array_merge((array)@$opt['=pnfilter'], 
                                   (array)@$SearchPatterns[$opt['list']]);
@@ -330,8 +367,9 @@ function PageListIf(&$list, &$opt, $pn, &$page) {
   $Cursor['='] = $pn;
   $varpat = '\\{([=*]|!?[-\\w.\\/\\x80-\\xff]*)(\\$:?\\w+)\\}';
   while (preg_match("/$varpat/", $condspec, $match)) {
-    $condspec = PPRE("/$varpat/",
-                    "PVSE(PageVar('$pn', \$m[2], \$m[1]))", $condspec);
+    $cb = new cb_pl_expandvars($pn);
+    $condspec = preg_replace_callback("/$varpat/", 
+      array($cb, 'pl_expandvars'), $condspec);
   }
   if (!preg_match("/^\\s*(!?)\\s*(\\S*)\\s*(.*?)\\s*$/", $condspec, $match)) 
     return 0;
@@ -340,7 +378,6 @@ function PageListIf(&$list, &$opt, $pn, &$page) {
   $tf = (int)@eval("return ({$Conditions[$condname]});");
   return (boolean)($tf xor $not);
 }
-
 
 function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
   global $FmtV;
@@ -727,8 +764,9 @@ function FPLExpandItemVars($item, $matches, $idx, $psvars) {
   $Cursor['='] = $pn = (string)@$matches[$idx];
   $Cursor['>'] = $Cursor['&gt;'] = (string)@$matches[$idx+1];
   $item = str_replace(array_keys($psvars), array_values($psvars), $item);
-  $item = PPRE('/\\{(=|&[lg]t;)(\\$:?\\w[-\\w]*)\\}/',
-              "PVSE(PageVar('$pn',  \$m[2], \$m[1]))", $item);
+  $cb = new cb_pl_expandvars($pn);
+  $item = preg_replace_callback('/\\{(=|&[lg]t;)(\\$:?\\w[-\\w]*)\\}/',
+              array($cb, 'pl_expandvars'), $item);
   if (! IsEnabled($EnableUndefinedTemplateVars, 0))
     $item = preg_replace("/\\{\\$\\$\\w+\\}/", '', $item);
   return $item;

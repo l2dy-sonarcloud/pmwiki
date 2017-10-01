@@ -58,6 +58,7 @@ SDVA($UploadExts,array(
   'epub'=> 'application/epub+zip',
   'kml' => 'application/vnd.google-earth.kml+xml',
   'kmz' => 'application/vnd.google-earth.kmz',
+  'vtt' => 'text/vtt',
   '' => 'text/plain'));
 
 # Array containing forbidden strings in a filename, array('.php', '.cgi')
@@ -111,9 +112,13 @@ SDV($DefaultPasswords['upload'],'@lock');
 SDV($AuthCascade['upload'], 'read');
 SDV($FmtPV['$PasswdUpload'], 'PasswdVar($pn, "upload")');
 
-Markup_e('attachlist', 'directives',
+Markup('attachlist', 'directives',
   '/\\(:attachlist\\s*(.*?):\\)/i',
-  "Keep('<ul>'.FmtUploadList(\$pagename,\$m[1]).'</ul>')");
+  "MarkupFmtUploadList");
+function MarkupFmtUploadList($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename
+  return Keep('<ul>'.FmtUploadList($pagename,$m[1]).'</ul>');
+}
 SDV($GUIButtons['attach'], array(220, 'Attach:', '', '$[file.ext]',
   '$GUIButtonDirUrlFmt/attach.gif"$[Attach file]"'));
 SDV($LinkFunctions['Attach:'], 'LinkUpload');
@@ -131,7 +136,7 @@ function MakeUploadName($pagename,$x) {
   SDV($UploadNameChars, "-\\w. ");
   SDV($MakeUploadNamePatterns, array(
     "/[^$UploadNameChars]/" => '',
-    '/\\.[^.]*$/' => PCCF('return strtolower($m[0]);'),
+    '/(\\.[^.]*)$/' => 'cb_tolower',
     '/^[^[:alnum:]_]+/' => '',
     '/[^[:alnum:]_]+$/' => ''));
    return PPRA($MakeUploadNamePatterns, $x);
