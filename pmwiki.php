@@ -519,8 +519,9 @@ function cb_toupper($m) { return strtoupper($m[1]); }
 function cb_tolower($m) { return strtolower($m[1]); }
 
 function pmcrypt($str, $salt=null) {
-  if ($salt && ($salt == '*' || $salt{0} == '@')) return false;
+  if ($salt && preg_match('/^(-?@|\\*$)/',  $salt)) return false;
   if (!is_null($salt)) return crypt($str, $salt);
+
   if (function_exists('password_hash'))
     return password_hash($str, PASSWORD_DEFAULT);
   return crypt($str);
@@ -1687,8 +1688,8 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   return preg_replace('/(<[^>]+) title=(""|\'\')/', '$1', $out);
 }
 
-function Markup($id, $when, $pat=NULL, $rep=NULL) {
-  global $MarkupTable;
+function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
+  global $MarkupTable, $EnableMarkupDiag;
   unset($GLOBALS['MarkupRules']);
   if (preg_match('/^([<>])?(.+)$/', $when, $m)) {
     $MarkupTable[$id]['cmd'] = $when;
@@ -1704,22 +1705,25 @@ function Markup($id, $when, $pat=NULL, $rep=NULL) {
   if ($pat && !isset($MarkupTable[$id]['pat'])) {
     $MarkupTable[$id]['pat'] = $pat;
     $MarkupTable[$id]['rep'] = $rep;
-    
-    if (preg_match('!/[^/]*e[^/]*$!', $pat)) {
+
+    $oldpat = preg_match('!/[^/]*e[^/]*$!', $pat);
+    if (IsEnabled($EnableMarkupDiag, 0) || $oldpat) {
+      $exmark = $oldpat ? '!' : ' ';
       if (function_exists('debug_backtrace')) {
         $dbg = debug_backtrace();
-        $MarkupTable[$id]['dbg'] = "! file: {$dbg['0']['file']}, "
-          . "line: {$dbg['0']['line']}, pat: {$dbg['0']['args'][2]}";
+        $dbginfo = $dbg[$tracelev];
+        $MarkupTable[$id]['dbg'] = "$exmark file: {$dbginfo['file']}, "
+          . "line: {$dbginfo['line']}, pat: {$dbginfo['args'][2]}";
       }
       else 
-        $MarkupTable[$id]['dbg'] = "! id: '$id', pat: '$pat'";
+        $MarkupTable[$id]['dbg'] = "$exmark id: '$id', pat: '$pat'";
     }
   }
 }
 
 function Markup_e($id, $when, $pat, $rep, $template = 'markup_e') {
   if (!is_callable($rep)) $rep = PCCF($rep, $template);
-  Markup($id, $when, $pat, $rep);
+  Markup($id, $when, $pat, $rep, 1);
 }
 
 function DisableMarkup() {
