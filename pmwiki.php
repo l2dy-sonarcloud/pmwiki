@@ -178,7 +178,7 @@ $HTMLDoctypeFmt =
   <html xmlns='http://www.w3.org/1999/xhtml' \$HTMLTagAttr><head>\n";
 $HTMLStylesFmt['pmwiki'] = "
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  code.escaped { white-space: nowrap; }
+  code.escaped { white-space: pre; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   .outdent { margin-left:40px; text-indent:-40px; }
@@ -492,7 +492,7 @@ function PPRE($pat, $rep, $x) {
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
-  foreach($array as $pat => $rep) {
+  foreach((array)$array as $pat => $rep) {
     $fmt = $x; # for $FmtP
     if (is_callable($rep) && $rep != '_') $x = preg_replace_callback($pat,$rep,$x);
     else $x = preg_replace($pat,$rep,$x);
