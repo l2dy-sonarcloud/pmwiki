@@ -17,7 +17,7 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
 
 # Set up formatting for text, submit, hidden, radio, etc. types
 foreach(array('text', 'submit', 'hidden', 'password', 'reset', 'file',
-    'image', 'email', 'url', 'number', 'search', 'date') as $t) 
+    'image', 'email', 'url', 'number', 'search', 'date', 'button') as $t) 
   SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
 SDV($InputTags['text']['class'], 'inputbox');
 SDV($InputTags['password']['class'], 'inputbox');
@@ -99,7 +99,8 @@ SDV($InputFocusFmt,
 ##  and returns the formatted HTML string.
 function InputToHTML($pagename, $type, $args, &$opt) {
   global $InputTags, $InputAttrs, $InputValues, $FmtV, $KeepToken,
-    $InputFocusLevel, $InputFocusId, $InputFocusFmt, $HTMLFooterFmt;
+    $InputFocusLevel, $InputFocusId, $InputFocusFmt, $HTMLFooterFmt,
+    $EnableInputDataAttr;
   if (!@$InputTags[$type]) return "(:input $type $args:)";
   ##  get input arguments
   if (!is_array($args)) $args = ParseArgs($args, '(?>([\\w-]+)[:=])');
@@ -166,6 +167,10 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   }
   ##  build $InputFormArgs from $opt
   $attrlist = (isset($opt[':attr'])) ? $opt[':attr'] : $InputAttrs;
+  if (IsEnabled($EnableInputDataAttr, 1)) {
+    $dataattr = preg_grep('/^data-[-a-z]+$/', array_keys($opt));
+    $attrlist = array_merge($attrlist, $dataattr);
+  }
   $attr = array();
   foreach ($attrlist as $a) {
     if (!isset($opt[$a]) || $opt[$a]===false) continue;
