@@ -150,8 +150,8 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   }
   ## labels for checkbox and radio
   $FmtV['$InputFormLabel'] = '';
-  if (isset($opt['label'])) {
-    static $labelcnt=0;
+  if (isset($opt['label']) && strpos($InputTags[$type][':html'], '$InputFormLabel')!==false) {
+    static $labelcnt = 0;
     if (!isset($opt['id'])) $opt['id'] = "lbl_". (++$labelcnt);
     $lbtitle = isset($opt['title']) ? " title='".str_replace("'", '&#39;', $opt['title'])."'" : '';
     $FmtV['$InputFormLabel'] = " <label for=\"{$opt['id']}\"$lbtitle>{$opt['label']}</label> ";
