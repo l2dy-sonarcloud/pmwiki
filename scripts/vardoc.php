@@ -17,7 +17,7 @@
 
 SDV($VarPagesFmt,array('$[PmWiki.Variables]'));
 Markup('vardef','<links',"/^:\\$($WikiWordPattern|Author|Skin|pagename|Version) *:/",
-  ':%block id=$1%$$1:');
+  ':%apply=dt id=$1%$$1:');
 Markup('varlink','<wikilink',"/\\$($WikiWordPattern|Author|Skin|pagename|Version)\\b/",
   "MarkupVarLinkIndex");
 Markup('varindex', 'directives',
