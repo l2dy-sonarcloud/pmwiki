@@ -79,10 +79,19 @@ function SetSkin($pagename, $skin) {
   if (!$IsTemplateLoaded) Abort("Unable to load $Skin template", 'skin');
 }
 
+function cb_includeskintemplate($m) {
+  global $SkinDir, $pagename;
+  $x = preg_split('/\\s+/', $m[1], -1, PREG_SPLIT_NO_EMPTY);
+  for ($i=0; $i<count($x); $i++) {
+    if (strpos($x[$i], '..')!==false) continue;
+    $f = FmtPageName("$SkinDir/{$x[$i]}", $pagename);
+    if(file_exists($f)) return implode('', file($f));
+  }
+}
 
 # LoadPageTemplate loads a template into $TmplFmt
 function LoadPageTemplate($pagename,$tfilefmt) {
-  global $PageStartFmt, $PageEndFmt, 
+  global $PageStartFmt, $PageEndFmt, $SkinTemplateIncludeLevel,
     $EnableSkinDiag, $HTMLHeaderFmt, $HTMLFooterFmt,
     $IsTemplateLoaded, $TmplFmt, $TmplDisplay,
     $PageTextStartFmt, $PageTextEndFmt, $SkinDirectivesPattern;
@@ -94,6 +103,12 @@ function LoadPageTemplate($pagename,$tfilefmt) {
 
   $sddef = array('PageEditFmt' => 0);
   $k = implode('', file(FmtPageName($tfilefmt, $pagename)));
+  
+  for ($i=0; $i<IsEnabled($SkinTemplateIncludeLevel, 0) && $i<10; $i++) {
+//     xmp("cb_includeskintemplate: $i");
+    $k = preg_replace_callback('/[<]!--IncludeTemplate: *(\\S.*?) *--[>]/i',
+      'cb_includeskintemplate', $k);
+  }
 
   if (IsEnabled($EnableSkinDiag, 0)) {
     if (!preg_match('/<!--((No)?(HT|X)MLHeader|HeaderText)-->/i', $k))
