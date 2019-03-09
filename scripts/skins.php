@@ -85,7 +85,7 @@ function cb_includeskintemplate($m) {
   for ($i=0; $i<count($x); $i++) {
     $f = FmtPageName("$SkinDir/{$x[$i]}", $pagename);
     if (strpos($f, '..')!==false || preg_match('/%2e/i', $f)) continue;
-    if(file_exists($f)) return implode('', file($f));
+    if (file_exists($f)) return implode('', file($f));
   }
 }
 
