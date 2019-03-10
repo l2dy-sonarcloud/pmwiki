@@ -86,7 +86,7 @@ function VarIndexList($pagename) {
   foreach($VarIndex as $v=>$a) 
     $out .= FmtPageName("<tr><td><a class='varlink' 
       href='{$a['url']}'><code>&#036;$v</code></a></td><td><a 
-      href='{\$PageUrl}'>{\$Name}</a></td></tr>\n",$a['pagename']);
+      href='{\$PageUrl}'>{\$Title}</a></td></tr>\n",$a['pagename']);
   $out .= "</table>";
   return $out;
 }
