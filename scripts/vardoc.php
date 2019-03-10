@@ -82,7 +82,7 @@ function VarIndexLoad($pagename) {
 function VarIndexList($pagename) {
   global $VarIndex;
   if (!isset($VarIndex)) VarIndexLoad($pagename);
-  $out = "<table><tr><th>Variable</th><th>Documented in</th></tr>\n";
+  $out = "<table><tr><th>$[Variable]</th><th>$[Documented in]</th></tr>\n";
   foreach($VarIndex as $v=>$a) 
     $out .= FmtPageName("<tr><td><a class='varlink' 
       href='{$a['url']}'><code>&#036;$v</code></a></td><td><a 
