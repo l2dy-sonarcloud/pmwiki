@@ -105,7 +105,7 @@ function LoadPageTemplate($pagename,$tfilefmt) {
   $k = implode('', file(FmtPageName($tfilefmt, $pagename)));
   
   for ($i=0; $i<IsEnabled($SkinTemplateIncludeLevel, 0) && $i<10; $i++) {
-//     xmp("cb_includeskintemplate: $i");
+    if (stripos($k, '<!--IncludeTemplate')===false) break;
     $k = preg_replace_callback('/[<]!--IncludeTemplate: *(\\S.*?) *--[>]/i',
       'cb_includeskintemplate', $k);
   }
