@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2018 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -17,12 +17,14 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
 
 # Set up formatting for text, submit, hidden, radio, etc. types
 foreach(array('text', 'submit', 'hidden', 'password', 'reset', 'file',
-    'image', 'email', 'url', 'number', 'search', 'date', 'button') as $t) 
+    'image', 'email', 'url', 'tel', 'number', 'search', 'date', 'button') as $t) 
   SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
-SDV($InputTags['text']['class'], 'inputbox');
-SDV($InputTags['password']['class'], 'inputbox');
-SDV($InputTags['submit']['class'], 'inputbutton');
-SDV($InputTags['reset']['class'], 'inputbutton');
+
+foreach(array('text', 'email', 'url', 'tel', 'number', 'search', 'date') as $t) 
+  SDV($InputTags[$t]['class'], "inputbox");
+
+foreach(array('submit', 'button', 'reset') as $t) 
+  SDV($InputTags[$t]['class'], "inputbutton");
 
 foreach(array('radio', 'checkbox') as $t) 
   SDVA($InputTags[$t], array(
