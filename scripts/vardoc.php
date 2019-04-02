@@ -17,7 +17,7 @@
 
 SDV($VarPagesFmt,array('$[PmWiki.Variables]'));
 Markup('vardef','<links',"/^:\\$($WikiWordPattern|Author|Skin|pagename|Version) *:/",
-  ':[[#$1]]$$1:');
+  ':%apply=item id=$1%$$1:');
 Markup('varlink','<wikilink',"/\\$($WikiWordPattern|Author|Skin|pagename|Version)\\b/",
   "MarkupVarLinkIndex");
 Markup('varindex', 'directives',
@@ -82,11 +82,11 @@ function VarIndexLoad($pagename) {
 function VarIndexList($pagename) {
   global $VarIndex;
   if (!isset($VarIndex)) VarIndexLoad($pagename);
-  $out = "<table><tr><th>Variable</th><th>Documented in</th></tr>\n";
+  $out = FmtPageName("<table><tr><th>$[Variable]</th><th>$[Documented in]</th></tr>\n", $pagename);
   foreach($VarIndex as $v=>$a) 
     $out .= FmtPageName("<tr><td><a class='varlink' 
       href='{$a['url']}'><code>&#036;$v</code></a></td><td><a 
-      href='{\$PageUrl}'>{\$Name}</a></td></tr>\n",$a['pagename']);
+      href='{\$PageUrl}'>{\$Title}</a></td></tr>\n",$a['pagename']);
   $out .= "</table>";
   return $out;
 }
