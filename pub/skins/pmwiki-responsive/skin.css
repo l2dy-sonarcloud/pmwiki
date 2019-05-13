@@ -37,9 +37,6 @@ html, body, #bodywrap {
 
 #wikileft, #wikihead-searchform, #wikicmds {
   background-color: #fff;
-}
-
-#wikileft, #wikihead-searchform, #wikicmds {
   opacity: 0.1;
   display: none;
   position: absolute;
@@ -352,6 +349,7 @@ td.middle, th.middle { vertical-align: middle;}
     display: none;
   }
   #wikihead-searchform {
+    background-color: transparent;
     float: right;
     padding: 4px;
     right: 6px;
