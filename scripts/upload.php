@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -91,12 +91,16 @@ SDV($PageUploadFmt,array("
     <tr><td align='right'>$[File to upload:]</td><td><input
       name='uploadfile' type='file' /></td></tr>
     <tr><td align='right'>$[Name attachment as:]</td>
-      <td><input type='text' name='upname' value='\$UploadName' /><input 
+      <td><input type='text' name='upname' value='\$UploadName' />
+        </td></tr>
+    <tr><td align='right'>$[Author]:</td>
+      <td><input type='text' name='author' value='\$UploadAuthor' /><input
         type='submit' value=' $[Upload] ' /><br />
         </td></tr></table></form></div>",
   'wiki:$[{$SiteGroup}/UploadQuickReference]'));
 XLSDV('en',array(
   'ULsuccess' => 'successfully uploaded',
+  'ULauthorrequired' => 'An author name is required.',
   'ULbadname' => 'invalid attachment name',
   'ULbadtype' => '\'$upext\' is not an allowed file extension',
   'ULtoobig' => 'file is larger than maximum allowed by webserver',
@@ -178,8 +182,9 @@ function UploadAuth($pagename, $auth, $cache=0){
 }
 
 function UploadSetVars($pagename) {
-  global $FmtV, $UploadExtMax, $EnableReadOnly;
+  global $Author, $FmtV, $UploadExtMax, $EnableReadOnly;
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
+  $FmtV['$UploadAuthor'] = PHSC($Author,  ENT_QUOTES);
   $upresult = PHSC(@$_REQUEST['upresult']);
   $uprname = PHSC(@$_REQUEST['uprname']);
   $FmtV['$upext'] = PHSC(@$_REQUEST['upext']);
@@ -276,7 +281,14 @@ function HandlePostUpload($pagename, $auth = 'upload') {
 
 function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   global $EnableUploadOverwrite,$UploadExtSize,$UploadPrefixQuota,
-    $UploadDirQuota,$UploadDir, $UploadBlacklist;
+    $UploadDirQuota,$UploadDir, $UploadBlacklist,
+    $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
+
+  if ($EnablePostAuthorRequired)
+    SDV($EnableUploadAuthorRequired, $EnablePostAuthorRequired);
+  if (IsEnabled($EnableUploadAuthorRequired,0) && !$Author)
+    return 'upresult=authorrequired';
+
   if (count($UploadBlacklist)) {
     $tmp = explode("/", $filepath);
     $upname = strtolower(end($tmp));
