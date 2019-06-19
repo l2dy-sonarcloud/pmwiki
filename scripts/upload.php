@@ -94,7 +94,7 @@ SDV($PageUploadFmt,array("
       <td><input type='text' name='upname' value='\$UploadName' />
         </td></tr>
     <tr><td align='right'>$[Author]:</td>
-      <td><input type='text' name='author' value='\$UploadAuthor' /><br />
+      <td><input type='text' name='author' value='\$UploadAuthor' />
         <input type='submit' value=' $[Upload] ' />
         </td></tr></table></form></div>",
   'wiki:$[{$SiteGroup}/UploadQuickReference]'));
