@@ -228,7 +228,6 @@ function HandleDownload($pagename, $auth = 'read') {
   $fsize = $length = filesize($filepath);
   $end = $fsize-1;
   header("Accept-Ranges: bytes");
-  header("Content-disposition: $DownloadDisposition; filename=\"$upname\"");
   if (@$_SERVER['HTTP_RANGE']) {
     if(! preg_match('/^\\s*bytes\\s*=\\s*(\\d*)\\s*-\\s*(\\d*)\\s*$/i', $_SERVER['HTTP_RANGE'], $r)
       || intval($r[1])>$end
@@ -249,6 +248,7 @@ function HandleDownload($pagename, $auth = 'read') {
     $r = array( null, 0, $end);
   }
   header("Content-Length: $length");
+  header("Content-disposition: $DownloadDisposition; filename=\"$upname\"");
   $fp = fopen($filepath, "rb");
   if ($fp) {
     $bf = 8192;
