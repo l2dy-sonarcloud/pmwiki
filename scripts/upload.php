@@ -31,6 +31,7 @@ SDVA($UploadExts,array(
   'ogg' => 'audio/ogg', 'flac' => 'audio/x-flac',
   'ogv' => 'video/ogg', 'mp4' => 'video/mp4', 'webm' => 'video/webm',
   'mpg' => 'video/mpeg', 'mpeg' => 'video/mpeg', 'mkv' => 'video/x-matroska',
+  'm4v' => 'video/x-m4v', '3gp' => 'video/3gpp',
   'mov' => 'video/quicktime', 'qt' => 'video/quicktime',
   'wmf' => 'text/plain', 'avi' => 'video/x-msvideo',
   'zip' => 'application/zip', '7z' => 'application/x-7z-compressed',
@@ -224,12 +225,39 @@ function HandleDownload($pagename, $auth = 'read') {
   preg_match('/\\.([^.]+)$/',$filepath,$match); 
   if ($UploadExts[@$match[1]]) 
     header("Content-Type: {$UploadExts[@$match[1]]}");
-  header("Content-Length: ".filesize($filepath));
+  $fsize = $length = filesize($filepath);
+  $end = $fsize-1;
+  header("Accept-Ranges: bytes");
   header("Content-disposition: $DownloadDisposition; filename=\"$upname\"");
+  if (@$_SERVER['HTTP_RANGE']) {
+    if(! preg_match('/^\\s*bytes\\s*=\\s*(\\d*)\\s*-\\s*(\\d*)\\s*$/i', $_SERVER['HTTP_RANGE'], $r)
+      || intval($r[1])>$end
+      || intval($r[2])>$end
+      || intval($r[1])>intval($r[2])
+    ) {
+      header('HTTP/1.1 416 Requested Range Not Satisfiable');
+      header("Content-Range: bytes 0-$end/$fsize");
+      exit;
+    }
+    if ($r[2]=='') $r[2] = $end;
+    if ($r[1]=='') $r[1] = $end - $r[2];
+    $length = $r[2] - $r[1] + 1;
+    header('HTTP/1.1 206 Partial Content');
+    header("Content-Range: bytes $r[1]-$r[2]/$fsize");
+  }
+  else {
+    $r = array( null, 0, $end);
+  }
+  header("Content-Length: $length");
   $fp = fopen($filepath, "rb");
   if ($fp) {
-    while (!feof($fp)) echo fread($fp, 4096);
-    flush();
+    $bf = 8192;
+    fseek($fp, $r[1]);
+    while (!feof($fp) && ($pos = ftell($fp)) <= $r[2]) {
+      $bf = max($bf, $r[2] - $pos + 1);
+      echo fread($fp, $bf);
+      flush();
+    }
     fclose($fp);
   }
   exit();
