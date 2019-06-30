@@ -232,7 +232,7 @@ function HandleDownload($pagename, $auth = 'read') {
     if(! preg_match('/^\\s*bytes\\s*=\\s*(\\d*)\\s*-\\s*(\\d*)\\s*$/i', $_SERVER['HTTP_RANGE'], $r)
       || intval($r[1])>$end
       || intval($r[2])>$end
-      || intval($r[1])>intval($r[2])
+      || ($r[2] && intval($r[1])>intval($r[2]))
     ) {
       header('HTTP/1.1 416 Requested Range Not Satisfiable');
       header("Content-Range: bytes 0-$end/$fsize");
