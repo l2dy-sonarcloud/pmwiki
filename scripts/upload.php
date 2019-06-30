@@ -248,7 +248,7 @@ function HandleDownload($pagename, $auth = 'read') {
     $r = array( null, 0, $end);
   }
   header("Content-Length: $length");
-  header("Content-disposition: $DownloadDisposition; filename=\"$upname\"");
+  header("Content-Disposition: $DownloadDisposition; filename=\"$upname\"");
   $fp = fopen($filepath, "rb");
   if ($fp) {
     $bf = 8192;
