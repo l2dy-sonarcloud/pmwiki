@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -31,6 +31,7 @@ SDVA($UploadExts,array(
   'ogg' => 'audio/ogg', 'flac' => 'audio/x-flac',
   'ogv' => 'video/ogg', 'mp4' => 'video/mp4', 'webm' => 'video/webm',
   'mpg' => 'video/mpeg', 'mpeg' => 'video/mpeg', 'mkv' => 'video/x-matroska',
+  'm4v' => 'video/x-m4v', '3gp' => 'video/3gpp',
   'mov' => 'video/quicktime', 'qt' => 'video/quicktime',
   'wmf' => 'text/plain', 'avi' => 'video/x-msvideo',
   'zip' => 'application/zip', '7z' => 'application/x-7z-compressed',
@@ -91,12 +92,16 @@ SDV($PageUploadFmt,array("
     <tr><td align='right'>$[File to upload:]</td><td><input
       name='uploadfile' type='file' /></td></tr>
     <tr><td align='right'>$[Name attachment as:]</td>
-      <td><input type='text' name='upname' value='\$UploadName' /><input 
-        type='submit' value=' $[Upload] ' /><br />
+      <td><input type='text' name='upname' value='\$UploadName' />
+        </td></tr>
+    <tr><td align='right'>$[Uploader]:</td>
+      <td><input type='text' name='author' value='\$UploadAuthor' />
+        <input type='submit' value=' $[Upload] ' />
         </td></tr></table></form></div>",
   'wiki:$[{$SiteGroup}/UploadQuickReference]'));
 XLSDV('en',array(
   'ULsuccess' => 'successfully uploaded',
+  'ULauthorrequired' => 'An author name is required.',
   'ULbadname' => 'invalid attachment name',
   'ULbadtype' => '\'$upext\' is not an allowed file extension',
   'ULtoobig' => 'file is larger than maximum allowed by webserver',
@@ -178,8 +183,9 @@ function UploadAuth($pagename, $auth, $cache=0){
 }
 
 function UploadSetVars($pagename) {
-  global $FmtV, $UploadExtMax, $EnableReadOnly;
+  global $Author, $FmtV, $UploadExtMax, $EnableReadOnly;
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
+  $FmtV['$UploadAuthor'] = PHSC($Author,  ENT_QUOTES);
   $upresult = PHSC(@$_REQUEST['upresult']);
   $uprname = PHSC(@$_REQUEST['uprname']);
   $FmtV['$upext'] = PHSC(@$_REQUEST['upext']);
@@ -219,12 +225,39 @@ function HandleDownload($pagename, $auth = 'read') {
   preg_match('/\\.([^.]+)$/',$filepath,$match); 
   if ($UploadExts[@$match[1]]) 
     header("Content-Type: {$UploadExts[@$match[1]]}");
-  header("Content-Length: ".filesize($filepath));
-  header("Content-disposition: $DownloadDisposition; filename=\"$upname\"");
+  $fsize = $length = filesize($filepath);
+  $end = $fsize-1;
+  header("Accept-Ranges: bytes");
+  if (@$_SERVER['HTTP_RANGE']) {
+    if(! preg_match('/^\\s*bytes\\s*=\\s*(\\d*)\\s*-\\s*(\\d*)\\s*$/i', $_SERVER['HTTP_RANGE'], $r)
+      || intval($r[1])>$end
+      || intval($r[2])>$end
+      || ($r[2] && intval($r[1])>intval($r[2]))
+    ) {
+      header('HTTP/1.1 416 Requested Range Not Satisfiable');
+      header("Content-Range: bytes 0-$end/$fsize");
+      exit;
+    }
+    if ($r[2]=='') $r[2] = $end;
+    if ($r[1]=='') $r[1] = $end - $r[2];
+    $length = $r[2] - $r[1] + 1;
+    header('HTTP/1.1 206 Partial Content');
+    header("Content-Range: bytes $r[1]-$r[2]/$fsize");
+  }
+  else {
+    $r = array( null, 0, $end);
+  }
+  header("Content-Length: $length");
+  header("Content-Disposition: $DownloadDisposition; filename=\"$upname\"");
   $fp = fopen($filepath, "rb");
   if ($fp) {
-    while (!feof($fp)) echo fread($fp, 4096);
-    flush();
+    $bf = 8192;
+    fseek($fp, $r[1]);
+    while (!feof($fp) && ($pos = ftell($fp)) <= $r[2]) {
+      $bf = max($bf, $r[2] - $pos + 1);
+      echo fread($fp, $bf);
+      flush();
+    }
     fclose($fp);
   }
   exit();
@@ -276,7 +309,14 @@ function HandlePostUpload($pagename, $auth = 'upload') {
 
 function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   global $EnableUploadOverwrite,$UploadExtSize,$UploadPrefixQuota,
-    $UploadDirQuota,$UploadDir, $UploadBlacklist;
+    $UploadDirQuota,$UploadDir, $UploadBlacklist,
+    $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
+
+  if ($EnablePostAuthorRequired)
+    SDV($EnableUploadAuthorRequired, $EnablePostAuthorRequired);
+  if (IsEnabled($EnableUploadAuthorRequired,0) && !$Author)
+    return 'upresult=authorrequired';
+
   if (count($UploadBlacklist)) {
     $tmp = explode("/", $filepath);
     $upname = strtolower(end($tmp));
