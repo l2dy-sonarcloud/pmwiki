@@ -81,6 +81,10 @@ SDV($UploadUrlFmt,preg_replace('#/[^/]*$#', "/$v", $PubDirUrl, 1));
 SDV($LinkUploadCreateFmt, "<a rel='nofollow' class='createlinktext' href='\$LinkUpload'>\$LinkText</a><a rel='nofollow' class='createlink' href='\$LinkUpload'>&nbsp;&Delta;</a>");
 SDVA($ActionTitleFmt, array('upload' => '| $[Attach]'));
 
+
+if ($EnablePostAuthorRequired)
+  SDV($EnableUploadAuthorRequired, $EnablePostAuthorRequired);
+
 SDV($PageUploadFmt,array("
   <div id='wikiupload'>
   <h2 class='wikiaction'>$[Attachments for] {\$FullName}</h2>
@@ -90,12 +94,12 @@ SDV($PageUploadFmt,array("
   <input type='hidden' name='action' value='postupload' />
   <table border='0'>
     <tr><td align='right'>$[File to upload:]</td><td><input
-      name='uploadfile' type='file' /></td></tr>
+      name='uploadfile' type='file' required='required' /></td></tr>
     <tr><td align='right'>$[Name attachment as:]</td>
       <td><input type='text' name='upname' value='\$UploadName' />
         </td></tr>
     <tr><td align='right'>$[Uploader]:</td>
-      <td><input type='text' name='author' value='\$UploadAuthor' />
+      <td><input type='text' name='author' value='\$UploadAuthor' \$UploadAuthorRequired />
         <input type='submit' value=' $[Upload] ' />
         </td></tr></table></form></div>",
   'wiki:$[{$SiteGroup}/UploadQuickReference]'));
@@ -183,7 +187,8 @@ function UploadAuth($pagename, $auth, $cache=0){
 }
 
 function UploadSetVars($pagename) {
-  global $Author, $FmtV, $UploadExtMax, $EnableReadOnly;
+  global $Author, $FmtV, $UploadExtMax, $EnableReadOnly,
+    $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
   $FmtV['$UploadName'] = MakeUploadName($pagename,@$_REQUEST['upname']);
   $FmtV['$UploadAuthor'] = PHSC($Author,  ENT_QUOTES);
   $upresult = PHSC(@$_REQUEST['upresult']);
@@ -193,6 +198,8 @@ function UploadSetVars($pagename) {
   $FmtV['$UploadResult'] = ($upresult) ?
     FmtPageName("<i>$uprname</i>: $[UL$upresult]",$pagename) : 
       (@$EnableReadOnly ? XL('Cannot modify site -- $EnableReadOnly is set'): '');
+  $FmtV['$UploadAuthorRequired'] = @$EnableUploadAuthorRequired ?
+    'required="required"' : '';
 }
 
 function HandleUpload($pagename, $auth = 'upload') {
@@ -312,8 +319,6 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     $UploadDirQuota,$UploadDir, $UploadBlacklist,
     $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
 
-  if ($EnablePostAuthorRequired)
-    SDV($EnableUploadAuthorRequired, $EnablePostAuthorRequired);
   if (IsEnabled($EnableUploadAuthorRequired,0) && !$Author)
     return 'upresult=authorrequired';
 

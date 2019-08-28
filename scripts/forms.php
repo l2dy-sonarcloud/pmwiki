@@ -386,3 +386,6 @@ SDVA($InputTags['e_resetbutton'], array(
   ':html' => "<input type='reset' \$InputFormArgs />",
   'value' => ' '.XL('Reset').' '));
 
+if(IsEnabled($EnablePostAuthorRequired))
+  $InputTags['e_author']['required'] = 'required';
+
