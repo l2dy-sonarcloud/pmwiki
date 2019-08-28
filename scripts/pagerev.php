@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -221,3 +221,22 @@ SDV($WordDiffFunction, 'PHPDiff'); # faster than sysdiff for many calls
 if (IsEnabled($EnableDiffInline, 1) && $DiffShow['source'] == 'y' 
   && $WordDiffFunction == 'PHPDiff' && !function_exists('PHPDiff'))
   include_once("$FarmD/scripts/phpdiff.php");
+
+## Show diff before the preview Cookbook:PreviewChanges
+function PreviewDiff($pagename,&$page,&$new) {
+  global $FmtV, $DiffFunction, $DiffHTMLFunction, $EnableDiffInline, $DiffShow;
+  if (@$_REQUEST['preview']>'' && @$page['text']>'' && $page['text']!=$new['text']) {
+    $d = IsEnabled($DiffShow['source'], 'y');
+    $e = IsEnabled($EnableDiffInline, 1);
+    $DiffShow['source'] = 'y';
+    $EnableDiffInline = 1;
+    SDV($DiffHTMLFunction, 'DiffHTML');
+    $diff = $DiffFunction($new['text'], $page['text']);# reverse the diff
+    $FmtV['$PreviewText'] = $DiffHTMLFunction($pagename, $diff).'<hr/>'.@$FmtV['$PreviewText'];
+    $DiffShow['source'] = $d;
+    $EnableDiffInline = $e;
+  }
+}
+if (IsEnabled($EnablePreviewChanges, 0) && @$_REQUEST['preview']>'') {
+  $EditFunctions[] = 'PreviewDiff';
+}

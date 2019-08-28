@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2015 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,8 @@ if (@$LinkWikiWords || IsEnabled($EnableWikiWords, 0))
   include_once("$FarmD/scripts/wikiwords.php");    # must come before stdmarkup
 if (IsEnabled($EnableStdMarkup,1))
   include_once("$FarmD/scripts/stdmarkup.php");    # must come after transition
-if ($action=='diff' && @!$HandleActions['diff'])
+if (($action=='diff' && @!$HandleActions['diff'])
+  || (IsEnabled($EnablePreviewChanges, 0) && @$_REQUEST['preview']>''))
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableWikiTrails,1))
   include_once("$FarmD/scripts/trails.php");
