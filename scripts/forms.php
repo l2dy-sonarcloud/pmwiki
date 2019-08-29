@@ -342,11 +342,13 @@ Markup('e_guibuttons', 'directives', '/\\(:e_guibuttons:\\)/', '');
 # participating in text rendering step.
 SDV($SaveAttrPatterns['/\\(:e_(preview|guibuttons):\\)/'], ' ');
 
+$TextScrollTop = intval(@$_REQUEST['textScrollTop']);
 SDVA($InputTags['e_form'], array(
   ':html' => "<form action='{\$PageUrl}?action=edit' method='post'
     \$InputFormArgs><input type='hidden' name='action' value='edit' 
     /><input type='hidden' name='n' value='{\$FullName}' 
     /><input type='hidden' name='basetime' value='\$EditBaseTime' 
+    /><input type='hidden' name='textScrollTop' id='textScrollTop' value='$TextScrollTop'
     />"));
 SDVA($InputTags['e_textarea'], array(
   ':html' => "<textarea \$InputFormArgs 
@@ -389,3 +391,14 @@ SDVA($InputTags['e_resetbutton'], array(
 if(IsEnabled($EnablePostAuthorRequired))
   $InputTags['e_author']['required'] = 'required';
 
+if(IsEnabled($EnableNotSavedWarning)) {
+  $is_preview = @$_REQUEST['preview'] ? 'class="preview"' : '';
+  $InputTags['e_form'][':html'] .=
+    "<input type='hidden' id='EnableNotSavedWarning'
+      value=\"$[Content was modified, but not saved!]\" $is_preview />";
+}
+
+if(IsEnabled($EnableEditAutoText)) {
+  $InputTags['e_form'][':html'] .=
+    "<input type='hidden' id='EnableEditAutoText' />";
+}

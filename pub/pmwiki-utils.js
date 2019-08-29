@@ -1,0 +1,186 @@
+/*
+  JavaScript utilities for PmWiki
+  (c) 2009-2019 Petko Yotov www.pmwiki.org/petko
+  based on PmWiki addons DeObMail, AutoTOC and Ape
+*/
+
+(function(){
+  function aE(el, ev, fn) {
+    if(typeof el == 'string') el = dqsa(el);
+    for(var i=0; i<el.length; i++) el[i].addEventListener(ev, fn);
+  }
+  function dqs(str)  { return document.querySelector(str); }
+  function dqsa(str) { return document.querySelectorAll(str); }
+  function tap(q, fn) { aE(q, 'click', fn); };
+  function adata(el, x) { return el.getAttribute("data-"+x); }
+  function pf(x) {return parseFloat(x);}
+
+  var __script__ = dqs('script[src*="pmwiki-utils.js"]');
+  var wikitext = document.getElementById('wikitext');
+
+  function PmXMail() {
+    var els = wikitext.querySelectorAll('span._pmXmail');
+    var LinkFmt = '<a href="%u" class="mail">%t</a>';
+
+    for(var i=0; i<els.length; i++) {
+      var x = els[i].querySelector('span._t');
+      var txt = cb_mail(x.innerHTML);
+      var y = els[i].querySelector('span._m');
+      var url = cb_mail(y.innerHTML.replace(/^ *-&gt; */, ''));
+
+      if(!url) url = 'mailto:'+txt.replace(/^mailto:/, '');
+
+      var html = LinkFmt.replace(/%u/g, url).replace(/%t/g, txt);
+      els[i].innerHTML = html;
+    }
+  }
+  function cb_mail(x){
+    return x.replace( /<span class=(['"]?)_d\1>[^<]+<\/span>/ig, '.')
+      .replace( /<span class=(['"]?)_a\1>[^<]+<\/span>/ig, '@');
+  }
+
+  function is_toc_heading(el) {
+    if(el.offsetParent === null) {return false;}  // hidden
+    if(el.className.match(/\bnotoc\b/)) {return false;} // %notoc%
+    var p = el.parentNode;
+    while(p && p !== wikitext) { // >>notoc<<, (:markup:)
+      if(p.className.match(/\b(notoc|markup2)\b/)) {return false;}
+      if(p.parentNode) p = p.parentNode;
+    }
+    return true;
+  }
+  function posy(el) {
+    var top = 0;
+    if (el.offsetParent) {
+      do {
+        top += el.offsetTop;
+      } while (el = el.offsetParent);
+    }
+    return top;
+  }
+
+  function any_id(h) {
+    if(h.id) {return h.id;} // %id=anchor%
+    var a = h.querySelector('a[id]'); // inline [[#anchor]]
+    if(a && a.id) {return a.id;}
+    var prev = h.previousElementSibling;
+    if(prev) { // [[#anchor]] before !!heading
+      var a = prev.querySelectorAll('a[id]');
+      if(a.length) {
+        last = a[a.length-1];
+        if(last.id && ! last.nextElementSibling) {
+          var atop = posy(last) + last.offsetHeight;
+          var htop = posy(h);
+          if( Math.abs(htop-atop)<20 ) return last.id;
+        }
+      }
+    }
+    return false;
+  }
+
+  function repeat(x, times) {
+    var y = '';
+    for(var i=0; i<times; i++) y += '' + x;
+    return y;
+  }
+
+  function autotoc() {
+    if(dqs('.noPmTOC')) { return; } // (:notoc:) in page
+    var dtoc = adata(__script__, 'pmtoc');
+    try {dtoc = JSON.parse(dtoc);} catch(e) {dtoc = false;}
+    if(! dtoc) { return; } // error
+
+    if(! dtoc.Enable || !dtoc.MaxLevel) { return; } // disabled
+
+    var query = [];
+    for(var i=1; i<=dtoc.MaxLevel; i++) {
+      query.push('h'+i);
+    }
+    var pageheadings = wikitext.querySelectorAll(query.join(','));
+    if(!pageheadings.length) { return; }
+
+    var toc_headings = [ ];
+
+    var minlevel = 1000, hcache = [ ];
+    for(var i=0; i<pageheadings.length; i++) {
+      var h = pageheadings[i];
+      if(! is_toc_heading(h)) {continue;}
+      toc_headings.push(h);
+    }
+    if(! toc_headings.length) return;
+
+    var tocdiv = dqs('.PmTOCdiv');
+    if( !tocdiv && toc_headings.length < dtoc.MinNumber ) { return; }
+
+    for(var i=0; i<toc_headings.length; i++) {
+      var h = toc_headings[i];
+      var level = pf(h.tagName.substring(1));
+      minlevel = Math.min(minlevel, level);
+      var id = any_id(h);
+      hcache.push([h, level, id]);
+    }
+
+    prevlevel = 0;
+    var html = '';
+    for(var i=0; i<hcache.length; i++) {
+      var hc = hcache[i];
+      var actual_level = hc[1] - minlevel;
+      if(actual_level>prevlevel+1) actual_level = prevlevel+1;
+
+      var currnb = numberheadings(actual_level);
+      if(! hc[2]) {
+        hc[2] = 'toc-'+currnb.replace(/\.+$/g, '');
+        hc[0].id = hc[2];
+      }
+      if(dtoc.NumberHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
+
+      var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
+      html += repeat('&nbsp;', 3*actual_level)
+        + '<a href="#'+hc[2]+'">' + txt + '<br>\n';
+    }
+
+    html = "<b>"+dtoc.contents+"</b> "
+      +"[<input type='checkbox' id='PmTOCchk'><label for='PmTOCchk'>"
+      +"<span class='show'>"+dtoc.show+"</span>"
+      +"<span class='hide'>"+dtoc.hide+"</span></label>]"
+      +"<div class='PmTOCtable'>" + html + "</div>";
+
+    if(!tocdiv) {
+      var wrap = "<div class='PmTOCdiv'></div>";
+      if(dtoc.ParentElement && dqs(dtoc.ParentElement)) {
+        dqs(dtoc.ParentElement).insertAdjacentHTML('afterbegin', wrap);
+      }
+      else {
+        hcache[0][0].insertAdjacentHTML('beforebegin', wrap);
+      }
+      tocdiv = dqs('.PmTOCdiv');
+    }
+    if(!tocdiv) return; // error?
+    tocdiv.className += " frame";
+
+    tocdiv.innerHTML = html;
+
+    if(window.localStorage.getItem('closeTOC')) { dqs('#PmTOCchk').checked = true; }
+    aE('#PmTOCchk', 'change', function(e){
+      window.localStorage.setItem('closeTOC', this.checked ? "close" : '');
+    });
+  }
+  var numhead = [0, 0, 0, 0, 0, 0, 0];
+  function numberheadings(n) {
+    if(n<numhead[6]) for(var j=numhead[6]; j>n; j--) numhead[j]=0;
+    numhead[6]=n;
+    numhead[n]++;
+    var qq = '';
+    for (var j=0; j<=n; j++) qq+=numhead[j]+"."; // qq+=' ';
+    return qq;
+  }
+
+  function ready(){
+    console.log('DOMContentLoaded')
+    PmXMail();
+    autotoc();
+  }
+  if( document.readyState !== 'loading' ) ready();
+  else window.addEventListener('DOMContentLoaded', ready);
+})();
+

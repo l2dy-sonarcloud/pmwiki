@@ -868,7 +868,7 @@ function PageTextVar($pagename, $var) {
     $page = RetrieveAuthPage($pagename, 'read', false, READPAGE_CURRENT);
     if ($page) {
       foreach((array)$PageTextVarPatterns as $pat) 
-        if (preg_match_all($pat, IsEnabled($PCache[$pagename]['=preview'],@$page['text']), 
+        if (preg_match_all($pat, IsEnabled($pc['=preview'],@$page['text']),
           $match, PREG_SET_ORDER))
           foreach($match as $m) {
             $t = preg_replace("/\\{\\$:{$m[2]}\\}/", '', $m[3]);
@@ -1628,6 +1628,35 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
+}
+
+## These 2 functions hide e-mail addresses from spam bot harvesters
+## recover them for most users with a javascript utility,
+## while keeping them readable for users with JS disabled.
+## Based on Cookbook:DeObMail by Petko Yotov
+## To enable, set $LinkFunctions['mailto:'] = 'ObfuscateLinkIMap';
+function ObfuscateLinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
+  global $FmtV, $IMap, $IMapLinkFmt;
+  SDVA($IMapLinkFmt, array('obfuscate-mailto:' =>
+    "<span class='_pmXmail' title=\"\$LinkAlt\"><span class='_t'>\$LinkText</span><span class='_m'>\$LinkUrl</span></span>"));
+  $FmtV['$LinkUrl'] = cb_obfuscate_mail(PUE(str_replace('$1',$path,$IMap[$imap])));
+  $FmtV['$LinkText'] = cb_obfuscate_mail(preg_replace('/^mailto:/i', '', $txt));
+  if($FmtV['$LinkText'] == preg_replace('/^mailto:/i', '', $FmtV['$LinkUrl'])) $FmtV['$LinkUrl'] = '';
+  else $FmtV['$LinkUrl'] = " -&gt; ".$FmtV['$LinkUrl'];
+  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),cb_obfuscate_mail($title, 0));
+  return str_replace(array_keys($FmtV),array_values($FmtV), $IMapLinkFmt['obfuscate-mailto:']);
+}
+
+function cb_obfuscate_mail($x, $wrap=1) {
+  $classes = array('.' => '_d', '@' => '_a');
+  $texts = array( '.' => XL(' [period] '), '@' => XL(' [snail] '));
+  foreach($classes as $k=>$v)
+    $x = preg_replace("/(\\w)".preg_quote($k)."(\\w)/",
+    ($wrap?
+      "$1<span class='$v'>{$texts[$k]}</span>$2"
+      : "$1{$texts[$k]}$2")
+      , $x);
+  return $x;
 }
 
 function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {

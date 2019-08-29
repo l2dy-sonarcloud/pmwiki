@@ -85,7 +85,7 @@ XLSDV('en', array(
   'SearchFound' => 
     '$MatchCount pages found out of $MatchSearched pages searched.'));
 
-SDV($PageListArgPattern, '((?:\\$:?)?\\w+)[:=]');
+SDV($PageListArgPattern, '((?:\\$:?)?\\w[-\\w]*)[:=]');
 
 Markup('pagelist', 'directives',
   '/\\(:pagelist(\\s+.*?)?:\\)/i', "MarkupPageList");
@@ -232,7 +232,7 @@ function FmtPageList($outfmt, $pagename, $opt) {
   $opt = array_merge($fmtopt, $opt);
   $out = $fmtfn($pagename, $matches, $opt);
   $FmtV['$MatchCount'] = count($matches);
-  if ($outfmt != '$MatchList') 
+  if ($outfmt != '$MatchList')
     { $FmtV['$MatchList'] = $out; $out = FmtPageName($outfmt, $pagename); }
   if ($out[0] == '<') $out = Keep($out);
   return PRR($out);

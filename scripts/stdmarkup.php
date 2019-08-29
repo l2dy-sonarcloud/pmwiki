@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2018 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -636,4 +636,32 @@ function CondDate($condparm) {
 # pattern.
 SDV($ROSPatterns['/\\(:encrypt\\s+([^\\s:=]+).*?:\\)/'], 'cb_encrypt');
 function cb_encrypt($m) { return pmcrypt($m[1]);}
+
+# Table of contents, based on Cookbook:AutoTOC by Petko Yotov
+SDVA($PmTOC, array(
+  'Enable' => 0,
+  'MaxLevel' => 6,
+  'MinNumber' => 3,
+  'ParentElement'=>'',
+  'NumberHeadings'=>0,
+  'contents' => XL('Contents'),
+  'hide' => XL('hide'),
+  'show' => XL('show'),
+));
+
+if ($action!='browse') $PmTOC['Enable'] = 0;
+
+Markup("PmTOC", 'directives', '/^\\(:[#*]?(no)?(toc|tdm).*?:\\)\\s*$/im', 'FmtPmTOC');
+function FmtPmTOC($m) {
+  if ($m[1]) return Keep('<span class="noPmTOC"></span>');
+  return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
+}
+SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
+.PmTOCdiv { display: inline-block; }
+.PmTOCdiv a { text-decoration: none;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .show {display: none;}
+#PmTOCchk:checked + label > .hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}');
 

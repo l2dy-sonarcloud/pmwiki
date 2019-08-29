@@ -8,7 +8,7 @@
     editing.  The concepts are borrowed from the editor used in Wikipedia,
     but the code has been rewritten from scratch to integrate better with
     PHP and PmWiki's codebase.
-    
+
     Script maintained by Petko Yotov www.pmwiki.org/petko
 */
 
@@ -32,7 +32,7 @@ function insMarkup() {
     var mopen = arguments[0], mclose = arguments[1], mtext = arguments[2];
     if(arguments.length > 3) tid = arguments[3];
   }
-  
+
   var tarea = document.getElementById(tid);
   if (tarea.setSelectionRange > '') {
     var p0 = tarea.selectionStart;
@@ -75,3 +75,123 @@ function insMarkup() {
   } else { tarea.value += mopen + mtext + mclose; }
   return;
 }
+
+// functions below by Petko Yotov, www.pmwiki.org/petko
+function aE(el, ev, fn) {
+  if(typeof el == 'string') el = dqsa(el);
+  for(var i=0; i<el.length; i++) el[i].addEventListener(ev, fn);
+}
+function dqs(str)  { return document.querySelector(str); }
+function dqsa(str) { return document.querySelectorAll(str); }
+function tap(q, fn) { aE(q, 'click', fn); };
+function adata(el, x) { return el.getAttribute("data-"+x); }
+
+function guieditbtntap() {
+  var mopen = adata(this, 'mopen');
+  if(mopen == 'FixSelectedURL') insMarkup(FixSelectedURL);
+  else insMarkup( mopen, adata(this, 'mclose'), adata(this, 'mtext') );
+}
+
+function FixSelectedURL(str) {
+  var rx = new RegExp("[ <>\"{}|\\\\^`()\\[\\]']", 'g');
+  str = str.replace(rx, function(a){
+    return '%'+a.charCodeAt(0).toString(16); });
+  return str;
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+  tap('.guieditbtn', guieditbtntap);
+
+  var NsForm = false;
+
+  var sTop = dqs("#textScrollTop");
+  var tarea = dqs('#text');
+  if(sTop && tarea) {
+    if(sTop.value) tarea.scrollTop = sTop.value;
+    sTop.form.addEventListener('submit', function(){
+      sTop.value = tarea.scrollTop;
+    });
+  }
+
+  var ensw = dqs('#EnableNotSavedWarning');
+  if(ensw) {
+    var NsMessage = ensw.value;
+    NsForm = ensw.form;
+    if(NsForm) {
+      NsForm.addEventListener('submit', function(e){
+        NsMessage="";
+      });
+      window.onbeforeunload = function(ev) {
+        if(NsMessage=="") {return;}
+        if (typeof ev == "undefined") {ev = window.event;}
+        if (tarea && tarea.codemirror) {tarea.codemirror.save();}
+
+        var tx = NsForm.querySelectorAll('textarea, input[type="text"]');
+        for(var i=0; i<tx.length; i++) {
+          var el = tx[i];
+          if(ensw.className.match(/\bpreview\b/) || el.value != el.defaultValue) {
+            if (ev) {ev.returnValue = NsMessage;}
+            return NsMessage;
+          }
+        }
+      }
+    }
+  }
+  if(dqs('#EnableEditAutoText')) EditAutoText();
+});
+
+/*
+ *  Edit helper for PmWiki
+ *  (c) 2016 Petko Yotov www.pmwiki.org/petko
+ */
+function EditAutoText(){
+  var t = dqs('#text');
+  if(!t) return;
+
+  var CTRLKEY=17, SHIFTKEY=16, CTRLDOWN = 0, SHIFTDOWN = 0;
+
+  t.addEventListener('keyup', function(e){
+    if(e.keyCode == CTRLKEY) CTRLDOWN = 0;
+    else if(e.keyCode == SHIFTKEY) SHIFTDOWN = 0;
+    return true;
+  });
+
+  t.addEventListener('keydown', function(e){
+    if(e.keyCode == CTRLKEY) CTRLDOWN = 1;
+    else if(e.keyCode == SHIFTKEY) SHIFTDOWN = 1;
+
+    if (e.keyCode != 13) return true;
+    //else [Enter/Return]
+    var caret = this.selectionStart;
+    if(!caret) return true; // old MSIE, sorry
+    var content = this.value;
+    var before = content.substring(0, caret).split(/\n/g);
+    var after  = content.substring(this.selectionEnd);
+    var currline = before[before.length-1];
+
+    if(currline.match(/[^\\]\\$/)) return true; // line ending with a single \ backslash
+    var insert = "\n";
+    if(CTRLDOWN && SHIFTDOWN) {
+      insert = "~~~~\n";
+    }
+    else if(CTRLDOWN) {
+      insert = "[[<<]]\n";
+    }
+    else if(SHIFTDOWN) {
+      insert = "\\\\\n";
+    }
+    else {
+      var m = currline.match(/^((?: *\*+| *\#+|-+[<>]|:+|\|\|| ) *)/);
+      if(!m) return true;
+      var insert = "\n"+m[1];
+    }
+    e.preventDefault();
+
+    content = before.join("\n") + insert + after;
+    this.value = content;
+    this.selectionStart = caret + insert.length;
+    this.selectionEnd = caret + insert.length;
+    return false;
+  });
+};
+
