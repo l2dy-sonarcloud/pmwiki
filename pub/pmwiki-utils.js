@@ -137,6 +137,7 @@
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
       html += repeat('&nbsp;', 3*actual_level)
         + '<a href="#'+hc[2]+'">' + txt + '<br>\n';
+      if(dtoc.BackLinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow">&uarr;</a>');
     }
 
     html = "<b>"+dtoc.contents+"</b> "
@@ -154,9 +155,11 @@
         hcache[0][0].insertAdjacentHTML('beforebegin', wrap);
       }
       tocdiv = dqs('.PmTOCdiv');
+
     }
     if(!tocdiv) return; // error?
     tocdiv.className += " frame";
+    tocdiv.id = '_toc';
 
     tocdiv.innerHTML = html;
 
@@ -164,6 +167,13 @@
     aE('#PmTOCchk', 'change', function(e){
       window.localStorage.setItem('closeTOC', this.checked ? "close" : '');
     });
+
+    var hh = location.hash;
+    if(hh.length>1) {
+      var cc = dqs(hh.replace(/\./g, '\\.'));
+      if(cc) cc.scrollIntoView();
+    }
+
   }
   var numhead = [0, 0, 0, 0, 0, 0, 0];
   function numberheadings(n) {
