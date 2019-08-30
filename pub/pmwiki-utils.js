@@ -132,12 +132,12 @@
         hc[2] = 'toc-'+currnb.replace(/\.+$/g, '');
         hc[0].id = hc[2];
       }
-      if(dtoc.NumberHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
+      if(dtoc.EnableNumberedHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
 
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
       html += repeat('&nbsp;', 3*actual_level)
         + '<a href="#'+hc[2]+'">' + txt + '<br>\n';
-      if(dtoc.BackLinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow">&uarr;</a>');
+      if(dtoc.EnableBacklinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow">&uarr;</a>');
     }
 
     html = "<b>"+dtoc.contents+"</b> "
