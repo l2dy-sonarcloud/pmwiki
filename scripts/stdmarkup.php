@@ -660,6 +660,7 @@ function FmtPmTOC($m) {
 SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
 .PmTOCdiv { display: inline-block; }
 .PmTOCdiv a { text-decoration: none;}
+.back-arrow {font-size: .9em: text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
 #PmTOCchk {display: none;}
 #PmTOCchk:not(:checked) + label > .show {display: none;}
