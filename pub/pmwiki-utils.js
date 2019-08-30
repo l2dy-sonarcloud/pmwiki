@@ -136,7 +136,7 @@
 
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
       html += repeat('&nbsp;', 3*actual_level)
-        + '<a href="#'+hc[2]+'">' + txt + '<br>\n';
+        + '<a href="#'+hc[2]+'">' + txt + '</a><br>\n';
       if(dtoc.EnableBacklinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow" href="#_toc">&uarr;</a>');
     }
 
