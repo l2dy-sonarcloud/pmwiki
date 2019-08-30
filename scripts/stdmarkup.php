@@ -658,7 +658,7 @@ function FmtPmTOC($m) {
   return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
 }
 SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
-.PmTOCdiv { display: inline-block; }
+.PmTOCdiv { display: inline-block; font-size: 13px;}
 .PmTOCdiv a { text-decoration: none;}
 .back-arrow {font-size: .9em; text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
