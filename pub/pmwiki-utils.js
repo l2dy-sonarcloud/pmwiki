@@ -2,7 +2,9 @@
   JavaScript utilities for PmWiki
   (c) 2009-2019 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
-  Public Domain "Sortable tables" event listener by github.com/tofsjonas
+
+  libsortable() "Sortable tables"
+    Public Domain event listener by github.com/tofsjonas
 */
 
 (function(){
@@ -187,6 +189,7 @@
   }
 
   function makesortable() {
+    if(! adata(__script__, 'sortable')) return;
     var tables = dqsa('table.sortable');
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
@@ -213,6 +216,16 @@
 
       }
     }
+    libsortable();
+  }
+  function libsortable(){
+    document.addEventListener('click',function(e){var down_class=' dir-d ';var up_class=' dir-u ';var regex_dir=/ dir-(u|d) /;var regex_table=/\bsortable\b/;var element=e.target;function getValue(obj){obj=obj.cells[column_index];return obj.getAttribute('data-sort')||obj.innerText;}
+    function reclassify(element,dir){element.className=element.className.replace(regex_dir,'')+dir;}
+    if(element.nodeName=='TH'){var table=element.offsetParent;if(regex_table.test(table.className)){var column_index;var tr=element.parentNode;var nodes=tr.cells;for(var i=0;i<nodes.length;i++){if(nodes[i]===element){column_index=i;}else{reclassify(nodes[i],'');}}
+    var dir=down_class;if(element.className.indexOf(down_class)!==-1){dir=up_class;}
+    reclassify(element,dir);var org_tbody=table.tBodies[0];var rows=[].slice.call(org_tbody.cloneNode(true).rows,0);var reverse=(dir==up_class);rows.sort(function(a,b){a=getValue(a);b=getValue(b);if(reverse){var c=a;a=b;b=c;}
+    return isNaN(a-b)?a.localeCompare(b):a-b;});var clone_tbody=org_tbody.cloneNode();for(i=0;i<rows.length;i++){clone_tbody.appendChild(rows[i]);}
+    table.replaceChild(clone_tbody,org_tbody);}}});
   }
 
   function ready(){
@@ -225,11 +238,3 @@
   else window.addEventListener('DOMContentLoaded', ready);
 })();
 
-// Sortable tables (advanced)
-document.addEventListener('click',function(e){var down_class=' dir-d ';var up_class=' dir-u ';var regex_dir=/ dir-(u|d) /;var regex_table=/\bsortable\b/;var element=e.target;function getValue(obj){obj=obj.cells[column_index];return obj.getAttribute('data-sort')||obj.innerText;}
-function reclassify(element,dir){element.className=element.className.replace(regex_dir,'')+dir;}
-if(element.nodeName=='TH'){var table=element.offsetParent;if(regex_table.test(table.className)){var column_index;var tr=element.parentNode;var nodes=tr.cells;for(var i=0;i<nodes.length;i++){if(nodes[i]===element){column_index=i;}else{reclassify(nodes[i],'');}}
-var dir=down_class;if(element.className.indexOf(down_class)!==-1){dir=up_class;}
-reclassify(element,dir);var org_tbody=table.tBodies[0];var rows=[].slice.call(org_tbody.cloneNode(true).rows,0);var reverse=(dir==up_class);rows.sort(function(a,b){a=getValue(a);b=getValue(b);if(reverse){var c=a;a=b;b=c;}
-return isNaN(a-b)?a.localeCompare(b):a-b;});var clone_tbody=org_tbody.cloneNode();for(i=0;i<rows.length;i++){clone_tbody.appendChild(rows[i]);}
-table.replaceChild(clone_tbody,org_tbody);}}});
