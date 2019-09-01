@@ -667,3 +667,9 @@ SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
 #PmTOCchk:checked + label > .hide {display: none;}
 #PmTOCchk:checked + label + div {display: none;}');
 
+SDV($HTMLStylesFmt['PmSortable'], 'table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025B4"; }');
+

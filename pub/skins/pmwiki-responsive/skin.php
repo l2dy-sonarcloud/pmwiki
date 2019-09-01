@@ -1,7 +1,7 @@
 <?php if (!defined('PmWiki')) exit();
 /***********************************************************************
 **  skin.php
-**  Copyright 2016-2017 Petko Yotov www.pmwiki.org/petko
+**  Copyright 2016-2019 Petko Yotov www.pmwiki.org/petko
 **  
 **  This file is part of PmWiki; you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published
@@ -14,7 +14,7 @@ global $HTMLStylesFmt, $SkinElementsPages, $DefaultSkinElements, $TableCellAlign
   $SearchBoxInputType, $WrapSkinSections, $HideTemplateSections, $EnableTableAttrToStyles;
 
 # Disable inline styles injected by the PmWiki core (we provide these styles in skin.css)
-$styles = explode(' ', 'pmwiki rtl-ltr wikistyles markup simuledit diff urlapprove vardoc');
+$styles = explode(' ', 'pmwiki rtl-ltr wikistyles markup simuledit diff urlapprove vardoc PmSortable PmTOC');
 foreach($styles as $style) $HTMLStylesFmt[$style] = '';
 
 # CSS alignment for table cells (valid HTML5)

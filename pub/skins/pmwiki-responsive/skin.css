@@ -1,6 +1,6 @@
 /***********************************************************************
 **  skin.css
-**  Copyright 2016-2018 Petko Yotov www.pmwiki.org/petko
+**  Copyright 2016-2019 Petko Yotov www.pmwiki.org/petko
 **  
 **  Partially based on pmwiki.css:
 **  Copyright 2004-2006 Patrick R. Michaud pmichaud@pobox.com
@@ -321,6 +321,52 @@ td.top,    th.top    { vertical-align: top;}
 td.bottom, th.bottom { vertical-align: bottom;}
 td.middle, th.middle { vertical-align: middle;}
 
+.noPmTOC {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px;}
+.PmTOCdiv a { text-decoration: none;}
+.back-arrow {font-size: .9em; text-decoration: none;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .show {display: none;}
+#PmTOCchk:checked + label > .hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}
+
+table.simpletable {
+  border-collapse: collapse;
+}
+table.simpletable tr:nth-child(odd) {
+  background-color: #eee;
+}
+table.simpletable th {
+  background-color: #ccc;
+}
+table.simpletable th, table.simpletable td {
+  border: 1px solid #888;
+}
+
+table.sortable th {
+  cursor: pointer;
+}
+
+table.sortable th:hover::after {
+  color: inherit;
+  content: "\00A0\025B8";
+}
+
+table.sortable th::after {
+  color: transparent;
+  content: "\00A0\025B8";
+}
+
+table.sortable th.dir-d::after {
+  color: inherit;
+  content: "\00A0\025BE";
+}
+
+table.sortable th.dir-u::after {
+  color: inherit;
+  content: "\00A0\025B4";
+}
 
 @media screen and (min-width:50em) {
   html, body, #bodywrap {

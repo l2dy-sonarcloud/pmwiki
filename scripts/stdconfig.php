@@ -94,7 +94,7 @@ if (IsEnabled($EnableNotify,0))
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
 
-if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0)
+if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($PmSortable,0)
   || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap') {
   $utils = "$FarmD/pub/pmwiki-utils.js";
   if(file_exists($utils)) {
