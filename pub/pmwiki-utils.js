@@ -3,8 +3,8 @@
   (c) 2009-2019 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
 
-  libsortable() "Sortable tables"
-    Public Domain event listener by github.com/tofsjonas
+  libsortable() "Sortable tables" adapted for PmWiki from
+  a Public Domain event listener by github.com/tofsjonas
 */
 
 (function(){
@@ -176,8 +176,8 @@
       var cc = dqs(hh.replace(/\./g, '\\.'));
       if(cc) cc.scrollIntoView();
     }
-
   }
+
   var numhead = [0, 0, 0, 0, 0, 0, 0];
   function numberheadings(n) {
     if(n<numhead[6]) for(var j=numhead[6]; j>n; j--) numhead[j]=0;
@@ -194,7 +194,6 @@
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
       if(tables[i].querySelector('thead')) continue;
-
 
       var thead = document.createElement('thead');
       tables[i].insertBefore(thead, tables[i].firstChild);
@@ -213,7 +212,6 @@
         for(var j=rows.length-datafoot; j<rows.length; j++) {
           tfoot.appendChild(rows[j]);
         }
-
       }
     }
     libsortable();
@@ -237,4 +235,3 @@
   if( document.readyState !== 'loading' ) ready();
   else window.addEventListener('DOMContentLoaded', ready);
 })();
-
