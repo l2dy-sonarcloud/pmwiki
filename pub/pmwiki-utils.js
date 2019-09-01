@@ -189,7 +189,7 @@
   }
 
   function makesortable() {
-    if(! adata(__script__, 'sortable')) return;
+    if(! pf(adata(__script__, 'sortable'))) return;
     var tables = dqsa('table.sortable');
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
