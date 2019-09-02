@@ -102,6 +102,7 @@
     for(var i=1; i<=dtoc.MaxLevel; i++) {
       query.push('h'+i);
     }
+    if(dtoc.EnableQMarkup) query.push('p.question');
     var pageheadings = wikitext.querySelectorAll(query.join(','));
     if(!pageheadings.length) { return; }
 
@@ -120,6 +121,7 @@
     for(var i=0; i<toc_headings.length; i++) {
       var h = toc_headings[i];
       var level = pf(h.tagName.substring(1));
+      if(! level) level = 6;
       minlevel = Math.min(minlevel, level);
       var id = any_id(h);
       hcache.push([h, level, id]);
