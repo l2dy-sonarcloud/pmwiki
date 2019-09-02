@@ -74,7 +74,10 @@
         if(last.id && ! last.nextElementSibling) {
           var atop = posy(last) + last.offsetHeight;
           var htop = posy(h);
-          if( Math.abs(htop-atop)<20 ) return last.id;
+          if( Math.abs(htop-atop)<20 ) {
+            h.appendChild(last);
+            return last.id;
+          }
         }
       }
     }
@@ -103,7 +106,6 @@
     if(!pageheadings.length) { return; }
 
     var toc_headings = [ ];
-
     var minlevel = 1000, hcache = [ ];
     for(var i=0; i<pageheadings.length; i++) {
       var h = pageheadings[i];
