@@ -645,6 +645,7 @@ SDVA($PmTOC, array(
   'ParentElement'=>'',
   'EnableNumberedHeadings'=>0,
   'EnableBacklinks'=>0,
+  'EnableQMarkup' => 0,
   'contents' => XL('Contents'),
   'hide' => XL('hide'),
   'show' => XL('show'),
