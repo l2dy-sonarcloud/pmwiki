@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -12,6 +12,7 @@
     In addition, $ActionSkin[$action] specifies other skins to be
     searched based on the current action.
 
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($Skin, 'pmwiki');
@@ -130,7 +131,7 @@ function LoadPageTemplate($pagename,$tfilefmt) {
     $v = preg_split("/$SkinDirectivesPattern/s",
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE);
     $TmplFmt[$ps][] = "<!--$k-->";
-    if ($k{0} == '/') 
+    if ($k[0] == '/')
       { $TmplFmt[$ps][] = (count($v) > 1) ? $v : $v[0]; continue; }
     @list($var, $sd) = explode(' ', $k, 2);
     $GLOBALS[$var] = (count($v) > 1) ? $v : $v[0];

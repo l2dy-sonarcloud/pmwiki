@@ -387,7 +387,7 @@ function FmtUploadList($pagename, $args) {
   if (!$dirp) return '';
   $filelist = array();
   while (($file=readdir($dirp)) !== false) {
-    if ($file{0} == '.') continue;
+    if ($file[0] == '.') continue;
     if (@$matchext && !preg_match(@$matchext, $file)) continue;
     $filelist[$file] = rawurlencode($file);
   }
@@ -426,7 +426,7 @@ function AttachExist($pagename, $condparm='*') {
   $dirp = @opendir($uploaddir);
   if ($dirp) {
     while (($file = readdir($dirp)) !== false)
-      if ($file{0} != '.') $flist[] = $file;
+      if ($file[0] != '.') $flist[] = $file;
     closedir($dirp);
     $flist = MatchNames($flist, $fpat);
   }

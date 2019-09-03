@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2018 Patrick R. Michaud
+    Copyright 2001-2019 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -427,11 +427,13 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 
 ## helper functions
 function stripmagic($x) {
+  $fn = 'get_magic_quotes_gpc';
+  if (!function_exists($fn)) return $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
     return $x;
   }
-  return get_magic_quotes_gpc() ? stripslashes($x) : $x; 
+  return @$fn() ? stripslashes($x) : $x;
 }
 function pre_r(&$x)
   { return '<pre>'.PHSC(print_r($x, true)).'</pre>'; }
@@ -703,7 +705,7 @@ function GlobToPCRE($pat) {
                      array('.*',  '.',   '[',   ']',   '^', '-', '!'), $pat);
   $excl = array(); $incl = array();
   foreach(preg_split('/,+\s?/', $pat, -1, PREG_SPLIT_NO_EMPTY) as $p) {
-    if ($p{0} == '-' || $p{0} == '!') $excl[] = '^'.substr($p, 1).'$';
+    if ($p[0] == '-' || $p[0] == '!') $excl[] = '^'.substr($p, 1).'$';
     else $incl[] = "^$p$";
   }
   return array(implode('|', $incl), implode('|', $excl));
@@ -733,7 +735,7 @@ function MatchNames($pagelist, $pat) {
   foreach((array)$pat as $p) {
     if (count($pagelist) < 1) break;
     if (!$p) continue;
-    switch ($p{0}) {
+    switch ($p[0]) {
       case '/': 
         $pagelist = preg_grep($p, $pagelist); 
         break;
@@ -1009,7 +1011,7 @@ function XLSDV($lang,$a) {
   foreach($a as $k=>$v) {
     if (!isset($XL[$lang][$k])) {
       if (preg_match('/^e_(rows|cols)$/', $k)) $v = intval($v);
-      elseif (preg_match('/^ak_/', $k)) $v = $v{0};
+      elseif (preg_match('/^ak_/', $k)) $v = $v[0];
       $XL[$lang][$k]=$v;
     }
   }
@@ -1151,7 +1153,7 @@ class PageStore {
       $x = "version=$Version ordered=1 urlencoded=1\n";
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
-        if ($k > '' && $k{0} != '=') {
+        if ($k > '' && $k[0] != '=') {
           $x = str_replace($r0, $r1, "$k=$v") . "\n";
           $s = $s && fputs($fp, $x); $sz += strlen($x);
         }
@@ -1192,7 +1194,7 @@ class PageStore {
       $dirslash = substr_count($dir, '/') + 1;
       $o = array();
       while ( ($pagefile = readdir($dfp)) !== false) {
-        if ($pagefile{0} == '.') continue;
+        if ($pagefile[0] == '.') continue;
         if ($dirslash < $maxslash && is_dir("$dir/$pagefile"))
           { array_push($dirlist,"$dir/$pagefile"); continue; }
         if ($dirslash == $maxslash) $o[] = $this->PFD($pagefile);
@@ -1441,7 +1443,7 @@ function TextSection($text, $sections, $args = NULL) {
 ##  The caller is responsible for calling Qualify() as needed.
 function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') {
   global $RASPageName, $PCache;
-  if ($pagesection{0} != '#')
+  if ($pagesection[0] != '#')
     $list = array(MakePageName($pagename, $pagesection));
   else if (is_null($list)) $list = array($pagename);
   foreach((array)$list as $t) {
@@ -1465,7 +1467,7 @@ function IncludeText($pagename, $inclspec) {
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);
     if ($k=='') {
-      if ($v{0} != '#') {
+      if ($v[0] != '#') {
         if (isset($itext)) continue;
         $iname = MakePageName($pagename, $v);
         if (!$args['self'] && $iname == $pagename) continue;
@@ -1478,7 +1480,7 @@ function IncludeText($pagename, $inclspec) {
     if (preg_match('/^(?:line|para)s?$/', $k)) {
       preg_match('/^(\\d*)(\\.\\.(\\d*))?$/', $v, $match);
       @list($x, $a, $dots, $b) = $match;
-      $upat = ($k{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*(?:\n|$)";
+      $upat = ($k[0] == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*(?:\n|$)";
       if (!$dots) { $b=$a; $a=0; }
       if ($a>0) $a--;
       $itext=preg_replace("/^(($upat){0,$b}).*$/s",'$1',$itext,1);
@@ -1669,7 +1671,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $suffix = $txt[1];
     $txt = $txt[0];
   }
-  if (!$fmt && $path{0} == '#') {
+  if (!$fmt && $path[0] == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     if (trim($txt) == '+') $txt = PageVar($pagename, '$Title') . @$suffix;
     if ($alt) $alt = " title='$alt'";
@@ -1814,7 +1816,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
     foreach($markrules as $p=>$r) {
       list($r, $id) = (array)$r;
       $MarkupToHTML['markupid'] = $id;
-      if ($p{0} == '/') {
+      if ($p[0] == '/') {
         if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
         else $x=preg_replace($p,$r,$x);
       }
@@ -2238,11 +2240,11 @@ function IsAuthorized($chal, $source, &$from) {
       if ($pw == ',' || $pw == '') continue;
       else if ($pw == ' ') { $x = ''; continue; }
       else if (substr($pw, -1, 1) == ':') { $x = $pw; continue; }
-      else if ($pw{0} != '@' && $x > '') $pw = $x . $pw;
+      else if ($pw[0] != '@' && $x > '') $pw = $x . $pw;
       if (!$pw) continue;
       $passwd[] = $pw;
       if ($auth < 0) continue;
-      if ($x || $pw{0} == '@') {
+      if ($x || $pw[0] == '@') {
         if (@$AuthList[$pw]) $auth = $AuthList[$pw];
         continue;
       }

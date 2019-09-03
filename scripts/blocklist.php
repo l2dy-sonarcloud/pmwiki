@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2006-2015 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2006-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -171,7 +171,7 @@ function Blocklist($pagename, $text) {
   StopWatch('Blocklist: blockterms (count='.count($blockterms).')');
   $itext = strtolower($text);
   foreach($blockterms as $b) {
-    if ($b{0} == '/') {
+    if ($b[0] == '/') {
       if (!preg_match($b, $text)) continue;
     } else if (strpos($itext, strtolower($b)) === false) continue;
     $EnablePost = 0;

@@ -72,7 +72,7 @@ function GUIButtonCode() {
   foreach ($GUIButtons as $k => $g) {
     if (!$g) continue;
     @list($when, $mopen, $mclose, $mtext, $tag, $mkey) = $g;
-    if ($tag{0} == '<') { 
+    if ($tag[0] == '<') {
         $out .= $tag;
         continue; 
     }

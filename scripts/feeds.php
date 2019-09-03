@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2015 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -218,10 +218,10 @@ function HandleFeed($pagename, $auth = 'read') {
 
   # format feed elements
   foreach($f['feed'] as $k => $v) {
-    if ($k{0} == '_' || !$v) continue;
+    if ($k[0] == '_' || !$v) continue;
     $x = FmtPageName($v, $pagename);
     if (!$x) continue;
-    $out .= ($v{0} == '<') ? $x : "<$k>$x</$k>\n";
+    $out .= ($v[0] == '<') ? $x : "<$k>$x</$k>\n";
   }
 
   # format items in feed
@@ -235,7 +235,7 @@ function HandleFeed($pagename, $auth = 'read') {
 
     $out .= FmtPageName($f['item']['_start'], $pn);
     foreach((array)@$f['item'] as $k => $v) {
-      if ($k{0} == '_' || !$v) continue;
+      if ($k[0] == '_' || !$v) continue;
       if (is_callable($v)) { $out .= $v($pn, $page, $k); continue; }
       if (strpos($v, '$LastModifiedBy') !== false && !@$page['author']) 
         continue;
@@ -251,7 +251,7 @@ function HandleFeed($pagename, $auth = 'read') {
       }
       $x = FmtPageName($v, $pn);
       if (!$x) continue;
-      $out .= ($v{0} == '<') ? $x : "<$k>$x</$k>\n";
+      $out .= ($v[0] == '<') ? $x : "<$k>$x</$k>\n";
     }
     $out .= FmtPageName($f['item']['_end'], $pn);
   } 

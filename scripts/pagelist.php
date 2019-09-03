@@ -434,7 +434,7 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
           if (preg_match($i, $text)) return 0;
         foreach((array)@$opt['=inclp'] as $i) 
           if (!preg_match($i, $text)) { 
-            if ($i{0} == '$') $reindex[] = $pn;
+            if ($i[0] == '$') $reindex[] = $pn;
             return 0; 
           }
       }
@@ -488,9 +488,9 @@ function PageListSort(&$list, &$opt, $pn, &$page) {
               as $o) {
         $ret |= PAGELIST_POST;
         $r = '+';
-        if ($o{0} == '-') { $r = '-'; $o = substr($o, 1); }
+        if ($o[0] == '-') { $r = '-'; $o = substr($o, 1); }
         $opt['=order'][$o] = $r;
-        if ($o{0} != '$' && 
+        if ($o[0] != '$' &&
             (!isset($PageListSortRead[$o]) || $PageListSortRead[$o]))
           $ret |= PAGELIST_ITEM;
       }
