@@ -643,7 +643,7 @@ SDVA($PmTOC, array(
   'MaxLevel' => 6,
   'MinNumber' => 3,
   'ParentElement'=>'',
-  'EnableNumberedHeadings'=>0,
+  'NumberedHeadings'=>'',
   'EnableBacklinks'=>0,
   'EnableQMarkup' => 0,
   'contents' => XL('Contents'),

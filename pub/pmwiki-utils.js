@@ -98,8 +98,8 @@
 
     if(! dtoc.Enable || !dtoc.MaxLevel) { return; } // disabled
 
-    if(dtoc.EnableNumberedHeadings)  {
-      var specs = dtoc.EnableNumberedHeadings.toString().split(/\./g);
+    if(dtoc.NumberedHeadings)  {
+      var specs = dtoc.NumberedHeadings.toString().split(/\./g);
       for(var i=0; i<specs.length; i++) {
         if(specs[i].match(/^[1AI]$/i)) numheadspec[i] = specs[i];
       }
@@ -149,7 +149,7 @@
         hc[2] = 'toc-'+currnb.replace(/\.+$/g, '');
         hc[0].id = hc[2];
       }
-      if(dtoc.EnableNumberedHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
+      if(dtoc.NumberedHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
 
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
       html += repeat('&nbsp;', 3*actual_level)
