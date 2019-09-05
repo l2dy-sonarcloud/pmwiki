@@ -98,6 +98,13 @@
 
     if(! dtoc.Enable || !dtoc.MaxLevel) { return; } // disabled
 
+    if(dtoc.EnableNumberedHeadings)  {
+      var specs = dtoc.EnableNumberedHeadings.toString().split(/\./g);
+      for(var i=0; i<specs.length; i++) {
+        if(specs[i].match(/^[1AI]$/i)) numheadspec[i] = specs[i];
+      }
+    }
+
     var query = [];
     for(var i=1; i<=dtoc.MaxLevel; i++) {
       query.push('h'+i);
@@ -127,12 +134,15 @@
       hcache.push([h, level, id]);
     }
 
+
+
     prevlevel = 0;
     var html = '';
     for(var i=0; i<hcache.length; i++) {
       var hc = hcache[i];
       var actual_level = hc[1] - minlevel;
-      if(actual_level>prevlevel+1) actual_level = prevlevel+1;
+//       if(actual_level>prevlevel+1) actual_level = prevlevel+1;
+//       prevlevel = actual_level;
 
       var currnb = numberheadings(actual_level);
       if(! hc[2]) {
@@ -177,18 +187,52 @@
 
     var hh = location.hash;
     if(hh.length>1) {
-      var cc = dqs(hh.replace(/\./g, '\\.'));
+      var cc = document.getElementById(hh.substring(1));
       if(cc) cc.scrollIntoView();
     }
   }
 
   var numhead = [0, 0, 0, 0, 0, 0, 0];
+  var numheadspec = '1 1 1 1 1 1 1'.split(/ /g);
+  function numhead_alpha(n, upper) {
+    if(!n) return '_';
+    var alpha = '', mod, start = upper=='A' ? 65 : 97;
+    while (n>0) {
+      mod = (n-1)%26;
+      alpha = String.fromCharCode(start + mod) + '' + alpha;
+      n = (n-mod)/26 | 0;
+    }
+    return alpha;
+  }
+  function numhead_roman(n, upper) {
+    if(!n) return '_';
+    // partially based on http://blog.stevenlevithan.com/?p=65#comment-16107
+    var lst = [ [1000,'M'], [900,'CM'], [500,'D'], [400,'CD'], [100,'C'], [90,'XC'],
+      [50,'L'], [40,'XL'], [10,'X'], [9,'IX'], [5,'V'], [4,'IV'], [1,'I'] ];
+    var roman = '';
+    for(var i=0; i<lst.length; i++) {
+      while(n>=lst[i][0]) {
+        roman += lst[i][1];
+        n -= lst[i][0];
+      }
+    }
+    return (upper == 'I') ? roman : roman.toLowerCase();
+  }
+
+
   function numberheadings(n) {
     if(n<numhead[6]) for(var j=numhead[6]; j>n; j--) numhead[j]=0;
     numhead[6]=n;
     numhead[n]++;
     var qq = '';
-    for (var j=0; j<=n; j++) qq+=numhead[j]+"."; // qq+=' ';
+    for (var j=0; j<=n; j++) {
+      var curr = numhead[j];
+      var currspec = numheadspec[j];
+      if(currspec.match(/a/i)) { curr = numhead_alpha(curr, currspec); }
+      else if(currspec.match(/i/i)) { curr = numhead_roman(curr, currspec); }
+
+      qq+=curr+".";
+    }
     return qq;
   }
 
