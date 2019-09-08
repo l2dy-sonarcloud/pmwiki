@@ -653,7 +653,8 @@ SDVA($PmTOC, array(
 
 if ($action!='browse') $PmTOC['Enable'] = 0;
 
-Markup("PmTOC", 'directives', '/^\\(:[#*]?(no)?(toc|tdm).*?:\\)\\s*$/im', 'FmtPmTOC');
+Markup("PmTOC", 'directives', '/^\\(:[#*]?(?:toc|tdm).*?:\\)\\s*$/im', 'FmtPmTOC');
+Markup("noPmTOC", 'directives', '/\\(:(no)(?:toc|tdm).*?:\\)/im', 'FmtPmTOC');
 function FmtPmTOC($m) {
   if ($m[1]) return Keep('<span class="noPmTOC"></span>');
   return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
