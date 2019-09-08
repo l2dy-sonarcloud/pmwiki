@@ -2033,13 +2033,22 @@ function PostPage($pagename, &$page, &$new) {
 }
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
-  global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax;
+  global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
+    $EnableRCDiffBytes;
   if (!$IsPagePosted && $Fmt==null) return;
   if ($Fmt==null) $Fmt = $RecentChangesFmt;
   foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
+
+    if(IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+      $bytes = strlen($new['text']) - strlen($page['text']);
+      if($bytes>0) $bytes = "{+(+$bytes)+}";
+      elseif($bytes==0) $bytes = "{+(&#177;$bytes)+}";
+      else $bytes = "{-($bytes)-}";
+      $pgtext .= " %diffmarkup%$bytes%%";
+    }
     $rcpage = ReadPage($rcname);
     $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
     $rcpage['text'] = preg_replace("/^.*$rcelim.*\n/m", '', @$rcpage['text']);
