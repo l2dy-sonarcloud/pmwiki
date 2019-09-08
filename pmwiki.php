@@ -2042,10 +2042,10 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
 
-    if(IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+    if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
       $bytes = strlen($new['text']) - strlen($page['text']);
-      if($bytes>0) $bytes = "{+(+$bytes)+}";
-      elseif($bytes==0) $bytes = "{+(&#177;$bytes)+}";
+      if ($bytes>0) $bytes = "{+(+$bytes)+}";
+      elseif ($bytes==0) $bytes = "{+(&#177;$bytes)+}";
       else $bytes = "{-($bytes)-}";
       $pgtext .= " %diffmarkup%$bytes%%";
     }
