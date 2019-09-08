@@ -1585,15 +1585,26 @@ function MarkupClose($key = '') {
 
 function FormatTableRow($x, $sep = '\\|\\|') {
   global $TableCellAttrFmt, $TableCellAlignFmt, $TableRowAttrFmt,
-    $TableRowIndexMax, $MarkupFrame, $FmtV;
+    $TableRowIndexMax, $MarkupFrame, $FmtV, $EnableSimpleTableRowspan;
   static $rowcount;
   SDV($TableCellAlignFmt, " align='%s'");
+
+  if (IsEnabled($EnableSimpleTableRowspan, 0)) {
+    $x = preg_replace("/\\|\\|__+(?=\\|\\|)/", '||', $x);
+    $x = preg_replace("/\\|\\|\\^\\^+(?=\\|\\|)/", '', $x);
+  }
   $x = preg_replace("/$sep\\s*$/",'',$x);
   $td = preg_split("/$sep/", $x); $y = '';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
     $FmtV['$TableCellCount'] = $i;
     $attr = FmtPageName(@$TableCellAttrFmt, '');
+    if (IsEnabled($EnableSimpleTableRowspan, 0)) {
+      if (preg_match('/(\\+\\++)\\s*$/', $td[$i], $rspn)) {
+        $td[$i] = preg_replace('/\\+\\++(\\s*)$/', '$1', $td[$i]);
+        $attr .= " rowspan='".strlen($rspn[1])."'";
+      }
+    }
     $td[$i] = preg_replace('/^(!?)\\s+$/', '$1&nbsp;', $td[$i]);
     if (preg_match('/^!(.*?)!$/',$td[$i],$match))
       { $td[$i]=$match[1]; $t='caption'; $attr=''; }
