@@ -37,8 +37,8 @@ foreach((array)$PageCSSListFmt as $k=>$v)
   if (file_exists(FmtPageName($k,$pagename))) 
     $HTMLHeaderFmt[] = "<link rel='stylesheet' type='text/css' href='$v' />\n";
 
-if(IsEnabled($WikiPageStylesFmt, false))
-  InsertWikiPageStyles($pagename, $WikiPageStylesFmt);
+if(IsEnabled($WikiPageCSSFmt, false))
+  InsertWikiPageCSS($pagename, $WikiPageCSSFmt);
 
 # SetSkin changes the current skin to the first available skin from 
 # the $skin array.
@@ -167,13 +167,13 @@ function PrintSkin($pagename, $arg) {
 # This function parses a wiki page like Site.LocalCSS
 # and inserts CSS rules specific to the current page.
 # Based on Cookbook:LocalCSS by Petko Yotov
-function InsertWikiPageStyles($pagename, $fmt) {
-  global $HTMLStylesFmt, $EnableSelfWikiPageStyles, $WikiPageStylesVars;
-  SDV($WikiPageStylesVars,array('FarmPubDirUrl','PubDirUrl','Skin','action','SkinDirUrl'));
+function InsertWikiPageCSS($pagename, $fmt) {
+  global $HTMLStylesFmt, $EnableSelfWikiPageCSS, $WikiPageCSSVars;
+  SDV($WikiPageCSSVars,array('FarmPubDirUrl','PubDirUrl','Skin','action','SkinDirUrl'));
 
   $stylepagename = FmtPageName($fmt, $pagename);
   if ($stylepagename == $pagename &&
-    !IsEnabled($EnableSelfWikiPageStyles, 0)) return;
+    !IsEnabled($EnableSelfWikiPageCSS, 0)) return;
 
   if ($stylepagename == $pagename && @$_POST['text'])
     $text = stripmagic($_POST['text']);
@@ -187,7 +187,7 @@ function InsertWikiPageStyles($pagename, $fmt) {
   $varray = array();
 
   # global PHP variables as @variables
-  foreach($WikiPageStylesVars as $var) $varray["@$var"] = $GLOBALS[$var];
+  foreach($WikiPageCSSVars as $var) $varray["@$var"] = $GLOBALS[$var];
 
   # get @variables from page
   if (preg_match_all("/^\\s*(@\\w+):\\s*(.*?)\\s*$/m", $text, $vars) )
@@ -200,6 +200,6 @@ function InsertWikiPageStyles($pagename, $fmt) {
   if (preg_match_all("/\\[@\\s*([^\\/!\\s]+)\n(.*?)\\s*@\\]/s", $text, $matches, PREG_SET_ORDER) )
     foreach($matches as $a)
       if (count(MatchPageNames($pagename, trim($a[1]))))
-        @$HTMLStylesFmt['WikiPageStyles'] .= trim($a[2]);
+        @$HTMLStylesFmt['WikiPageCSS'] .= trim($a[2]);
 }
 
