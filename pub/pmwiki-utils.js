@@ -134,8 +134,6 @@
       hcache.push([h, level, id]);
     }
 
-
-
     prevlevel = 0;
     var html = '';
     for(var i=0; i<hcache.length; i++) {
@@ -219,7 +217,6 @@
     return (upper == 'I') ? roman : roman.toLowerCase();
   }
 
-
   function numberheadings(n) {
     if(n<numhead[6]) for(var j=numhead[6]; j>n; j--) numhead[j]=0;
     numhead[6]=n;
@@ -270,7 +267,6 @@
       sortspan = hcells[i].querySelector('.sort-number,.sort-number-us,.sort-date');
       if(sortspan) specialsort[i] = sortspan.className;
     }
-    console.log(specialsort);
     if(! specialsort.length) return;
     for(var i=1; i<rows.length; i++) {
       var cells = rows[i].querySelectorAll('td,th');
@@ -344,7 +340,6 @@
   }
 
   function ready(){
-    console.log('DOMContentLoaded')
     PmXMail();
     autotoc();
     makesortable();
