@@ -238,10 +238,12 @@
 
   function makesortable() {
     if(! pf(adata(__script__, 'sortable'))) return;
-    var tables = dqsa('table.sortable');
+    var tables = dqsa('table.sortable,table.sortable-footer');
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
       if(tables[i].querySelector('thead')) continue;
+
+      tables[i].classList.add('sortable'); // for .sortable-footer
 
       var thead = document.createElement('thead');
       tables[i].insertBefore(thead, tables[i].firstChild);
@@ -253,25 +255,92 @@
         tbody = tables[i].appendChild(document.createElement('tbody'));
         for(var r=1; r<rows.length; r++) tbody.appendChild(rows[r]);
       }
-      var datafoot = pf(adata(tables[i], 'tfoot'));
-      if(datafoot) {
+      if(tables[i].className.match(/sortable-footer/)) {
         var tfoot = tables[i].appendChild(document.createElement('tfoot'));
-
-        for(var j=rows.length-datafoot; j<rows.length; j++) {
-          tfoot.appendChild(rows[j]);
-        }
+        tfoot.appendChild(rows[rows.length-1]);
       }
+      mkdatasort(rows);
     }
     libsortable();
   }
+  function mkdatasort(rows) {
+    var hcells = rows[0].querySelectorAll('th,td');
+    var specialsort = [], span;
+    for(var i=0; i<hcells.length; i++) {
+      sortspan = hcells[i].querySelector('.sort-number,.sort-number-us,.sort-date');
+      if(sortspan) specialsort[i] = sortspan.className;
+    }
+    console.log(specialsort);
+    if(! specialsort.length) return;
+    for(var i=1; i<rows.length; i++) {
+      var cells = rows[i].querySelectorAll('td,th');
+      var k = 0;
+      for(var j=0; j<cells.length && j<specialsort.length; j++) {
+        if(! specialsort[j]) continue;
+        var t = cells[j].innerText, ds = '';
+        if(specialsort[j] == 'sort-number-us') {ds = t.replace(/[^-.\d]+/g, ''); }
+        else if(specialsort[j] == 'sort-number') {ds = t.replace(/[^-,\d]+/g, '').replace(/,/g, '.'); }
+        else if(specialsort[j] == 'sort-date') {ds = new Date(t).getTime(); }
+        if(ds) cells[j].setAttribute('data-sort', ds);
+      }
+    }
+  }
   function libsortable(){
-    document.addEventListener('click',function(e){var down_class=' dir-d ';var up_class=' dir-u ';var regex_dir=/ dir-(u|d) /;var regex_table=/\bsortable\b/;var element=e.target;function getValue(obj){obj=obj.cells[column_index];return obj.getAttribute('data-sort')||obj.innerText;}
-    function reclassify(element,dir){element.className=element.className.replace(regex_dir,'')+dir;}
-    if(element.nodeName=='TH'){var table=element.offsetParent;if(regex_table.test(table.className)){var column_index;var tr=element.parentNode;var nodes=tr.cells;for(var i=0;i<nodes.length;i++){if(nodes[i]===element){column_index=i;}else{reclassify(nodes[i],'');}}
-    var dir=down_class;if(element.className.indexOf(down_class)!==-1){dir=up_class;}
-    reclassify(element,dir);var org_tbody=table.tBodies[0];var rows=[].slice.call(org_tbody.cloneNode(true).rows,0);var reverse=(dir==up_class);rows.sort(function(a,b){a=getValue(a);b=getValue(b);if(reverse){var c=a;a=b;b=c;}
-    return isNaN(a-b)?a.localeCompare(b):a-b;});var clone_tbody=org_tbody.cloneNode();for(i=0;i<rows.length;i++){clone_tbody.appendChild(rows[i]);}
-    table.replaceChild(clone_tbody,org_tbody);}}});
+    //adapted from Public Domain code by github.com/tofsjonas
+    document.addEventListener('click', function(e) {
+      var down_class = ' dir-d ';
+      var up_class = ' dir-u ';
+      var regex_dir = / dir-(u|d) /;
+      var regex_table = /\bsortable\b/;
+      var element = e.target;
+
+      function getValue(obj) {
+        obj = obj.cells[column_index];
+        return obj.getAttribute('data-sort') || obj.innerText;
+      }
+
+      function reclassify(element, dir) {
+        element.className = element.className.replace(regex_dir, '') + dir;
+      }
+      if (element.nodeName == 'TH') {
+        var table = element.offsetParent;
+        if (regex_table.test(table.className)) {
+          var column_index;
+          var tr = element.parentNode;
+          var nodes = tr.cells;
+          for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i] === element) {
+              column_index = i;
+            } else {
+              reclassify(nodes[i], '');
+            }
+          }
+          var dir = down_class;
+          if (element.className.indexOf(down_class) !== -1) {
+            dir = up_class;
+          }
+          reclassify(element, dir);
+          var org_tbody = table.tBodies[0];
+          var rows = [].slice.call(org_tbody.cloneNode(true).rows, 0);
+          var reverse = (dir == up_class);
+          rows.sort(function(a, b) {
+            a = getValue(a);
+            b = getValue(b);
+            if (reverse) {
+              var c = a;
+              a = b;
+              b = c;
+            }
+            return isNaN(a - b) ? a.localeCompare(b) : a - b;
+          });
+          var clone_tbody = org_tbody.cloneNode();
+          for (i = 0; i < rows.length; i++) {
+            clone_tbody.appendChild(rows[i]);
+          }
+          table.replaceChild(clone_tbody, org_tbody);
+        }
+      }
+    });
   }
 
   function ready(){
