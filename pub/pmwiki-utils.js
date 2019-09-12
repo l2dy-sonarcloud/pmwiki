@@ -347,7 +347,7 @@
       for(var i=0; i<x.length; i++) {
         var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre'));
         var n = x[i].nextElementSibling;
-        if (n.tagName == 'PRE') pre.push(n);
+        if (n && n.tagName == 'PRE') pre.push(n);
         for(var j=0; j<pre.length; j++) {
           pre[j].className += ' ' + x[i].className;
           hljs.highlightBlock(pre[j]);
