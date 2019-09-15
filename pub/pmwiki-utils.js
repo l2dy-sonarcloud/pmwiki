@@ -340,10 +340,10 @@
   }
 
   function highlight_pre() {
-    if(! pf(adata(__script__, 'highlight'))) return;
-    if(typeof hljs == 'undefined') return;
+    if (! pf(adata(__script__, 'highlight'))) return;
+    if (typeof hljs == 'undefined') return;
     var x = dqsa('.highlight,.hlt');
-    if(x.length) {
+    if (x.length) {
       for(var i=0; i<x.length; i++) {
         var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre'));
         var n = x[i].nextElementSibling;

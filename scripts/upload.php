@@ -372,10 +372,10 @@ function FmtUploadList($pagename, $args) {
 
   $opt = ParseArgs($args);
   if (@$opt[''][0]) $pagename = MakePageName($pagename, $opt[''][0]);
-  if (@$opt['ext']) 
-    $matchext = '/\\.(' 
-      . implode('|', preg_split('/\\W+/', $opt['ext'], -1, PREG_SPLIT_NO_EMPTY))
-      . ')$/i';
+
+  if (@$opt['names'] ) $matchfnames = $opt['names'];
+  elseif (@$opt['ext'])
+    $matchfnames = FixGlob($opt['ext'], '$1*.$2');
 
   $uploaddir = FmtPageName("$UploadDir$UploadPrefixFmt", $pagename);
   $uploadurl = FmtPageName(IsEnabled($EnableDirectDownload, 1) 
@@ -388,7 +388,7 @@ function FmtUploadList($pagename, $args) {
   $filelist = array();
   while (($file=readdir($dirp)) !== false) {
     if ($file[0] == '.') continue;
-    if (@$matchext && !preg_match(@$matchext, $file)) continue;
+    if (@$matchfnames && ! MatchNames($file, $matchfnames)) continue;
     $filelist[$file] = rawurlencode($file);
   }
   closedir($dirp);
