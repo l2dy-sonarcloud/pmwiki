@@ -1290,22 +1290,22 @@ function Abort($msg, $info='') {
   exit;
 }
 
-function Redirect($pagename, $urlfmt='$PageUrl') {
+function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
   # redirect the browser to $pagename
   global $EnableRedirect, $RedirectDelay, $EnableStopWatch;
   SDV($RedirectDelay, 0);
   clearstatcache();
-  $pageurl = FmtPageName($urlfmt,$pagename);
+  if (is_null($redirecturl)) $redirecturl = FmtPageName($urlfmt,$pagename);
   if (IsEnabled($EnableRedirect,1) && 
       (!isset($_REQUEST['redirect']) || $_REQUEST['redirect'])) {
-    header("Location: $pageurl");
+    header("Location: $redirecturl");
     header("Content-type: text/html");
     echo "<html><head>
-      <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$pageurl' />
+      <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$redirecturl' />
      <title>Redirect</title></head><body></body></html>";
      exit;
   }
-  echo "<a href='$pageurl'>Redirect to $pageurl</a>";
+  echo "<a href='$redirecturl'>Redirect to $redirecturl</a>";
   if (@$EnableStopWatch && function_exists('StopWatchHTML'))
     StopWatchHTML($pagename, 1);
   exit;

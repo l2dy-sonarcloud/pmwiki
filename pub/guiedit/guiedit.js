@@ -148,19 +148,9 @@ function EditAutoText(){
   var t = dqs('#text');
   if(!t) return;
 
-  var CTRLKEY=17, SHIFTKEY=16, CTRLDOWN = 0, SHIFTDOWN = 0;
-
-  t.addEventListener('keyup', function(e){
-    if(e.keyCode == CTRLKEY) CTRLDOWN = 0;
-    else if(e.keyCode == SHIFTKEY) SHIFTDOWN = 0;
-    return true;
-  });
 
   t.addEventListener('keydown', function(e){
-    if(e.keyCode == CTRLKEY) CTRLDOWN = 1;
-    else if(e.keyCode == SHIFTKEY) SHIFTDOWN = 1;
-
-    if (e.keyCode != 13) return true;
+    if (e.keyCode != 13) return;
     //else [Enter/Return]
     var caret = this.selectionStart;
     if(!caret) return true; // old MSIE, sorry
@@ -171,13 +161,13 @@ function EditAutoText(){
 
     if(currline.match(/[^\\]\\$/)) return true; // line ending with a single \ backslash
     var insert = "\n";
-    if(CTRLDOWN && SHIFTDOWN) {
+    if(e.ctrlKey && e.shiftKey) {
       insert = "~~~~\n";
     }
-    else if(CTRLDOWN) {
+    else if(e.ctrlKey) {
       insert = "[[<<]]\n";
     }
-    else if(SHIFTDOWN) {
+    else if(e.shiftKey) {
       insert = "\\\\\n";
     }
     else {
