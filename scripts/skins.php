@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -12,6 +12,7 @@
     In addition, $ActionSkin[$action] specifies other skins to be
     searched based on the current action.
 
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($Skin, 'pmwiki');
@@ -35,6 +36,9 @@ SDV($PageCSSListFmt,array(
 foreach((array)$PageCSSListFmt as $k=>$v) 
   if (file_exists(FmtPageName($k,$pagename))) 
     $HTMLHeaderFmt[] = "<link rel='stylesheet' type='text/css' href='$v' />\n";
+
+if(IsEnabled($WikiPageCSSFmt, false))
+  InsertWikiPageCSS($pagename, $WikiPageCSSFmt);
 
 # SetSkin changes the current skin to the first available skin from 
 # the $skin array.
@@ -130,7 +134,7 @@ function LoadPageTemplate($pagename,$tfilefmt) {
     $v = preg_split("/$SkinDirectivesPattern/s",
       array_shift($sect),0,PREG_SPLIT_DELIM_CAPTURE);
     $TmplFmt[$ps][] = "<!--$k-->";
-    if ($k{0} == '/') 
+    if ($k[0] == '/')
       { $TmplFmt[$ps][] = (count($v) > 1) ? $v : $v[0]; continue; }
     @list($var, $sd) = explode(' ', $k, 2);
     $GLOBALS[$var] = (count($v) > 1) ? $v : $v[0];
@@ -158,5 +162,44 @@ function PrintSkin($pagename, $arg) {
   foreach ($TmplFmt[$arg] as $k => $v) 
     if (!isset($TmplDisplay[$k]) || $TmplDisplay[$k])
       PrintFmt($pagename, $v);
+}
+
+# This function parses a wiki page like Site.LocalCSS
+# and inserts CSS rules specific to the current page.
+# Based on Cookbook:LocalCSS by Petko Yotov
+function InsertWikiPageCSS($pagename, $fmt) {
+  global $HTMLStylesFmt, $EnableSelfWikiPageCSS, $WikiPageCSSVars;
+  SDV($WikiPageCSSVars,array('FarmPubDirUrl','PubDirUrl','Skin','action','SkinDirUrl'));
+
+  $stylepagename = FmtPageName($fmt, $pagename);
+  if ($stylepagename == $pagename &&
+    !IsEnabled($EnableSelfWikiPageCSS, 0)) return;
+
+  if ($stylepagename == $pagename && @$_POST['text'])
+    $text = stripmagic($_POST['text']);
+  else {
+    $p = ReadPage($stylepagename, READPAGE_CURRENT);
+    $text =  @$p['text'];
+  }
+  if (!$text) return;
+
+  $text = str_replace(array("\r",'$','<','&#036;='),array('','&#036;','&lt;','$='), $text);
+  $varray = array();
+
+  # global PHP variables as @variables
+  foreach($WikiPageCSSVars as $var) $varray["@$var"] = $GLOBALS[$var];
+
+  # get @variables from page
+  if (preg_match_all("/^\\s*(@\\w+):\\s*(.*?)\\s*$/m", $text, $vars) )
+    foreach($vars[1] as $k=>$varname) $varray[$varname] = trim($vars[2][$k]);
+
+  # expand nested @variables
+  for ($i=0; $i<10; $i++) $text = strtr($text, $varray);
+
+  # process snippets
+  if (preg_match_all("/\\[@\\s*([^\\/!\\s]+)\n(.*?)\\s*@\\]/s", $text, $matches, PREG_SET_ORDER) )
+    foreach($matches as $a)
+      if (count(MatchPageNames($pagename, trim($a[1]))))
+        @$HTMLStylesFmt['WikiPageCSS'] .= trim($a[2]);
 }
 

@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -63,7 +63,7 @@ function AuthUserId($pagename, $id, $pw=NULL) {
       foreach($matches as $m) {
         if (!preg_match_all('/\\bldaps?:\\S+|[^\\s,]+/', $m[2], $v))
           continue;
-        if ($m[1]{0} == '@')
+        if ($m[1][0] == '@')
           foreach($v[0] as $g) $auth[$g][] = $m[1];
         else $auth[$m[1]] = array_merge((array)@$auth[$m[1]], $v[0]);
       }
@@ -192,7 +192,7 @@ function _crypt($plain, $salt=null) {
     for($i = $length; $i > 0; $i -= 16) 
       $context .= substr($binary, 0, min(16, $i));
     for($i = $length; $i > 0; $i >>= 1)
-      $context .= ($i & 1) ? chr(0) : $plain{0};
+      $context .= ($i & 1) ? chr(0) : $plain[0];
     $binary = pack('H32', md5($context));
     for($i = 0; $i < 1000; $i++) {
       $new = ($i & 1) ? $plain : $binary;
@@ -206,9 +206,9 @@ function _crypt($plain, $salt=null) {
       $k = $i + 6;
       $j = $i + 12;
       if ($j == 16) $j = 5;
-      $q = $binary{$i}.$binary{$k}.$binary{$j} . $q;
+      $q = $binary[$i].$binary[$k].$binary[$j] . $q;
     }
-    $q = chr(0).chr(0).$binary{11} . $q;
+    $q = chr(0).chr(0).$binary[11] . $q;
     $q = strtr(strrev(substr(base64_encode($q), 2)),
            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
            './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');

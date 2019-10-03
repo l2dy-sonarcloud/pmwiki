@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2007-2018 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2007-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -82,7 +82,6 @@ function cb_keep_m2_p($m) { return Keep($m[2],'P'); }
 function MarkupExpression($pagename, $expr) {
   global $KeepToken, $KPV, $MarkupExpr;
   $rpat = "/$KeepToken(\\d+P)$KeepToken/";
-  $rrep = '$GLOBALS["KPV"][$m[1]]';
   
   $expr = preg_replace_callback('/([\'"])(.*?)\\1/','cb_keep_m2_p', $expr);
   $expr = preg_replace_callback('/\\(\\W/', 'cb_keep_m0_p', $expr);

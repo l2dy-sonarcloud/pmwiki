@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2018 Patrick R. Michaud
+    Copyright 2001-2019 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -427,11 +427,13 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 
 ## helper functions
 function stripmagic($x) {
+  $fn = 'get_magic_quotes_gpc';
+  if (!function_exists($fn)) return $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
     return $x;
   }
-  return get_magic_quotes_gpc() ? stripslashes($x) : $x; 
+  return @$fn() ? stripslashes($x) : $x;
 }
 function pre_r(&$x)
   { return '<pre>'.PHSC(print_r($x, true)).'</pre>'; }
@@ -703,7 +705,7 @@ function GlobToPCRE($pat) {
                      array('.*',  '.',   '[',   ']',   '^', '-', '!'), $pat);
   $excl = array(); $incl = array();
   foreach(preg_split('/,+\s?/', $pat, -1, PREG_SPLIT_NO_EMPTY) as $p) {
-    if ($p{0} == '-' || $p{0} == '!') $excl[] = '^'.substr($p, 1).'$';
+    if ($p[0] == '-' || $p[0] == '!') $excl[] = '^'.substr($p, 1).'$';
     else $incl[] = "^$p$";
   }
   return array(implode('|', $incl), implode('|', $excl));
@@ -733,7 +735,7 @@ function MatchNames($pagelist, $pat) {
   foreach((array)$pat as $p) {
     if (count($pagelist) < 1) break;
     if (!$p) continue;
-    switch ($p{0}) {
+    switch ($p[0]) {
       case '/': 
         $pagelist = preg_grep($p, $pagelist); 
         break;
@@ -868,7 +870,7 @@ function PageTextVar($pagename, $var) {
     $page = RetrieveAuthPage($pagename, 'read', false, READPAGE_CURRENT);
     if ($page) {
       foreach((array)$PageTextVarPatterns as $pat) 
-        if (preg_match_all($pat, IsEnabled($PCache[$pagename]['=preview'],@$page['text']), 
+        if (preg_match_all($pat, IsEnabled($pc['=preview'],@$page['text']),
           $match, PREG_SET_ORDER))
           foreach($match as $m) {
             $t = preg_replace("/\\{\\$:{$m[2]}\\}/", '', $m[3]);
@@ -1009,7 +1011,7 @@ function XLSDV($lang,$a) {
   foreach($a as $k=>$v) {
     if (!isset($XL[$lang][$k])) {
       if (preg_match('/^e_(rows|cols)$/', $k)) $v = intval($v);
-      elseif (preg_match('/^ak_/', $k)) $v = $v{0};
+      elseif (preg_match('/^ak_/', $k)) $v = $v[0];
       $XL[$lang][$k]=$v;
     }
   }
@@ -1151,7 +1153,7 @@ class PageStore {
       $x = "version=$Version ordered=1 urlencoded=1\n";
       $s = true && fputs($fp, $x); $sz = strlen($x);
       foreach($page as $k=>$v) 
-        if ($k > '' && $k{0} != '=') {
+        if ($k > '' && $k[0] != '=') {
           $x = str_replace($r0, $r1, "$k=$v") . "\n";
           $s = $s && fputs($fp, $x); $sz += strlen($x);
         }
@@ -1192,7 +1194,7 @@ class PageStore {
       $dirslash = substr_count($dir, '/') + 1;
       $o = array();
       while ( ($pagefile = readdir($dfp)) !== false) {
-        if ($pagefile{0} == '.') continue;
+        if ($pagefile[0] == '.') continue;
         if ($dirslash < $maxslash && is_dir("$dir/$pagefile"))
           { array_push($dirlist,"$dir/$pagefile"); continue; }
         if ($dirslash == $maxslash) $o[] = $this->PFD($pagefile);
@@ -1288,22 +1290,22 @@ function Abort($msg, $info='') {
   exit;
 }
 
-function Redirect($pagename, $urlfmt='$PageUrl') {
+function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
   # redirect the browser to $pagename
   global $EnableRedirect, $RedirectDelay, $EnableStopWatch;
   SDV($RedirectDelay, 0);
   clearstatcache();
-  $pageurl = FmtPageName($urlfmt,$pagename);
+  if (is_null($redirecturl)) $redirecturl = FmtPageName($urlfmt,$pagename);
   if (IsEnabled($EnableRedirect,1) && 
       (!isset($_REQUEST['redirect']) || $_REQUEST['redirect'])) {
-    header("Location: $pageurl");
+    header("Location: $redirecturl");
     header("Content-type: text/html");
     echo "<html><head>
-      <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$pageurl' />
+      <meta http-equiv='Refresh' Content='$RedirectDelay; URL=$redirecturl' />
      <title>Redirect</title></head><body></body></html>";
      exit;
   }
-  echo "<a href='$pageurl'>Redirect to $pageurl</a>";
+  echo "<a href='$redirecturl'>Redirect to $redirecturl</a>";
   if (@$EnableStopWatch && function_exists('StopWatchHTML'))
     StopWatchHTML($pagename, 1);
   exit;
@@ -1441,7 +1443,7 @@ function TextSection($text, $sections, $args = NULL) {
 ##  The caller is responsible for calling Qualify() as needed.
 function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') {
   global $RASPageName, $PCache;
-  if ($pagesection{0} != '#')
+  if ($pagesection[0] != '#')
     $list = array(MakePageName($pagename, $pagesection));
   else if (is_null($list)) $list = array($pagename);
   foreach((array)$list as $t) {
@@ -1465,7 +1467,7 @@ function IncludeText($pagename, $inclspec) {
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);
     if ($k=='') {
-      if ($v{0} != '#') {
+      if ($v[0] != '#') {
         if (isset($itext)) continue;
         $iname = MakePageName($pagename, $v);
         if (!$args['self'] && $iname == $pagename) continue;
@@ -1478,7 +1480,7 @@ function IncludeText($pagename, $inclspec) {
     if (preg_match('/^(?:line|para)s?$/', $k)) {
       preg_match('/^(\\d*)(\\.\\.(\\d*))?$/', $v, $match);
       @list($x, $a, $dots, $b) = $match;
-      $upat = ($k{0} == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*(?:\n|$)";
+      $upat = ($k[0] == 'p') ? ".*?(\n\\s*\n|$)" : "[^\n]*(?:\n|$)";
       if (!$dots) { $b=$a; $a=0; }
       if ($a>0) $a--;
       $itext=preg_replace("/^(($upat){0,$b}).*$/s",'$1',$itext,1);
@@ -1583,15 +1585,26 @@ function MarkupClose($key = '') {
 
 function FormatTableRow($x, $sep = '\\|\\|') {
   global $TableCellAttrFmt, $TableCellAlignFmt, $TableRowAttrFmt,
-    $TableRowIndexMax, $MarkupFrame, $FmtV;
+    $TableRowIndexMax, $MarkupFrame, $FmtV, $EnableSimpleTableRowspan;
   static $rowcount;
   SDV($TableCellAlignFmt, " align='%s'");
+
+  if (IsEnabled($EnableSimpleTableRowspan, 0)) {
+    $x = preg_replace("/\\|\\|__+(?=\\|\\|)/", '||', $x);
+    $x = preg_replace("/\\|\\|\\^\\^+(?=\\|\\|)/", '', $x);
+  }
   $x = preg_replace("/$sep\\s*$/",'',$x);
   $td = preg_split("/$sep/", $x); $y = '';
   for($i=0;$i<count($td);$i++) {
     if ($td[$i]=='') continue;
     $FmtV['$TableCellCount'] = $i;
     $attr = FmtPageName(@$TableCellAttrFmt, '');
+    if (IsEnabled($EnableSimpleTableRowspan, 0)) {
+      if (preg_match('/(\\+\\++)\\s*$/', $td[$i], $rspn)) {
+        $td[$i] = preg_replace('/\\+\\++(\\s*)$/', '$1', $td[$i]);
+        $attr .= " rowspan='".strlen($rspn[1])."'";
+      }
+    }
     $td[$i] = preg_replace('/^(!?)\\s+$/', '$1&nbsp;', $td[$i]);
     if (preg_match('/^!(.*?)!$/',$td[$i],$match))
       { $td[$i]=$match[1]; $t='caption'; $attr=''; }
@@ -1617,7 +1630,7 @@ function FormatTableRow($x, $sep = '\\|\\|') {
 }
 
 function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
-  global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt, $IMapLocalPath;
+  global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt, $IMapLocalPath, $ScriptUrl, $AddLinkCSS;
   SDVA($IMapLocalPath, array('Path:'=>1));
   if (@$IMapLocalPath[$imap]) {
     $path = preg_replace('/^(\\w+):/', "$1%3a", $path); # PITS:01260
@@ -1627,20 +1640,56 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
+  if(IsEnabled($AddLinkCSS['samedomain'])) {
+    $parsed_url = parse_url($FmtV['$LinkUrl']);
+    $parsed_wiki = parse_url($ScriptUrl);
+    if(! @$parsed_url['host'] || $parsed_url['host'] == $parsed_wiki['host']) {
+      $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['samedomain']} ", $fmt);
+    }
+  }
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
+}
+
+## These 2 functions hide e-mail addresses from spam bot harvesters
+## recover them for most users with a javascript utility,
+## while keeping them readable for users with JS disabled.
+## Based on Cookbook:DeObMail by Petko Yotov
+## To enable, set $LinkFunctions['mailto:'] = 'ObfuscateLinkIMap';
+function ObfuscateLinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
+  global $FmtV, $IMap, $IMapLinkFmt;
+  SDVA($IMapLinkFmt, array('obfuscate-mailto:' =>
+    "<span class='_pmXmail' title=\"\$LinkAlt\"><span class='_t'>\$LinkText</span><span class='_m'>\$LinkUrl</span></span>"));
+  $FmtV['$LinkUrl'] = cb_obfuscate_mail(PUE(str_replace('$1',$path,$IMap[$imap])));
+  $FmtV['$LinkText'] = cb_obfuscate_mail(preg_replace('/^mailto:/i', '', $txt));
+  if($FmtV['$LinkText'] == preg_replace('/^mailto:/i', '', $FmtV['$LinkUrl'])) $FmtV['$LinkUrl'] = '';
+  else $FmtV['$LinkUrl'] = " -&gt; ".$FmtV['$LinkUrl'];
+  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),cb_obfuscate_mail($title, 0));
+  return str_replace(array_keys($FmtV),array_values($FmtV), $IMapLinkFmt['obfuscate-mailto:']);
+}
+
+function cb_obfuscate_mail($x, $wrap=1) {
+  $classes = array('.' => '_d', '@' => '_a');
+  $texts = array( '.' => XL(' [period] '), '@' => XL(' [snail] '));
+  foreach($classes as $k=>$v)
+    $x = preg_replace("/(\\w)".preg_quote($k)."(\\w)/",
+    ($wrap?
+      "$1<span class='$v'>{$texts[$k]}</span>$2"
+      : "$1{$texts[$k]}$2")
+      , $x);
+  return $x;
 }
 
 function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
-    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced;
+    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
   $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', $path); # PITS:01388
   if (is_array($txt)) { # PITS:01392
     $suffix = $txt[1];
     $txt = $txt[0];
   }
-  if (!$fmt && $path{0} == '#') {
+  if (!$fmt && $path[0] == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     if (trim($txt) == '+') $txt = PageVar($pagename, '$Title') . @$suffix;
     if ($alt) $alt = " title='$alt'";
@@ -1668,6 +1717,12 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
                      array($url.PUE($qf), $txt, $alt), $fmt);
+  if(IsEnabled($AddLinkCSS['othergroup'])) {
+    list($cgroup, ) = explode('.', $pagename);
+    list($tgroup, ) = explode('.', $tgtname);
+    if($cgroup != $tgroup) 
+      $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['othergroup']} ", $fmt);
+  }
   return FmtPageName($fmt,$tgtname);
 }
 
@@ -1785,7 +1840,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
     foreach($markrules as $p=>$r) {
       list($r, $id) = (array)$r;
       $MarkupToHTML['markupid'] = $id;
-      if ($p{0} == '/') {
+      if ($p[0] == '/') {
         if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
         else $x=preg_replace($p,$r,$x);
       }
@@ -2002,13 +2057,22 @@ function PostPage($pagename, &$page, &$new) {
 }
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
-  global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax;
+  global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
+    $EnableRCDiffBytes;
   if (!$IsPagePosted && $Fmt==null) return;
   if ($Fmt==null) $Fmt = $RecentChangesFmt;
   foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
+
+    if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+      $bytes = strlen($new['text']) - strlen($page['text']);
+      if ($bytes>0) $bytes = "{+(+$bytes)+}";
+      elseif ($bytes==0) $bytes = "{+(&#177;$bytes)+}";
+      else $bytes = "{-($bytes)-}";
+      $pgtext .= " %diffmarkup%$bytes%%";
+    }
     $rcpage = ReadPage($rcname);
     $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
     $rcpage['text'] = preg_replace("/^.*$rcelim.*\n/m", '', @$rcpage['text']);
@@ -2209,11 +2273,11 @@ function IsAuthorized($chal, $source, &$from) {
       if ($pw == ',' || $pw == '') continue;
       else if ($pw == ' ') { $x = ''; continue; }
       else if (substr($pw, -1, 1) == ':') { $x = $pw; continue; }
-      else if ($pw{0} != '@' && $x > '') $pw = $x . $pw;
+      else if ($pw[0] != '@' && $x > '') $pw = $x . $pw;
       if (!$pw) continue;
       $passwd[] = $pw;
       if ($auth < 0) continue;
-      if ($x || $pw{0} == '@') {
+      if ($x || $pw[0] == '@') {
         if (@$AuthList[$pw]) $auth = $AuthList[$pw];
         continue;
       }

@@ -81,9 +81,9 @@ if (!function_exists(@$DiffFunction))
   include_once("$FarmD/scripts/phpdiff.php");
 if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");
-if ($action=='edit' && IsEnabled($EnableGUIButtons,0))
+if ($action=='edit')
   include_once("$FarmD/scripts/guiedit.php");
-if (IsEnabled($EnableForms,1))                     
+if (IsEnabled($EnableForms,1))
   include_once("$FarmD/scripts/forms.php");       # must come after prefs
 if (IsEnabled($EnableUpload,0))
   include_once("$FarmD/scripts/upload.php");      # must come after forms
@@ -93,6 +93,19 @@ if (IsEnabled($EnableNotify,0))
   include_once("$FarmD/scripts/notify.php");
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
+
+if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableSortable,0)
+  || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap' || IsEnabled($EnableHighlight, 0)) {
+  $utils = "$FarmD/pub/pmwiki-utils.js";
+  if(file_exists($utils)) {
+    $mtime = filemtime($utils);
+    $HTMLFooterFmt['pmwiki-utils'] =
+      "<script type='text/javascript' src='\$FarmPubDirUrl/pmwiki-utils.js?st=$mtime'
+        data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
+        data-pmtoc='".PHSC(json_encode(@$PmTOC), ENT_QUOTES)."'
+        data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
+  }
+}
 
 if (IsEnabled($EnableUpgradeCheck,1)) {
   SDV($StatusPageName, "$SiteAdminGroup.Status");
