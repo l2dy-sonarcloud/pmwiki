@@ -1630,7 +1630,7 @@ function FormatTableRow($x, $sep = '\\|\\|') {
 }
 
 function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
-  global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt, $IMapLocalPath;
+  global $FmtV, $IMap, $IMapLinkFmt, $UrlLinkFmt, $IMapLocalPath, $ScriptUrl, $AddLinkCSS;
   SDVA($IMapLocalPath, array('Path:'=>1));
   if (@$IMapLocalPath[$imap]) {
     $path = preg_replace('/^(\\w+):/', "$1%3a", $path); # PITS:01260
@@ -1640,6 +1640,13 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
+  if(IsEnabled($AddLinkCSS['samedomain'])) {
+    $parsed_url = parse_url($FmtV['$LinkUrl']);
+    $parsed_wiki = parse_url($ScriptUrl);
+    if(! @$parsed_url['host'] || $parsed_url['host'] == $parsed_wiki['host']) {
+      $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['samedomain']} ", $fmt);
+    }
+  }
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
@@ -1675,7 +1682,7 @@ function cb_obfuscate_mail($x, $wrap=1) {
 function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
-    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced;
+    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
   $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', $path); # PITS:01388
   if (is_array($txt)) { # PITS:01392
@@ -1710,6 +1717,12 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
                      array($url.PUE($qf), $txt, $alt), $fmt);
+  if(IsEnabled($AddLinkCSS['othergroup'])) {
+    list($cgroup, ) = explode('.', $pagename);
+    list($tgroup, ) = explode('.', $tgtname);
+    if($cgroup != $tgroup) 
+      $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['othergroup']} ", $fmt);
+  }
   return FmtPageName($fmt,$tgtname);
 }
 
