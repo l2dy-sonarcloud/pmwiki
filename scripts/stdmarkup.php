@@ -499,7 +499,7 @@ Markup('^||','>^||||','/^\\|\\|(.*)$/',
 
 #### (:table:) markup (AdvancedTables)
 Markup('table', '<block',
-  '/^\\(:(table|cell|cellnr|head|headnr|tableend|(?:div\\d*|section\\d*|article\\d*|header|footer|nav|address|aside)(?:end)?)(\\s.*?)?:\\)/i',
+  '/^\\(:(table|cell|cellnr|head|headnr|tableend|(?:div\\d*|section\\d*|details\\d*|article\\d*|header|footer|nav|address|aside)(?:end)?)(\\s.*?)?:\\)/i',
   "MarkupTables");
 Markup('^>>', '<table',
   '/^&gt;&gt;(.+?)&lt;&lt;(.*)$/',
@@ -541,7 +541,11 @@ function Cells($name,$attr) {
     $cf['cell'] = "</$t>";
   } else {
     $tag = preg_replace('/\\d+$/', '', $key);
-    $out .= "<$tag $attr>";
+    $tmp = "<$tag $attr>";
+    if ($tag == 'details') { 
+      $tmp = preg_replace("#(<details.*) summary='(.*?)'(.*)$#", '$1$3<summary>$2</summary>', $tmp);
+    }
+    $out .= $tmp;
     $cf[$key] = "</$tag>";
   }
   return $out;
@@ -660,7 +664,7 @@ function FmtPmTOC($m) {
   return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
 }
 SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
-.PmTOCdiv { display: inline-block; font-size: 13px;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
 .PmTOCdiv a { text-decoration: none;}
 .back-arrow {font-size: .9em; text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
