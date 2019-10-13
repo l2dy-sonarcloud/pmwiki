@@ -322,7 +322,7 @@ td.bottom, th.bottom { vertical-align: bottom;}
 td.middle, th.middle { vertical-align: middle;}
 
 .noPmTOC {display:none;}
-.PmTOCdiv { display: inline-block; font-size: 13px;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
 .PmTOCdiv a { text-decoration: none;}
 .back-arrow {font-size: .9em; text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
@@ -375,7 +375,7 @@ table.sortable th.dir-d::after {
     margin: 0 auto;
     background-color: #f7f7f7;
   }
-  
+
   #wikileft, #wikihead-searchform, #wikicmds {
     background-color: #f7f7f7;
     opacity: 1;

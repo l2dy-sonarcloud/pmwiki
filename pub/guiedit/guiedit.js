@@ -1,4 +1,4 @@
-/*  Copyright 2004-2015 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -23,7 +23,10 @@ function insButton(mopen, mclose, mtext, mlabel, mkey) {
 
 function insMarkup() {
   var func = false, tid='text', mopen = '', mclose = '', mtext = '';
-  if(typeof arguments[0] == 'function') {
+  if (arguments[0] == 'FixSelectedURL') {
+    func = FixSelectedURL;
+  }
+  else if (typeof arguments[0] == 'function') {
     var func = arguments[0];
     if(arguments.length > 1) tid = arguments[1];
     mtext = func('');
@@ -76,7 +79,7 @@ function insMarkup() {
   return;
 }
 
-// functions below by Petko Yotov, www.pmwiki.org/petko
+// Helper functions below by Petko Yotov, www.pmwiki.org/petko
 function aE(el, ev, fn) {
   if(typeof el == 'string') el = dqsa(el);
   for(var i=0; i<el.length; i++) el[i].addEventListener(ev, fn);
@@ -85,13 +88,6 @@ function dqs(str)  { return document.querySelector(str); }
 function dqsa(str) { return document.querySelectorAll(str); }
 function tap(q, fn) { aE(q, 'click', fn); };
 function adata(el, x) { return el.getAttribute("data-"+x); }
-
-function guieditbtntap() {
-  var mopen = adata(this, 'mopen');
-  if(mopen == 'FixSelectedURL') insMarkup(FixSelectedURL);
-  else insMarkup( mopen, adata(this, 'mclose'), adata(this, 'mtext') );
-}
-
 function FixSelectedURL(str) {
   var rx = new RegExp("[ <>\"{}|\\\\^`()\\[\\]']", 'g');
   str = str.replace(rx, function(a){
@@ -100,8 +96,6 @@ function FixSelectedURL(str) {
 }
 
 window.addEventListener('DOMContentLoaded', function(){
-  tap('.guieditbtn', guieditbtntap);
-
   var NsForm = false;
 
   var sTop = dqs("#textScrollTop");

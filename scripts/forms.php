@@ -11,7 +11,7 @@
 # $InputAttrs are the attributes we allow in output tags
 SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols', 
   'size', 'maxlength', 'action', 'method', 'accesskey', 'tabindex', 'multiple',
-  'checked', 'disabled', 'readonly', 'enctype', 'src', 'alt', 'title',
+  'checked', 'disabled', 'readonly', 'enctype', 'src', 'alt', 'title', 'list',
   'required', 'placeholder', 'autocomplete', 'min', 'max', 'step', 'pattern'
   ));
 
@@ -61,6 +61,14 @@ SDVA($InputTags['select'], array(
   'class' => 'inputbox',
   ':html' => "<select \$InputSelectArgs>\$InputSelectOptions</select>"));
 
+# (:input datalist:)
+SDVA($InputTags['datalist-option'], array(
+  ':args' => array('id', 'value'),
+  ':attr' => array('value'),
+  ':html' => "<option \$InputFormArgs>"));
+SDVA($InputTags['datalist'], array(
+  ':html' => "<datalist \$InputSelectArgs>\$InputSelectOptions</datalist>"));
+
 # (:input defaults?:)
 SDVA($InputTags['default'], array(':fn' => 'InputDefault'));
 SDVA($InputTags['defaults'], array(':fn' => 'InputDefault'));
@@ -75,6 +83,11 @@ Markup('input-select', '<input',
   '/\\(:input\\s+select\\s.*?:\\)(?:\\s*\\(:input\\s+select\\s.*?:\\))*/i',
   "MarkupInputForms");
 
+##  (:input datalist:) has its own markup processing
+Markup('input-datalist', '<input',
+  '/\\(:input\\s+datalist\\s.*?:\\)(?:\\s*\\(:input\\s+datalist\\s.*?:\\))*/i',
+  "MarkupInputForms");
+
 function MarkupInputForms($m) {
   extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
   switch ($markupid) {
@@ -82,6 +95,8 @@ function MarkupInputForms($m) {
       return InputMarkup($pagename, $m[1], $m[2]);
     case 'input-select': 
       return InputSelect($pagename, 'select', $m[0]);
+    case 'input-datalist': 
+      return InputSelect($pagename, 'datalist', $m[0]);
     case 'e_preview': 
       return isset($GLOBALS['FmtV']['$PreviewText']) 
         ? Keep($GLOBALS['FmtV']['$PreviewText']): '';
@@ -91,7 +106,7 @@ function MarkupInputForms($m) {
 ##  The 'input+sp' rule combines multiple (:input select ... :)
 ##  into a single markup line (to avoid split line effects)
 Markup('input+sp', '<split', 
-  '/(\\(:input\\s+select\\s(?>.*?:\\)))\\s+(?=\\(:input\\s)/', '$1');
+  '/(\\(:input\\s+(select|datalist)\\s(?>.*?:\\)))\\s+(?=\\(:input\\s)/', '$1');
 
 SDV($InputFocusFmt, 
   "<script language='javascript' type='text/javascript'><!--

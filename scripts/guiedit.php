@@ -66,27 +66,28 @@ function cb_gbcompare($a, $b) {return $a[0]-$b[0];}
 function GUIButtonCode() {
   global $GUIButtons;
   extract($GLOBALS["MarkupToHTML"]); # get $pagename
-  
+
   usort($GUIButtons, 'cb_gbcompare');
-  $out = "";
+
+  $out = "<script type='text/javascript'><!--\n";
   foreach ($GUIButtons as $k => $g) {
     if (!$g) continue;
     @list($when, $mopen, $mclose, $mtext, $tag, $mkey) = $g;
-    if ($tag[0] == '<') {
-        $out .= $tag;
+    if ($ta[0] == '<') { 
+        $out .= "document.write(\"$tag\");\n";
         continue; 
     }
     if (preg_match('/^(.*\\.(gif|jpg|png))("([^"]+)")?$/', $tag, $m)) {
       $title = (@$m[4] > '') ? "title='{$m[4]}'" : '';
       $tag = "<img src='{$m[1]}' $title style='border:0px;' />";
     }
-    $mopen = PHSC($mopen, ENT_QUOTES);
-    $mclose = PHSC($mclose, ENT_QUOTES);
-    $mtext = PHSC($mtext, ENT_QUOTES);
-    $mkey = $mkey ? "accesskey='$mkey'" : '';
-    $out .= "<a tabindex='-1' class='guieditbtn' $mkey
-      data-mopen='$mopen' data-mclose='$mclose' data-mtext='$mtext'>$tag</a>";
+    $mopen = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mopen);
+    $mclose = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mclose);
+    $mtext = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mtext);
+    $out .= 
+      "insButton(\"$mopen\", \"$mclose\", '$mtext', \"$tag\", \"$mkey\");\n";
   }
+  $out .= '//--></script>';
   return Keep(FmtPageName($out, $pagename));
 }
 
