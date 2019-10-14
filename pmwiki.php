@@ -1659,7 +1659,7 @@ function ObfuscateLinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
   global $FmtV, $IMap, $IMapLinkFmt;
   SDVA($IMapLinkFmt, array('obfuscate-mailto:' =>
     "<span class='_pmXmail' title=\"\$LinkAlt\"><span class='_t'>\$LinkText</span><span class='_m'>\$LinkUrl</span></span>"));
-  $FmtV['$LinkUrl'] = cb_obfuscate_mail(PUE(str_replace('$1',$path,$IMap[$imap])));
+  $FmtV['$LinkUrl'] = cb_obfuscate_mail(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = cb_obfuscate_mail(preg_replace('/^mailto:/i', '', $txt));
   if($FmtV['$LinkText'] == preg_replace('/^mailto:/i', '', $FmtV['$LinkUrl'])) $FmtV['$LinkUrl'] = '';
   else $FmtV['$LinkUrl'] = " -&gt; ".$FmtV['$LinkUrl'];
