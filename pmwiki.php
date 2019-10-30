@@ -727,30 +727,30 @@ function MatchPageNames($pagelist, $pat) {
   # keep it generic, even if we someday change MatchPageNames().
   return MatchNames($pagelist, $pat);
 }
-function MatchNames($pagelist, $pat) {
+function MatchNames($list, $pat) {
   global $Charset, $EnableRangeMatchUTF8;
   # allow range matches in utf8; doesn't work on pmwiki.org and possibly elsewhere
   $pcre8 = (IsEnabled($EnableRangeMatchUTF8,0) && $Charset=='UTF-8')? 'u' : '';
-  $pagelist = (array)$pagelist;
+  $list = (array)$list;
   foreach((array)$pat as $p) {
-    if (count($pagelist) < 1) break;
+    if (count($list) < 1) break;
     if (!$p) continue;
     switch ($p[0]) {
       case '/': 
-        $pagelist = preg_grep($p, $pagelist); 
+        $list = preg_grep($p, $list); 
         break;
       case '!':
-        $pagelist = array_diff($pagelist, preg_grep($p, $pagelist)); 
+        $list = array_diff($list, preg_grep($p, $list)); 
         break;
       default:
         list($inclp, $exclp) = GlobToPCRE(str_replace('/', '.', $p));
         if ($exclp) 
-          $pagelist = array_diff($pagelist, preg_grep("/$exclp/i$pcre8", $pagelist));
+          $list = array_diff($list, preg_grep("/$exclp/i$pcre8", $list));
         if ($inclp)
-          $pagelist = preg_grep("/$inclp/i$pcre8", $pagelist);
+          $list = preg_grep("/$inclp/i$pcre8", $list);
     }
   }
-  return $pagelist;
+  return $list;
 }
   
 ## ResolvePageName "normalizes" a pagename based on the current
@@ -860,7 +860,7 @@ function SetProperty($pagename, $prop, $value, $sep=NULL, $keep=NULL) {
 ## $PageTextVarPatterns) into a page's $PCache entry, and returns
 ## the property associated with $var.
 function PageTextVar($pagename, $var) {
-  global $PCache, $PageTextVarPatterns, $MaxPageTextVars;
+  global $PCache, $PageTextVarPatterns, $MaxPageTextVars, $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
   SDV($MaxPageTextVars, 500);
   static $status;
   if (@$status["$pagename:$var"]++ > $MaxPageTextVars) return '';
@@ -877,6 +877,24 @@ function PageTextVar($pagename, $var) {
             $pc["=p_{$m[2]}"] = Qualify($pagename, $t);
           }
     }
+  }
+  if (! isset($PCache[$pagename]["=p_$var"]) && is_array($DefaultUnsetPageTextVars)) {
+    foreach($DefaultUnsetPageTextVars as $k=>$v) {
+      if (count(MatchNames($var, $k))) {
+        $PCache[$pagename]["=p_$var"] = $v;
+        break;
+      }
+    }
+    SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
+  }
+  elseif ($PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
+    foreach($DefaultEmptyPageTextVars as $k=>$v) {
+      if (count(MatchNames($var, $k))) {
+        $PCache[$pagename]["=p_$var"] = $v;
+        break;
+      }
+    }
+    SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
   return @$PCache[$pagename]["=p_$var"];
 }
