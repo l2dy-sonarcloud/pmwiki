@@ -384,7 +384,7 @@ foreach((array)$InterMapFiles as $f) {
     $v = preg_replace('/^\\s*(?>\\w[-\\w]*)(?!:)/m', '$0:', implode('', $v));
   else if (@PageExists($f)) {
     $p = ReadPage($f, READPAGE_CURRENT);
-    $v = $p['text'];
+    $v = @$p['text'];
   } else continue;
   if (!preg_match_all("/^\\s*(\\w[-\\w]*:)[^\\S\n]+(\\S*)/m", $v, 
                       $match, PREG_SET_ORDER)) continue;
@@ -2008,7 +2008,7 @@ function RestorePage($pagename,&$page,&$new,$restore=NULL) {
 ## is being posted (as signaled by $EnablePost).
 function ReplaceOnSave($pagename,&$page,&$new) {
   global $EnablePost, $ROSPatterns, $ROEPatterns;
-  $new['text'] = ProcessROESPatterns($new['text'], $ROEPatterns);
+  $new['text'] = ProcessROESPatterns(@$new['text'], $ROEPatterns);
   if ($EnablePost) {
     $new['text'] = ProcessROESPatterns($new['text'], $ROSPatterns);
   }
@@ -2145,7 +2145,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   $new['csum'] = $ChangeSummary;
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
   $EnablePost &= preg_grep('/^post/', array_keys(@$_POST));
-  $new['=preview'] = $new['text'];
+  $new['=preview'] = @$new['text'];
   PCache($pagename, $new);
   UpdatePage($pagename, $page, $new);
   Lock(0);
