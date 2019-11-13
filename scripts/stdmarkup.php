@@ -217,7 +217,7 @@ function MarkupDirectives($m) {
     case 'linkwikiwords':  return PZZ($GLOBALS['LinkWikiWords']=($m[1]!='no'));
     case 'spacewikiwords': return PZZ($GLOBALS['SpaceWikiWords']=($m[1]!='no'));
     case 'linebreaks': 
-      return PZZ($GLOBALS['HTMLPNewline'] = ($m[1]!='no') ? '<br  />' : '');
+      return PZZ($GLOBALS['HTMLPNewline'] = (@$m[1]!='no') ? '<br  />' : '');
     case 'messages': 
       return '<:block>'.Keep(FmtPageName(
         implode('',(array)$GLOBALS['MessagesFmt']), $pagename));
@@ -407,7 +407,7 @@ Markup('blank', '<block', '/^\\s+$/', '');
 
 ## process any <:...> markup (after all other block markups)
 Markup('^<:','>block','/^(?=\\s*\\S)(<:([^>]+)>)?/',"MarkupBlock");
-function MarkupBlock($m) {return Block($m[2]);}
+function MarkupBlock($m) {return Block(@$m[2]);}
 
 ## unblocked lines w/block markup become anonymous <:block>
 Markup('^!<:', '<^<:',
@@ -481,7 +481,7 @@ Markup('^A:', 'block', '/^A:/', Keep(''));
 function MarkupTables($m) {
   extract($GLOBALS["MarkupToHTML"]);
   switch ($markupid) {
-    case 'table': return Cells($m[1],$m[2]);
+    case 'table': return Cells(@$m[1],@$m[2]);
     case '^||||': return FormatTableRow($m[0]);
     case '^||':
       $GLOBALS['BlockMarkups']['table'][0] = '<table '.SimpleTableAttr($m[1]).'>';

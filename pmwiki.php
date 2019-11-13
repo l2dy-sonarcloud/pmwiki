@@ -916,7 +916,7 @@ function PageVar($pagename, $var, $pn = '') {
     }
     @list($d, $group, $name) = $match;
     $page = &$PCache[$pn];
-    if (strpos($FmtPV[$var], '$authpage') !== false) {
+    if (strpos(@$FmtPV[$var], '$authpage') !== false) {
       if (!isset($page['=auth']['read'])) {
         $x = RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT);
         if ($x) PCache($pn, $x);
@@ -1011,7 +1011,7 @@ function FmtTemplateVars($text, $vars, $pagename = NULL) {
   }
   foreach(preg_grep('/^[\\w$]/', array_keys($vars)) as $k)
     if (!is_array($vars[$k]))
-      $text = str_replace("{\$\$$k}", $vars[$k], $text);
+      $text = str_replace("{\$\$$k}", @$vars[$k], $text);
   if (! IsEnabled($EnableUndefinedTemplateVars, 0))
     $text = preg_replace("/\\{\\$\\$\\w+\\}/", '', $text);
   return $text;
@@ -1029,7 +1029,7 @@ function XLSDV($lang,$a) {
   foreach($a as $k=>$v) {
     if (!isset($XL[$lang][$k])) {
       if (preg_match('/^e_(rows|cols)$/', $k)) $v = intval($v);
-      elseif (preg_match('/^ak_/', $k)) $v = $v[0];
+      elseif (preg_match('/^ak_/', $k)) $v = @$v[0];
       $XL[$lang][$k]=$v;
     }
   }
@@ -1480,7 +1480,7 @@ function IncludeText($pagename, $inclspec) {
   global $MaxIncludes, $IncludeOpt, $InclCount, $PCache;
   SDV($MaxIncludes,50);
   SDVA($IncludeOpt, array('self'=>1));
-  if ($InclCount[$pagename]++>=$MaxIncludes) return Keep($inclspec);
+  if (@$InclCount[$pagename]++>=$MaxIncludes) return Keep($inclspec);
   $args = array_merge($IncludeOpt, ParseArgs($inclspec));
   while (count($args['#'])>0) {
     $k = array_shift($args['#']); $v = array_shift($args['#']);

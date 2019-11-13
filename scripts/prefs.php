@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -33,7 +33,7 @@ if (isset($_GET['setprefs'])) {
 }
 if ($sp && PageExists($sp)) XLPage('prefs', $sp, true);
 
-if(is_array($XL['prefs'])) {
+if(@is_array($XL['prefs'])) {
   foreach($XL['prefs'] as $k=>$v) {
     if(! preg_match('/^(e_rows|e_cols|TimeFmt|Locale|Site\\.EditForm)$|^ak_/', $k))
       unset($XL['prefs'][$k]);
