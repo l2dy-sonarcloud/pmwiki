@@ -12,7 +12,9 @@
 SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols', 
   'size', 'maxlength', 'action', 'method', 'accesskey', 'tabindex', 'multiple',
   'checked', 'disabled', 'readonly', 'enctype', 'src', 'alt', 'title', 'list',
-  'required', 'placeholder', 'autocomplete', 'min', 'max', 'step', 'pattern'
+  'required', 'placeholder', 'autocomplete', 'min', 'max', 'step', 'pattern',
+  'role', 'aria-label', 'aria-labelledby', 'aria-describedby',
+  'aria-expanded', 'aria-pressed', 'aria-current', 'aria-hidden',
   ));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
