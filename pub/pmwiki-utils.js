@@ -33,7 +33,7 @@
 
       if(!url) url = 'mailto:'+txt.replace(/^mailto:/, '');
 
-      url = url.replace(/"/g, '%22');
+      url = url.replace(/"/g, '%22').replace(/'/g, '%27');
       var html = LinkFmt.replace(/%u/g, url).replace(/%t/g, txt);
       els[i].innerHTML = html;
     }
