@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2006-2018 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2006-2011 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -42,8 +42,6 @@
     $NotifyHeaders - any additional message headers to be sent.
     $NotifyParameters - any additional parameters to be passed to PHP's
         mail() function.
-    
-    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($NotifyDelay, 0);
@@ -56,7 +54,7 @@ SDV($NotifyBodyFmt,
   . "  \$ScriptUrl/$[{\$SiteGroup}/AllRecentChanges]\n\n\$NotifyItems\n");
 SDV($NotifyTimeFmt, $TimeFmt);
 SDV($NotifyItemFmt, 
-  ' * {$FullName} . . . $PostTime by {$Author}');
+  ' * {$FullName} . . . $PostTime by {$LastModifiedBy}');
 SDV($NotifyHeaders, '');
 SDV($NotifyParameters, '');
 
@@ -89,7 +87,7 @@ function PostNotify($pagename, &$page, &$new) {
 
 function NotifyUpdate($pagename, $dir='') {
   global $NotifyList, $NotifyListPageFmt, $NotifyFile, $IsPagePosted, $IsUploadPosted,
-    $FmtV, $NotifyTimeFmt, $NotifyItemFmt, $SearchPatterns, $MailFunction,
+    $FmtV, $NotifyTimeFmt, $NotifyItemFmt, $SearchPatterns,
     $NotifySquelch, $NotifyDelay, $Now, $Charset, $EnableNotifySubjectEncode,
     $NotifySubjectFmt, $NotifyBodyFmt, $NotifyHeaders, $NotifyParameters;
 
@@ -178,11 +176,10 @@ function NotifyUpdate($pagename, $dir='') {
       if (!$notify[$m]) { unset($notify[$m]); continue; }
       $mbody = str_replace('$NotifyItems',   
                            urldecode(implode("\n", $notify[$m])), $body);
-      SDV($MailFunction, 'mail');
       if ($NotifyParameters && !@ini_get('safe_mode'))
-        $MailFunction($m, $subject, $mbody, $NotifyHeaders, $NotifyParameters);
+        mail($m, $subject, $mbody, $NotifyHeaders, $NotifyParameters);
       else 
-        $MailFunction($m, $subject, $mbody, $NotifyHeaders);
+        mail($m, $subject, $mbody, $NotifyHeaders);
       $notify[$m] = array('lastmail' => $nnow);
     }
   }

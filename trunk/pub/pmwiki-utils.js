@@ -33,6 +33,7 @@
 
       if(!url) url = 'mailto:'+txt.replace(/^mailto:/, '');
 
+      url = url.replace(/"/g, '%22').replace(/'/g, '%27');
       var html = LinkFmt.replace(/%u/g, url).replace(/%t/g, txt);
       els[i].innerHTML = html;
     }
@@ -123,7 +124,8 @@
     if(! toc_headings.length) return;
 
     var tocdiv = dqs('.PmTOCdiv');
-    if( !tocdiv && toc_headings.length < dtoc.MinNumber ) { return; }
+    var shouldmaketoc = ( !tocdiv && toc_headings.length < dtoc.MinNumber ) ? 0:1;
+    if(!dtoc.NumberedHeadings && !shouldmaketoc) return;
 
     for(var i=0; i<toc_headings.length; i++) {
       var h = toc_headings[i];
@@ -147,13 +149,17 @@
         hc[2] = 'toc-'+currnb.replace(/\.+$/g, '');
         hc[0].id = hc[2];
       }
-      if(dtoc.NumberedHeadings) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
+      if(dtoc.NumberedHeadings && currnb.length) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
 
+      if(! shouldmaketoc) { continue; }
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
       html += repeat('&nbsp;', 3*actual_level)
         + '<a href="#'+hc[2]+'">' + txt + '</a><br>\n';
       if(dtoc.EnableBacklinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow" href="#_toc">&uarr;</a>');
+      
     }
+
+    if(! shouldmaketoc) return;
 
     html = "<b>"+dtoc.contents+"</b> "
       +"[<input type='checkbox' id='PmTOCchk'><label for='PmTOCchk'>"

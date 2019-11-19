@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2011 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -17,8 +17,6 @@
 
     If there is no ?setprefs= request, then the script uses the
     'setprefs' cookie from the browser to load the preference settings.
-    
-    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($PrefsCookie, $CookiePrefix.'setprefs');
@@ -28,17 +26,10 @@ $LogoutCookies[] = $PrefsCookie;
 $sp = '';
 if (@$_COOKIE[$PrefsCookie]) $sp = $_COOKIE[$PrefsCookie];
 if (isset($_GET['setprefs'])) {
-  $sp = MakePageName($pagename, $_GET['setprefs']);
-  pmsetcookie($PrefsCookie, $sp, $PrefsCookieExpires, '/');
+  $sp = $_GET['setprefs'];
+  setcookie($PrefsCookie, $sp, $PrefsCookieExpires, '/');
 }
 if ($sp && PageExists($sp)) XLPage('prefs', $sp, true);
-
-if(is_array($XL['prefs'])) {
-  foreach($XL['prefs'] as $k=>$v) {
-    if(! preg_match('/^(e_rows|e_cols|TimeFmt|Locale|Site\\.EditForm)$|^ak_/', $k))
-      unset($XL['prefs'][$k]);
-  }
-}
 
 XLSDV('en', array(
   'ak_view' => '',

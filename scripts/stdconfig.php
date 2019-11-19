@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2007 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,6 @@
     To avoid processing any of the features of this file, set 
         $EnableStdConfig = 0;
     in config.php.
-    
-    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 $pagename = ResolvePageName($pagename);
@@ -31,14 +29,6 @@ if (!function_exists('session_start') && IsEnabled($EnableRequireSession, 1))
 if (IsEnabled($EnablePGCust,1))
   include_once("$FarmD/scripts/pgcust.php");
 
-if (isset($PostConfig) && is_array($PostConfig)) {
-  asort($PostConfig, SORT_NUMERIC);
-  foreach ($PostConfig as $k=>$v) {
-    if (!$k || !$v || $v<0 || $v>=50) continue;
-    if (function_exists($k)) $k($pagename);
-    elseif (file_exists($k)) include_once($k);
-  }
-}
 
 if (IsEnabled($EnableRobotControl,1))
   include_once("$FarmD/scripts/robots.php");
@@ -63,8 +53,7 @@ if (@$LinkWikiWords || IsEnabled($EnableWikiWords, 0))
   include_once("$FarmD/scripts/wikiwords.php");    # must come before stdmarkup
 if (IsEnabled($EnableStdMarkup,1))
   include_once("$FarmD/scripts/stdmarkup.php");    # must come after transition
-if (($action=='diff' && @!$HandleActions['diff'])
-  || (IsEnabled($EnablePreviewChanges, 0) && @$_REQUEST['preview']>''))
+if ($action=='diff' && @!$HandleActions['diff'])
   include_once("$FarmD/scripts/pagerev.php");
 if (IsEnabled($EnableWikiTrails,1))
   include_once("$FarmD/scripts/trails.php");
@@ -81,9 +70,9 @@ if (!function_exists(@$DiffFunction))
   include_once("$FarmD/scripts/phpdiff.php");
 if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");
-if ($action=='edit')
+if ($action=='edit' && IsEnabled($EnableGUIButtons,0))
   include_once("$FarmD/scripts/guiedit.php");
-if (IsEnabled($EnableForms,1))
+if (IsEnabled($EnableForms,1))                     
   include_once("$FarmD/scripts/forms.php");       # must come after prefs
 if (IsEnabled($EnableUpload,0))
   include_once("$FarmD/scripts/upload.php");      # must come after forms
@@ -93,19 +82,6 @@ if (IsEnabled($EnableNotify,0))
   include_once("$FarmD/scripts/notify.php");
 if (IsEnabled($EnableDiag,0)) 
   include_once("$FarmD/scripts/diag.php");
-
-if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableSortable,0)
-  || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap' || IsEnabled($EnableHighlight, 0)) {
-  $utils = "$FarmD/pub/pmwiki-utils.js";
-  if(file_exists($utils)) {
-    $mtime = filemtime($utils);
-    $HTMLFooterFmt['pmwiki-utils'] =
-      "<script type='text/javascript' src='\$FarmPubDirUrl/pmwiki-utils.js?st=$mtime'
-        data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
-        data-pmtoc='".PHSC(json_encode(@$PmTOC), ENT_QUOTES)."'
-        data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
-  }
-}
 
 if (IsEnabled($EnableUpgradeCheck,1)) {
   SDV($StatusPageName, "$SiteAdminGroup.Status");

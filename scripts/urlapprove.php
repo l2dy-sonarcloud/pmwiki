@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2016 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2006 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -27,8 +27,6 @@
     number you can limit the number of unapproved urls that make it into
     a page.  (Wikispammers seem to like to post long lists of urls, while
     more "normal" authors tend to only post a few.)
-    
-    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 $LinkFunctions['http:'] = 'LinkHTTP';
@@ -36,7 +34,7 @@ $LinkFunctions['https:'] = 'LinkHTTP';
 SDV($ApprovedUrlPagesFmt, array('$SiteAdminGroup.ApprovedUrls'));
 SDV($UnapprovedLinkFmt,
   "\$LinkText<a class='apprlink' href='{\$PageUrl}?action=approvesites'>$[(approve sites)]</a>");
-SDVA($HTMLStylesFmt, array('urlapprove' => '.apprlink { font-size:smaller; }'));
+$HTMLStylesFmt['urlapprove'] = '.apprlink { font-size:smaller; }';
 SDV($ApproveUrlPattern,
   "\\bhttps?:[^\\s$UrlExcludeChars]*[^\\s.,?!$UrlExcludeChars]");
 $WhiteUrlPatterns = (array)$WhiteUrlPatterns;
@@ -116,13 +114,12 @@ function HandleApprove($pagename, $auth='edit') {
 }
 
 function BlockUnapprovedPosts($pagename, &$page, &$new) {
-  global $EnableUrlApprovalRequired, $UnapprovedLinkCount,
+  global $EnableUrlApprovalRequired, $UnapprovedLinkCount, 
     $UnapprovedLinkCountMax, $EnablePost, $MessagesFmt, $BlockMessageFmt;
   if (!IsEnabled($EnableUrlApprovalRequired, 1)) return;
   if ($UnapprovedLinkCount <= $UnapprovedLinkCountMax) return;
   if ($page['=auth']['admin']) return;
   $EnablePost = 0;
   $MessagesFmt[] = $BlockMessageFmt;
-  $MessagesFmt[] = XL('Too many unapproved external links.');
 }
-
+    
