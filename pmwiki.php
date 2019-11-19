@@ -1772,6 +1772,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     else $txt .= $suffix;
   }
   if (@$LinkTitleFunction) $title = $LinkTitleFunction($pagename,$m,$txt);
+  else $title = PHSC(MarkupRestore(@$title), ENT_QUOTES);
   $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$title,$txt,$fmt);
   return preg_replace('/(<[^>]+)\\stitle=(""|\'\')/', '$1', $out);
 }
