@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2007-2010 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2007-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -49,31 +49,42 @@
     and $params contains the entire argument string.  Note that $params
     may contain escaped values representing quoted arguments and
     results of other expressions; these values may be un-escaped
-    by using "preg_replace($rpat, $rrep, $params)".
+    by using "preg_replace_callback($rpat, 'cb_expandkpv', $params)".
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 Markup('{(', '>{$var}',
-  '/\\{(\\(\\w+\\b.*?\\))\\}/e',
-  "MarkupExpression(\$pagename, PSS('$1'))");
+  '/\\{(\\(\\w+\\b.*?\\))\\}/',
+  "MarkupMarkupExpression");
+
+function MarkupMarkupExpression($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename
+  return MarkupExpression($pagename, $m[1]);
+}
 
 SDVA($MarkupExpr, array(
-  'substr' => 'call_user_func_array("substr", $args)',
-  'strlen' => 'strlen($args[0])',
-  'ftime' => 'ME_ftime(@$args[0], @$args[1], $argp)',
-  'rand'   => '($args) ? rand($args[0], $args[1]) : rand()',
-  'ucfirst' => 'ucfirst($args[0])',
-  'ucwords' => 'ucwords($args[0])',
-  'tolower' => 'strtolower($args[0])',
-  'toupper' => 'strtoupper($args[0])',
+  'substr'   => 'call_user_func_array("substr", $args)',
+  'strlen'   => 'strlen($args[0])',
+  'ftime'    => 'ME_ftime(@$args[0], @$args[1], $argp)',
+  'rand'     => '($args) ? rand($args[0], $args[1]) : rand()',
+  'ucfirst'  => 'ucfirst($args[0])',
+  'ucwords'  => 'ucwords($args[0])',
+  'tolower'  => 'strtolower($args[0])',
+  'toupper'  => 'strtoupper($args[0])',
+  'mod'      => '0 + (intval($args[0]) % intval($args[1]))',
   'asspaced' => '$GLOBALS["AsSpacedFunction"]($args[0])',
-  'pagename' => 'MakePageName($pagename, preg_replace($rpat, $rrep, $params))',
+  'pagename' => 'MakePageName($pagename, preg_replace_callback($rpat, "cb_expandkpv", $params))',
 ));
+
+function cb_keep_m0_p($m) { return Keep($m[0],'P'); }
+function cb_keep_m2_p($m) { return Keep($m[2],'P'); }
 
 function MarkupExpression($pagename, $expr) {
   global $KeepToken, $KPV, $MarkupExpr;
-  $rpat = "/$KeepToken(\\d+P)$KeepToken/e";
-  $rrep = '$KPV[\'$1\']';
-  $expr = preg_replace('/([\'"])(.*?)\\1/e', "Keep(PSS('$2'),'P')", $expr);
-  $expr = preg_replace('/\\(\\W/e', "Keep(PSS('$2'),'P')", $expr);
+  $rpat = "/$KeepToken(\\d+P)$KeepToken/";
+  
+  $expr = preg_replace_callback('/([\'"])(.*?)\\1/','cb_keep_m2_p', $expr);
+  $expr = preg_replace_callback('/\\(\\W/', 'cb_keep_m0_p', $expr);
   while (preg_match('/\\((\\w+)(\\s[^()]*)?\\)/', $expr, $match)) {
     list($repl, $func, $params) = $match;
     $code = @$MarkupExpr[$func];
@@ -92,16 +103,16 @@ function MarkupExpression($pagename, $expr) {
     while ($x) {
       list($k, $v) = array_splice($x, 0, 2);
       if ($k == '' || $k == '+' || $k == '-') 
-        $args[] = $k.preg_replace($rpat, $rrep, $v);
+        $args[] = $k.preg_replace_callback($rpat, 'cb_expandkpv', $v);
     }
     ##  fix any quoted arguments
     foreach ($argp as $k => $v)
-      if (!is_array($v)) $argp[$k] = preg_replace($rpat, $rrep, $v);
+      if (!is_array($v)) $argp[$k] = preg_replace_callback($rpat, 'cb_expandkpv', $v);
     $out = eval("return ({$code});");
     if ($expr == $repl) { $expr = $out; break; }
     $expr = str_replace($repl, Keep($out, 'P'), $expr);
   }
-  return preg_replace($rpat, $rrep, $expr);
+  return preg_replace_callback($rpat, 'cb_expandkpv', $expr);
 }
 
 ##   ME_ftime handles {(ftime ...)} expressions.
@@ -115,9 +126,18 @@ function ME_ftime($arg0 = '', $arg1 = '', $argp = NULL) {
   if (isset($argp['when'])) list($time, $x) = DRange($argp['when']);
   else if ($arg0 > '') list($time, $x) = DRange($arg0);
   else $time = $Now;
+  $dtz = function_exists('date_default_timezone_get') # tz=Europe/Paris
+    ? date_default_timezone_get() : false;
+  if (@$argp['tz'] && $dtz) @date_default_timezone_set($argp['tz']);
+  $dloc = setlocale(LC_TIME, 0);
+  if(@$argp['locale']) # locale=fr_FR.utf8,bg_BG,C
+    setlocale(LC_TIME, preg_split('/[, ]+/', $argp['locale'], null, PREG_SPLIT_NO_EMPTY));
   if (@$fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
   ##  make sure we have %F available for ISO dates
   $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $time), $fmt);
-  return strftime($fmt, $time);
+  $ret = strftime($fmt, $time);
+  if (@$argp['tz'] && $dtz) date_default_timezone_set($dtz);
+  if(@$argp['locale']) setlocale(LC_TIME, $dloc);
+  return $ret;
 }
 

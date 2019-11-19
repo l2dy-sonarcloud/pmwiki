@@ -1,9 +1,11 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2011 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2015 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.  See pmwiki.php for full details.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
@@ -11,32 +13,39 @@ SDV($WikiStylePattern,'%%|%[A-Za-z][-,=:#\\w\\s\'"().]*%');
 ## %% markup
 Markup('%%','style','%','return ApplyStyles($x);');
 
+## restore links before applying styles
+Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/",
+  'cb_expandkpv');
+
 ## %define=...% markup on a line by itself
 Markup('%define=', '>split',
-  "/^(?=%define=)((?:$WikiStylePattern)\\s*)+$/e",
-  "PZZ(ApplyStyles(PSS('$0')))");
+  "/^(?=%define=)((?:$WikiStylePattern)\\s*)+$/",
+  "MarkupApplyStyles");
 
-## restore links before applying styles
-Markup('restorelinks','<%%',"/$KeepToken(\\d+L)$KeepToken/e",
-  '$GLOBALS[\'KPV\'][\'$1\']');
+function MarkupApplyStyles($m) {
+  ApplyStyles($m[0]);
+  return '';
+}
 
 # define PmWiki's standard/default wikistyles
 if (IsEnabled($EnableStdWikiStyles,1)) {
   ## standard colors
   foreach(array('black','white','red','yellow','blue','gray',
-      'silver','maroon','green','navy','purple') as $c)
+      'silver','maroon','green','navy','purple',
+      'fuchsia','olive','lime','teal','aqua','orange') as $c)
     SDV($WikiStyle[$c]['color'],$c);
+  SDV($WikiStyle['grey']['color'],'gray');
   ## %newwin% style opens links in a new window
   SDV($WikiStyle['newwin']['target'],'_blank');
   ## %comment% style turns markup into a comment via display:none css
   SDV($WikiStyle['comment']['display'],'none');
   ## display, margin, padding, and border css properties
   $WikiStyleCSS[] = 
-    'float|display|(margin|padding|border)(-(left|right|top|bottom))?';
+    'float|clear|display|(margin|padding|border)(-(left|right|top|bottom))?';
   $WikiStyleCSS[] = 'white-space';
+  $WikiStyleCSS[] = '((min|max)-)?(width|height)';
   ## list-styles
   $WikiStyleCSS[] = 'list-style';
-  $WikiStyleCSS[] = 'width|height';
   foreach(array('decimal'=>'decimal', 'roman'=>'lower-roman',
     'ROMAN'=>'upper-roman', 'alpha'=>'lower-alpha', 'ALPHA'=>'upper-alpha')
     as $k=>$v) 
@@ -46,10 +55,17 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
     'item' => 'li|dt',
     'list' => 'ul|ol|dl',
     'div' => 'div',
+    'article' => 'article',
+    'section' => 'section',
+    'nav' => 'nav',
+    'aside' => 'aside',
+    'header' => 'header',
+    'footer' => 'footer',
+    'address' => 'address',
     'pre' => 'pre',
     'img' => 'img',
-    'block' => 'p(?!\\sclass=)|div|ul|ol|dl|li|dt|pre|h[1-6]',
-    'p' => 'p(?!\\sclass=)'));
+    'block' => 'p(?!\\s+class=)|div|ul|ol|dl|li|dt|pre|h[1-6]|article|section|nav|aside|address|header|footer',
+    'p' => 'p(?!\\s+class=)'));
   foreach(array('item', 'list', 'block', 'p', 'div') as $c)
     SDV($WikiStyle[$c],array('apply'=>$c));
   ## block justifications
@@ -71,6 +87,7 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
   ##  preformatted text sections
   SDV($WikiStyle['pre'], array('apply' => 'block', 'white-space' => 'pre'));
   SDV($WikiStyle['sidehead'], array('apply' => 'block', 'class' => 'sidehead'));
+  SDV($WikiStyle['reversed'], array('apply' => 'list', 'reversed' => 'reversed'));
 }
 
 SDVA($WikiStyleAttr,array(
@@ -78,6 +95,7 @@ SDVA($WikiStyleAttr,array(
   'hspace' => 'img',
   'align' => 'img',
   'value' => 'li',
+  'reversed' => 'ol',
   'target' => 'a',
   'accesskey' => 'a',
   'rel' => 'a'));
@@ -85,7 +103,7 @@ SDVA($WikiStyleAttr,array(
 SDVA($WikiStyleRepl,array(
   '/^%(.*)%$/' => '$1',
   '/\\bbgcolor([:=])/' => 'background-color$1',
-  '/\\b(\d+)pct\\b/' => '$1%',
+  '/\\b((?<!-)\d+)pct\\b/' => '$1%',
   ));
 
 $WikiStyleCSS[] = 'color|background-color';
@@ -99,9 +117,9 @@ function ApplyStyles($x) {
     $WikiStyleAttr, $WikiStyleCSS, $WikiStyleApply, $BlockPattern,
     $WikiStyleTag, $imgTag, $aTag, $spanTag, $WikiStyleAttrPrefix;
   $wt = @$WikiStyleTag; $ns = $WikiStyleAttrPrefix; $ws = '';
-  $x = preg_replace("/\\b(href|src)=(['\"]?)[^$UrlExcludeChars]+\\2/e", 
-                    "Keep(PSS('$0'))", $x);
-  $x = preg_replace("/\\bhttps?:[^$UrlExcludeChars]+/e", "Keep('$0')", $x);
+  $x = preg_replace_callback("/\\b(href|src)=(['\"]?)[^$UrlExcludeChars]+\\2/",
+                    "Keep", $x);
+  $x = preg_replace_callback("/\\bhttps?:[^$UrlExcludeChars]+/", "Keep", $x);
   $parts = preg_split("/($WikiStylePattern)/",$x,-1,PREG_SPLIT_DELIM_CAPTURE);
   $parts[] = NULL;
   $out = '';
@@ -111,7 +129,7 @@ function ApplyStyles($x) {
     $p = array_shift($parts);
     if (preg_match("/^$WikiStylePattern\$/",$p)) {
       $WikiStyle['curr']=$style; $style=array();
-      foreach((array)$WikiStyleRepl as $pat=>$rep) 
+      foreach((array)$WikiStyleRepl as $pat=>$rep)
         $p=preg_replace($pat,$rep,$p);
       preg_match_all(
         '/\\b([a-zA-Z][-\\w]*)([:=]([-#,\\w.()%]+|([\'"]).*?\\4))?/',

@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2017 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,8 @@
     example, to enable just the 'pageeditfmt' transition, use
 
             $Transition['pageeditfmt'] = 1;
-
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 ## if ?trans=0 is specified, then we don't do any fixups.
@@ -118,7 +119,8 @@ if (@$Transition['version'] < 2001012)
 ##   This restores the PmWiki 2.1.11 behavior that doesn't
 ##   allow nesting of divs and tables.
 if (@$Transition['nodivnest']) {
-  function TCells($name,$attr) {
+  function TCells($m) {
+    list($x, $name, $attr) = $m;
     global $MarkupFrame;
     $attr = preg_replace('/([a-zA-Z]=)([^\'"]\\S*)/',"\$1'\$2'",$attr);
     $tattr = @$MarkupFrame[0]['tattr'];
@@ -147,8 +149,8 @@ if (@$Transition['nodivnest']) {
   }
 
   Markup('table', '<block',
-    '/^\\(:(table|cell|cellnr|tableend|div|divend)(\\s.*?)?:\\)/ie',
-    "TCells('$1',PSS('$2'))");
+    '/^\\(:(table|cell|cellnr|tableend|div|divend)(\\s.*?)?:\\)/i',
+    "TCells");
 }
 
 

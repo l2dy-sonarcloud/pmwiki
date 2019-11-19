@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2006-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2006-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -35,6 +35,8 @@
 
     More information about blocklists is available in the
     PmWiki.Blocklist page.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 
@@ -44,8 +46,9 @@
 ##   but at some point we may change the default to disabled.
 if (IsEnabled($EnableBlocklistImmediate, 1)) {
   SDVA($BlocklistActions, array('comment' => 1));
-  if (isset($_POST['text']) && @$BlocklistActions[$action]) {
-    Blocklist($pagename, $_POST['text']);
+  $ptext = implode(' ', @$_POST);
+  if ($ptext && @$BlocklistActions[$action]) {
+    Blocklist($pagename, $ptext);
     if (!$EnablePost) {
       unset($_POST['post']);
       unset($_POST['postattr']);
@@ -58,11 +61,11 @@ if (IsEnabled($EnableBlocklistImmediate, 1)) {
 ##   If $EnableBlocklist is set to 10 or higher, then arrange to 
 ##   periodically download the "chongqed" and "moinmaster" blacklists.
 if ($EnableBlocklist >= 10) {
-  SDVA($BlocklistDownload['SiteAdmin.Blocklist-Chongqed'], array(
-    'url' => 'http://blacklist.chongqed.org/',
-    'format' => 'regex'));
+#  SDVA($BlocklistDownload['SiteAdmin.Blocklist-Chongqed'], array(
+#    'url' => 'http://blacklist.chongqed.org/',
+#    'format' => 'regex'));
   SDVA($BlocklistDownload['SiteAdmin.Blocklist-MoinMaster'], array(
-    'url' => 'http://moinmaster.wikiwikiweb.de/BadContent?action=raw',
+    'url' => 'http://moinmo.in/BadContent?action=raw',
     'format' => 'regex'));
 }
 
@@ -73,7 +76,7 @@ if ($EnableBlocklist >= 10) {
 array_unshift($EditFunctions, 'CheckBlocklist');
 function CheckBlocklist($pagename, &$page, &$new) { 
   StopWatch("CheckBlocklist: begin $pagename");
-  $ptext = implode('', @$_POST);
+  $ptext = implode(' ', @$_POST);
   if (@$ptext) Blocklist($pagename, $ptext); 
   StopWatch("CheckBlocklist: end $pagename");
 }
@@ -168,7 +171,7 @@ function Blocklist($pagename, $text) {
   StopWatch('Blocklist: blockterms (count='.count($blockterms).')');
   $itext = strtolower($text);
   foreach($blockterms as $b) {
-    if ($b{0} == '/') {
+    if ($b[0] == '/') {
       if (!preg_match($b, $text)) continue;
     } else if (strpos($itext, strtolower($b)) === false) continue;
     $EnablePost = 0;

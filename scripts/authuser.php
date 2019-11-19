@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2010 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -21,11 +21,13 @@
 
     Individual username/password combinations can also be placed
     directly in the $AuthUser array, such as:
-        $AuthUser['pmichaud'] = crypt('secret');
+        $AuthUser['pmichaud'] = pmcrypt('secret');
 
     To authenticate against an LDAP server, put the url for
     the server in $AuthUser['ldap'], as in:
         $AuthUser['ldap'] = 'ldap://ldap.example.com/ou=People,o=example?uid';
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 # let Site.AuthForm know that we're doing user-based authorization
@@ -53,16 +55,18 @@ function AuthUserId($pagename, $id, $pw=NULL) {
     $id => 'AuthUserConfig'));
 
   SDV($AuthUserPat, "/^\\s*([@\\w][^\\s:]*):(.*)/m");
-  $pn = FmtPageName($AuthUserPageFmt, $pagename);
-  $apage = ReadPage($pn, READPAGE_CURRENT);
-  if ($apage && preg_match_all($AuthUserPat, 
-                               $apage['text'], $matches, PREG_SET_ORDER)) {
-    foreach($matches as $m) {
-      if (!preg_match_all('/\\bldaps?:\\S+|[^\\s,]+/', $m[2], $v))
-        continue;
-      if ($m[1]{0} == '@') 
-        foreach($v[0] as $g) $auth[$g][] = $m[1];
-      else $auth[$m[1]] = array_merge((array)@$auth[$m[1]], $v[0]);
+  foreach ( (array)$AuthUserPageFmt as $aupn) {
+    $pn = FmtPageName($aupn, $pagename);
+    $apage = ReadPage($pn, READPAGE_CURRENT);
+    if ($apage && preg_match_all($AuthUserPat,
+                                $apage['text'], $matches, PREG_SET_ORDER)) {
+      foreach($matches as $m) {
+        if (!preg_match_all('/\\bldaps?:\\S+|[^\\s,]+/', $m[2], $v))
+          continue;
+        if ($m[1][0] == '@')
+          foreach($v[0] as $g) $auth[$g][] = $m[1];
+        else $auth[$m[1]] = array_merge((array)@$auth[$m[1]], $v[0]);
+      }
     }
   }
 
@@ -130,7 +134,7 @@ function AuthUserHtGroup($pagename, $id, $pw, $pwlist) {
   
 
 function AuthUserLDAP($pagename, $id, $pw, $pwlist) {
-  global $AuthLDAPBindDN, $AuthLDAPBindPassword;
+  global $AuthLDAPBindDN, $AuthLDAPBindPassword, $AuthLDAPReferrals;
   if (!$pw) return false;
   if (!function_exists('ldap_connect')) 
     Abort('authuser: LDAP authentication requires PHP ldap functions','ldapfn');
@@ -141,6 +145,8 @@ function AuthUserLDAP($pagename, $id, $pw, $pwlist) {
     list($z, $url, $path) = $match;
     $ds = ldap_connect($url);
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+    if(isset($AuthLDAPReferrals)) # *NOT* IsEnabled
+      ldap_set_option($ds, LDAP_OPT_REFERRALS, $AuthLDAPReferrals);
     ##  For Active Directory, don't specify a path and we simply
     ##  attempt to bind with the username and password directly
     if (!$path && @ldap_bind($ds, $id, $pw)) { ldap_close($ds); return true; }
@@ -186,7 +192,7 @@ function _crypt($plain, $salt=null) {
     for($i = $length; $i > 0; $i -= 16) 
       $context .= substr($binary, 0, min(16, $i));
     for($i = $length; $i > 0; $i >>= 1)
-      $context .= ($i & 1) ? chr(0) : $plain{0};
+      $context .= ($i & 1) ? chr(0) : $plain[0];
     $binary = pack('H32', md5($context));
     for($i = 0; $i < 1000; $i++) {
       $new = ($i & 1) ? $plain : $binary;
@@ -200,14 +206,14 @@ function _crypt($plain, $salt=null) {
       $k = $i + 6;
       $j = $i + 12;
       if ($j == 16) $j = 5;
-      $q = $binary{$i}.$binary{$k}.$binary{$j} . $q;
+      $q = $binary[$i].$binary[$k].$binary[$j] . $q;
     }
-    $q = chr(0).chr(0).$binary{11} . $q;
+    $q = chr(0).chr(0).$binary[11] . $q;
     $q = strtr(strrev(substr(base64_encode($q), 2)),
            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
            './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
     return "\$apr1\$$salt\$$q";
   }
   if (md5($plain) == $salt) return $salt;
-  return crypt($plain, $salt);
+  return pmcrypt($plain, $salt);
 }

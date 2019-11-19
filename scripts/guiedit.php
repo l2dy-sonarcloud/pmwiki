@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2010 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +19,8 @@
     The buttons specified in this file are the default buttons
     for the standard markups.  Some buttons (e.g., the attach/upload
     button) are specified in their respective cookbook module.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDVA($HTMLHeaderFmt, array('guiedit' => "<script type='text/javascript'
@@ -26,43 +28,52 @@ SDVA($HTMLHeaderFmt, array('guiedit' => "<script type='text/javascript'
 
 SDV($GUIButtonDirUrlFmt,'$FarmPubDirUrl/guiedit');
 
-SDVA($GUIButtons, array(
-  'em'       => array(100, "''", "''", '$[Emphasized]',
-                  '$GUIButtonDirUrlFmt/em.gif"$[Emphasized (italic)]"', 
-                  '$[ak_em]'),
-  'strong'   => array(110, "'''", "'''", '$[Strong]',
-                  '$GUIButtonDirUrlFmt/strong.gif"$[Strong (bold)]"',
-                  '$[ak_strong]'),
-  'pagelink' => array(200, '[[', ']]', '$[Page link]', 
-                  '$GUIButtonDirUrlFmt/pagelink.gif"$[Link to internal page]"'),
-  'extlink'  => array(210, '[[', ']]', 'http:// | $[link text]',
-                  '$GUIButtonDirUrlFmt/extlink.gif"$[Link to external page]"'),
-  'big'      => array(300, "'+", "+'", '$[Big text]',
-                  '$GUIButtonDirUrlFmt/big.gif"$[Big text]"'),
-  'small'    => array(310, "'-", "-'", '$[Small text]',
-                  '$GUIButtonDirUrlFmt/small.gif"$[Small text]"'),
-  'sup'      => array(320, "'^", "^'", '$[Superscript]',
-                  '$GUIButtonDirUrlFmt/sup.gif"$[Superscript]"'),
-  'sub'      => array(330, "'_", "_'", '$[Subscript]',
-                  '$GUIButtonDirUrlFmt/sub.gif"$[Subscript]"'),
-  'h2'       => array(400, '\\n!! ', '\\n', '$[Heading]',
-                  '$GUIButtonDirUrlFmt/h.gif"$[Heading]"'),
-  'center'   => array(410, '%center%', '', '',
-                  '$GUIButtonDirUrlFmt/center.gif"$[Center]"')));
+if(IsEnabled($EnableGUIButtons,0)) {
+  SDVA($GUIButtons, array(
+    'em'       => array(100, "''", "''", '$[Emphasized]',
+                    '$GUIButtonDirUrlFmt/em.gif"$[Emphasized (italic)]"',
+                    '$[ak_em]'),
+    'strong'   => array(110, "'''", "'''", '$[Strong]',
+                    '$GUIButtonDirUrlFmt/strong.gif"$[Strong (bold)]"',
+                    '$[ak_strong]'),
+    'pagelink' => array(200, '[[', ']]', '$[Page link]',
+                    '$GUIButtonDirUrlFmt/pagelink.gif"$[Link to internal page]"'),
+    'extlink'  => array(210, '[[', ']]', 'http:// | $[link text]',
+                    '$GUIButtonDirUrlFmt/extlink.gif"$[Link to external page]"'),
+    'big'      => array(300, "'+", "+'", '$[Big text]',
+                    '$GUIButtonDirUrlFmt/big.gif"$[Big text]"'),
+    'small'    => array(310, "'-", "-'", '$[Small text]',
+                    '$GUIButtonDirUrlFmt/small.gif"$[Small text]"'),
+    'sup'      => array(320, "'^", "^'", '$[Superscript]',
+                    '$GUIButtonDirUrlFmt/sup.gif"$[Superscript]"'),
+    'sub'      => array(330, "'_", "_'", '$[Subscript]',
+                    '$GUIButtonDirUrlFmt/sub.gif"$[Subscript]"'),
+    'h2'       => array(400, '\\n!! ', '\\n', '$[Heading]',
+                    '$GUIButtonDirUrlFmt/h.gif"$[Heading]"'),
+    'center'   => array(410, '%center%', '', '',
+                    '$GUIButtonDirUrlFmt/center.gif"$[Center]"')));
 
-Markup('e_guibuttons', 'directives',
-  '/\\(:e_guibuttons:\\)/e',
-  "Keep(FmtPageName(GUIButtonCode(\$pagename), \$pagename))");
+  if(IsEnabled($EnableGuiEditFixUrl)) {
+    $GUIButtons['fixurl'] = array($EnableGuiEditFixUrl, 'FixSelectedURL', '', '',
+      '$GUIButtonDirUrlFmt/fixurl.png"$[Encode special characters in URL link addresses]"');
+  }
 
-function GUIButtonCode($pagename) {
+  Markup('e_guibuttons', 'directives',
+    '/\\(:e_guibuttons:\\)/', 'GUIButtonCode');
+}
+
+function cb_gbcompare($a, $b) {return $a[0]-$b[0];}
+function GUIButtonCode() {
   global $GUIButtons;
-  $cmpfn = create_function('$a,$b', 'return $a[0]-$b[0];');
-  usort($GUIButtons, $cmpfn);
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename
+
+  usort($GUIButtons, 'cb_gbcompare');
+
   $out = "<script type='text/javascript'><!--\n";
   foreach ($GUIButtons as $k => $g) {
     if (!$g) continue;
     @list($when, $mopen, $mclose, $mtext, $tag, $mkey) = $g;
-    if ($tag{0} == '<') { 
+    if (@$ta[0] == '<') { 
         $out .= "document.write(\"$tag\");\n";
         continue; 
     }
@@ -77,6 +88,8 @@ function GUIButtonCode($pagename) {
       "insButton(\"$mopen\", \"$mclose\", '$mtext', \"$tag\", \"$mkey\");\n";
   }
   $out .= '//--></script>';
-  return $out;
+  return Keep(FmtPageName($out, $pagename));
 }
+
+
 

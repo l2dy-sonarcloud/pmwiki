@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2001-2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2001-2017 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -43,16 +43,22 @@
     something like the following.  Note that the first argument has to
     be different for each call to Markup().  The example below disables
     WikiWord links like COM1, COM2, COM1234, etc.
-        Markup('COM\d+', '<wikilink', '/\\bCOM\\d+/', "Keep('$0')");
+        Markup('COM\d+', '<wikilink', '/\\bCOM\\d+/', "Keep");
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 SDV($LinkWikiWords, 1);
 
 ## bare wikilinks
 Markup('wikilink', '>urllink',
-  "/\\b(?<![#&])($GroupPattern([\\/.]))?($WikiWordPattern)/e",
-  "Keep('<span class=\\'wikiword\\'>'.WikiLink(\$pagename,'$0').'</span>',
-        'L')");
+  "/\\b(?<![#&])($GroupPattern([\\/.]))?($WikiWordPattern)/",
+  "MarkupWikiLink");
+
+function MarkupWikiLink($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename
+  return Keep('<span class="wikiword">'.WikiLink($pagename,$m[0]).'</span>', 'L');
+}
 
 function WikiLink($pagename, $word) {
   global $LinkWikiWords, $WikiWordCount, $SpaceWikiWords, $AsSpacedFunction,

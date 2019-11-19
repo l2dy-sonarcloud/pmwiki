@@ -28,14 +28,14 @@ $WikiTitle = 'PmWiki';
 ## If you want to have a custom skin, then set $Skin to the name
 ## of the directory (in pub/skins/) that contains your skin files.
 ## See PmWiki.Skins and Cookbook.Skins.
-# $Skin = 'pmwiki';
+# $Skin = 'pmwiki-responsive';
 
 ## You'll probably want to set an administrative password that you
 ## can use to get into password-protected pages.  Also, by default 
 ## the "attr" passwords for the PmWiki and Main groups are locked, so
 ## an admin password is a good way to unlock those.  See PmWiki.Passwords
 ## and PmWiki.PasswordsAdmin.
-# $DefaultPasswords['admin'] = crypt('secret');
+# $DefaultPasswords['admin'] = pmcrypt('secret');
 
 ## Unicode (UTF-8) allows the display of all languages and all alphabets.
 ## Highly recommended for new wikis.
@@ -68,7 +68,8 @@ include_once("scripts/xlpage-utf-8.php");
 ##  passwords on individual groups and pages.  For more information
 ##  see PmWiki.UploadsAdmin.
 # $EnableUpload = 1;
-# $DefaultPasswords['upload'] = crypt('secret');
+# $UploadPermAdd = 0;
+# $DefaultPasswords['upload'] = pmcrypt('secret');
 
 ##  Setting $EnableDiag turns on the ?action=diag and ?action=phpinfo
 ##  actions, which often helps others to remotely troubleshoot 
@@ -129,8 +130,8 @@ include_once("scripts/xlpage-utf-8.php");
 ##  To add support for '*bold*' and '~italic~' markup (the single quotes
 ##  are part of the markup), uncomment the following lines. 
 ##  (See PmWiki.CustomMarkup and the Cookbook for details and examples.)
-# Markup("'~", "inline", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
-# Markup("'*", "inline", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
+# Markup("'~", "<'''''", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
+# Markup("'*", "<'''''", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
 
 ##  If you want to have to approve links to external sites before they
 ##  are turned into links, uncomment the line below.  See PmWiki.UrlApprovals.
@@ -158,4 +159,3 @@ include_once("scripts/xlpage-utf-8.php");
 # $GUIButtons['table'] = array(600,
 #                       '||border=1 width=80%\\n||!Hdr ||!Hdr ||!Hdr ||\\n||     ||     ||     ||\\n||     ||     ||     ||\\n', '', '', 
 #                     '$GUIButtonDirUrlFmt/table.gif"$[Table]"');
-

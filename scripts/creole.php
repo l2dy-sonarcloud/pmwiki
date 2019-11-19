@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2007-2010 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2007-2017 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -11,6 +11,7 @@
 
         include_once('scripts/creole.php');
 
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 ## **strong**
@@ -25,31 +26,46 @@ Markup('//', 'inline',
 
 ## == Headings ==
 Markup('^=', 'block',
-  '/^(={1,6})\\s?(.*?)(\\s*=*\\s*)$/e',
-  "'<:block,1><h'.strlen('$1').PSS('>$2</h').strlen('$1').'>'");
+  '/^(={1,6})\\s?(.*?)(\\s*=*\\s*)$/',
+  "MarkupCreole");
 
 ## Line breaks
 Markup('\\\\', 'inline', '/\\\\\\\\/', '<br />');
 
 ## Preformatted
 Markup('^{{{', '[=',
-  "/^\\{\\{\\{\n(.*?\n)\\}\\}\\}[^\\S\n]*\n/sme",
-  "Keep(PSS('<pre class=\"escaped\">$1</pre>'))");
+  "/^\\{\\{\\{\n(.*?\n)\\}\\}\\}[^\\S\n]*\n/sm",
+  "MarkupCreole");
 Markup('{{{', '>{{{',
-  '/\\{\\{\\{(.*?)\\}\\}\\}/se',
-  "Keep(PSS('<code class=\"escaped\">$1</code>'))");
+  '/\\{\\{\\{(.*?)\\}\\}\\}/s',
+  "MarkupCreole");
 
 ## Tables
 Markup('|-table', '>^||',
-  '/^\\|(.*)$/e',
-  "FormatTableRow(PSS('$0'), '\\|')");
+  '/^\\|(.*)$/',
+  "MarkupCreole");
 
 ## Images
 Markup('{{', 'inline',
-  '/\\{\\{(?>(\\L))([^|\\]]*)(?:\\|\\s*(.*?)\\s*)?\\}\\}/e',
-  "Keep(\$GLOBALS['LinkFunctions']['$1'](\$pagename, '$1', '$2', '$3',
-     '$1$2', \$GLOBALS['ImgTagFmt']),'L')");
+  '/\\{\\{(?>(\\L))([^|\\]]*)(?:\\|\\s*(.*?)\\s*)?\\}\\}/',
+  "MarkupCreole");
 
+function MarkupCreole($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
+  switch ($markupid) {
+    case '^=': 
+      return '<:block,1><h'.strlen($m[1]).'>'.$m[2].'</h'.strlen($m[1]).'>';
+    case '^{{{': 
+      return Keep('<pre class="escaped">'.$m[1].'</pre>');
+    case '{{{': 
+      return Keep('<code class="escaped">'.$m[1].'</code>');
+    case '|-table': 
+      return FormatTableRow($m[0], '\\|');
+    case '{{': 
+      return Keep($GLOBALS['LinkFunctions'][$m[1]]($pagename, $m[1], $m[2], $m[3],
+     $m[1].$m[2], $GLOBALS['ImgTagFmt']),'L');
+  }
+}
 
 ## GUIButtons
 SDVA($GUIButtons, array(

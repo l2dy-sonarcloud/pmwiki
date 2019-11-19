@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2011 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2017 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -25,14 +25,28 @@
     "| NextPage >" are omitted if at the beginning or end of the 
     trail respectively.  Thanks to John Rankin for contributing these
     markups and the original suggestion for WikiTrails.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
-Markup('<<|','<links','/&lt;&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;&gt;/e',
-  "PRR(MakeTrailStop(\$pagename,'$1'))");
-Markup('<|','><<|','/&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;/e',
-  "PRR(MakeTrailStopB(\$pagename,'$1'))");
-Markup('^|','<links','/\\^\\|([^|]+|\\[\\[(.+?)\\]\\])\\|\\^/e',
-  "PRR(MakeTrailPath(\$pagename,'$1'))");
+Markup('<<|','<links','/&lt;&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;&gt;/',
+  "MarkupMakeTrail");
+Markup('<|','><<|','/&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;/',
+  "MarkupMakeTrail");
+Markup('^|','<links','/\\^\\|([^|]+|\\[\\[(.+?)\\]\\])\\|\\^/',
+  "MarkupMakeTrail");
+
+function MarkupMakeTrail($m) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
+  switch ($markupid) {
+    case '<<|': 
+      return PRR(MakeTrailStop($pagename,$m[1]));
+    case '<|': 
+      return PRR(MakeTrailStopB($pagename,$m[1]));
+    case '^|': 
+      return PRR(MakeTrailPath($pagename,$m[1]));
+  }
+}
 
 SDVA($SaveAttrPatterns, array(
    '/<<\\|([^|]+|\\[\\[(.+?)\\]\\])\\|>>/' => '$1',
@@ -61,7 +75,7 @@ function ReadTrail($pagename, $trailname) {
   $trailtext = Qualify($trailname, $trailtext);
   $t = array();
   $n = 0;
-  foreach(explode("\n", htmlspecialchars(@$trailtext, ENT_NOQUOTES)) 
+  foreach(explode("\n", PHSC(@$trailtext, ENT_NOQUOTES)) 
           as $x) {
     $x = preg_replace("/\\[\\[([^\\]]*)-&gt;([^\\]]*)\\]\\]/",'[[$2|$1]]',$x);
     if (!preg_match("/^([#*:]+) \\s* 

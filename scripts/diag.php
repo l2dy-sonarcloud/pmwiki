@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2003-2005, 2007 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2003-2015 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -8,6 +8,8 @@
     This file adds "?action=diag" and "?action=phpinfo" actions to PmWiki.  
     This produces lots of diagnostic output that may be helpful to the 
     software authors when debugging PmWiki or other scripts.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 @ini_set('display_errors', '1');
@@ -25,9 +27,16 @@ if ($action=='phpinfo') { phpinfo(); exit(); }
 function Ruleset() {
   global $MarkupTable;
   $out = '';
+  $dbg = 0;
   BuildMarkupRules();
-  foreach($MarkupTable as $id=>$m) 
-    $out .= sprintf("%-16s %-16s %-16s\n",$id,@$m['cmd'],@$m['seq']);
+  foreach($MarkupTable as $id=>$m) {
+    $out .= sprintf("%-16s %-16s %-16s %s\n",$id,@$m['cmd'],@$m['seq'], @$m['dbg']);
+    if (@$m['dbg']) $dbg++;
+  }
+  if ($dbg) $out .= "
+[!] Markup rules possibly incompatible with PHP 5.5 or newer.
+    Please contact the recipe maintainer for update
+    or see www.pmwiki.org/wiki/PmWiki/CustomMarkup";
   return $out;
 }
 

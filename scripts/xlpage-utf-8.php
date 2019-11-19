@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2011 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2018 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -14,6 +14,8 @@
     Second, we have to assume that all non-ASCII characters are valid
     in pagenames, since there's no way to determine which UTF-8
     characters are "letters" and which are punctuation.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 global $HTTPHeaders, $KeepToken, $pagename,
@@ -25,14 +27,22 @@ $Charset = 'UTF-8';
 $HTTPHeaders['utf-8'] = 'Content-type: text/html; charset=UTF-8';
 $HTMLHeaderFmt['utf-8'] = 
   "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />";
+SDVA($HTMLStylesFmt, array('rtl-ltr' => "
+  .rtl, .rtl * {direction:rtl; unicode-bidi:bidi-override;}
+  .ltr, .ltr * {direction:ltr; unicode-bidi:bidi-override;}
+  .rtl .indent, .rtl.indent, .rtl .outdent, .rtl.outdent {
+    margin-left:0; margin-right: 40px;
+  }
+  "));
 $pagename = @$_REQUEST['n'];
 if (!$pagename) $pagename = @$_REQUEST['pagename'];
 if (!$pagename &&
       preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
           $_SERVER['REQUEST_URI'],$match))
     $pagename = urldecode($match[1]);
-$pagename = preg_replace('!/+$!','',$pagename);
-$FmtPV['$RequestedPage'] = "'".htmlspecialchars($pagename, ENT_QUOTES)."'";
+$pagename_unfiltered = $pagename;
+$pagename = preg_replace('![${}\'"\\\\]+!', '', $pagename);
+$FmtPV['$RequestedPage'] = 'PHSC($GLOBALS["pagename_unfiltered"], ENT_QUOTES)';
 
 $GroupPattern = '[\\w\\x80-\\xfe]+(?:-[\\w\\x80-\\xfe]+)*';
 $NamePattern = '[\\w\\x80-\\xfe]+(?:-[\\w\\x80-\\xfe]+)*';
@@ -45,14 +55,15 @@ SDV($MakePageNamePatterns, array(
     '/[?#].*$/' => '',                     # strip everything after ? or #
     "/'/" => '',                           # strip single-quotes
     "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
-    '/(?<=^| )([a-z])/e' => "strtoupper('$1')", 
-    '/(?<=^| )([\\xc0-\\xdf].)/e' => "utf8toupper('$1')", 
+    '/(?<=^| )([a-z])/' => 'cb_toupper',
+    '/(?<=^| )([\\xc0-\\xdf].)/' => 'utf8toupper',
     '/ /' => ''));
 SDV($StrFoldFunction, 'utf8fold');
 
 $AsSpacedFunction = 'AsSpacedUTF8';
 
 function utf8toupper($x) {
+  if(is_array($x)) $x = $x[1];
   global $CaseConversions;
   if (strlen($x) <= 2 && @$CaseConversions[$x])
     return $CaseConversions[$x];
@@ -106,16 +117,16 @@ function utf8string($str, $start=false, $len=false) { # strlen+substr++ combo fo
   $ascii = preg_match('/[\\x80-\\xFF]/', $str)? 0:1;
   switch ((string)$start) {
     case 'ucfirst': return $ascii ? ucfirst($str) :
-      preg_replace("/^($lower)/e", '$GLOBALS["CaseConversions"]["$1"]', $str);
+      preg_replace_callback("/(^)($lower)/", 'cb_uc_first_words', $str);
     case 'ucwords': return $ascii ? ucwords($str) :
-      preg_replace("/(^|\\s+)($lower)/e", '"$1".$GLOBALS["CaseConversions"]["$2"]', $str);
+      preg_replace_callback("/(^|\\s+)($lower)/", 'cb_uc_first_words', $str);
     case 'tolower': return $ascii ? strtolower($str) : utf8fold($str);
     case 'toupper': return $ascii ? strtoupper($str) : utf8toupper($str);
   }
   if ($ascii) {
     if ($start==='strlen') return strlen($str);
-    if ($len===false) return substr($str, $start);
-    return substr($str, $start, $len);
+    if ($len===false) return substr($str, intval($start));
+    return substr($str, intval($start), intval($len));
   }
   $letters = preg_split("/([\\x00-\\x7f]|[\\xc2-\\xdf].|[\\xe0-\\xef]..|[\\xf0-\\xf4]...)/", 
               $str, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
@@ -123,7 +134,9 @@ function utf8string($str, $start=false, $len=false) { # strlen+substr++ combo fo
   if ($len===false) return implode('', array_slice($letters, $start));
   return implode('', array_slice($letters, $start, $len));
 }
-
+function cb_uc_first_words($m){
+  return $m[1].$GLOBALS["CaseConversions"][$m[2]];
+}
 ##   Conversion tables.  
 ##   $CaseConversion maps lowercase utf8 sequences to 
 ##   their uppercase equivalents.  The table was derived from [1].

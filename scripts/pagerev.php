@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2011 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -7,6 +7,8 @@
 
     This script defines routines for displaying page revisions.  It
     is included by default from the stdconfig.php script.
+    
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 function LinkSuppress($pagename,$imap,$path,$title,$txt,$fmt=NULL) 
@@ -81,8 +83,9 @@ function PrintDiff($pagename) {
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
     if (!$diffauthor) $diffauthor="unknown";
-    $FmtV['$DiffChangeSum'] = htmlspecialchars(@$page["csum:$diffgmt"]);
+    $FmtV['$DiffChangeSum'] = PHSC(@$page["csum:$diffgmt"]);
     $FmtV['$DiffHost'] = @$page["host:$diffgmt"];
+    $FmtV['$DiffUserAgent'] = PHSC(@$page["agent:$diffgmt"], ENT_QUOTES);
     $FmtV['$DiffAuthor'] = $diffauthor;
     $FmtV['$DiffId'] = $k;
     $html = $DiffHTMLFunction($pagename, $v);
@@ -127,7 +130,7 @@ function DiffHTML($pagename, $diff) {
             .$DiffRenderSourceFunction($in, $out, 0)
             ."</div>";
         else $html .= MarkupToHTML($pagename,
-          preg_replace('/\\(:.*?:\\)/e',"Keep(htmlspecialchars(PSS('$0')))", join("\n",$in)));
+          preg_replace_callback('/\\(:.*?:\\)/',"cb_diffhtml", join("\n",$in)));
       }
       if ($match[4]=='d' || $match[4]=='c') {
         $txt = str_replace('line',$lines,$DiffAddFmt[$match[4]]);
@@ -138,7 +141,7 @@ function DiffHTML($pagename, $diff) {
             .$DiffRenderSourceFunction($in, $out, 1)
             ."</div>";
         else $html .= MarkupToHTML($pagename,
-          preg_replace('/\\(:.*?:\\)/e',"Keep(htmlspecialchars(PSS('$0')))",join("\n",$out)));
+          preg_replace_callback('/\\(:.*?:\\)/',"cb_diffhtml",join("\n",$out)));
       }
       $html .= FmtPageName($DiffEndDelAddFmt,$pagename);
     }
@@ -146,6 +149,8 @@ function DiffHTML($pagename, $diff) {
   }
   return $html;
 }
+function cb_diffhtml($m) { return Keep(PHSC($m[0])); }
+
 function HandleDiff($pagename, $auth='read') {
   global $HandleDiffFmt, $PageStartFmt, $PageDiffFmt, $PageEndFmt;
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
@@ -161,23 +166,23 @@ function DiffRenderSource($in, $out, $which) {
   global $WordDiffFunction, $EnableDiffInline;
   if (!IsEnabled($EnableDiffInline, 1)) {
     $a = $which? $out : $in;
-    return str_replace("\n","<br />",htmlspecialchars(join("\n",$a)));  
+    return str_replace("\n","<br />",PHSC(join("\n",$a)));  
   }
   $countdifflines = abs(count($in)-count($out));
   $lines = $cnt = $x2 = $y2 = array();
   foreach($in as $line) {
     $tmp = $countdifflines>20 ? array($line) : DiffPrepareInline($line);
-    if(!$which) $cnt[] = array(count($x2), count($tmp));
+    if (!$which) $cnt[] = array(count($x2), count($tmp));
     $x2 = array_merge($x2, $tmp);
   }
   foreach($out as $line) {
     $tmp = $countdifflines>20 ? array($line) : DiffPrepareInline($line);
-    if($which) $cnt[] = array(count($y2), count($tmp));
+    if ($which) $cnt[] = array(count($y2), count($tmp));
     $y2 = array_merge($y2, $tmp);
   }
   $z = $WordDiffFunction(implode("\n", $x2), implode("\n", $y2));
 
-  $z2 = array_map('htmlspecialchars', ($which? $y2 : $x2));
+  $z2 = array_map('PHSC', ($which? $y2 : $x2));
   array_unshift($z2, '');
   foreach (explode("\n", $z) as $zz) {
     if (preg_match('/^(\\d+)(,(\\d+))?([adc])(\\d+)(,(\\d+))?/',$zz,$m)) {
@@ -199,9 +204,10 @@ function DiffRenderSource($in, $out, $which) {
   $line = array_shift($z2);
   $z2[0] = $line.$z2[0];
   foreach ($cnt as $a) $lines[] = implode('', array_slice($z2, $a[0], $a[1]));
-  $ret = trim(implode("\n", $lines));
+  $ret = implode("\n", $lines);
   $ret = str_replace(array('</del> <del>', '</ins> <ins>'), ' ', $ret);
-  return str_replace("\n","<br />",$ret);
+  $ret = preg_replace('/(<(ins|del)>|^) /', '$1&nbsp;', $ret);
+  return str_replace(array("  ", "\n ", "\n"),array("&nbsp; ", "<br />&nbsp;", "<br />"),$ret);
 }
 ## Split a line into pieces before passing it through `diff`
 function DiffPrepareInline($x) {
@@ -215,3 +221,22 @@ SDV($WordDiffFunction, 'PHPDiff'); # faster than sysdiff for many calls
 if (IsEnabled($EnableDiffInline, 1) && $DiffShow['source'] == 'y' 
   && $WordDiffFunction == 'PHPDiff' && !function_exists('PHPDiff'))
   include_once("$FarmD/scripts/phpdiff.php");
+
+## Show diff before the preview Cookbook:PreviewChanges
+function PreviewDiff($pagename,&$page,&$new) {
+  global $FmtV, $DiffFunction, $DiffHTMLFunction, $EnableDiffInline, $DiffShow;
+  if (@$_REQUEST['preview']>'' && @$page['text']>'' && $page['text']!=$new['text']) {
+    $d = IsEnabled($DiffShow['source'], 'y');
+    $e = IsEnabled($EnableDiffInline, 1);
+    $DiffShow['source'] = 'y';
+    $EnableDiffInline = 1;
+    SDV($DiffHTMLFunction, 'DiffHTML');
+    $diff = $DiffFunction($new['text'], $page['text']);# reverse the diff
+    $FmtV['$PreviewText'] = $DiffHTMLFunction($pagename, $diff).'<hr/>'.@$FmtV['$PreviewText'];
+    $DiffShow['source'] = $d;
+    $EnableDiffInline = $e;
+  }
+}
+if (IsEnabled($EnablePreviewChanges, 0) && @$_REQUEST['preview']>'') {
+  $EditFunctions[] = 'PreviewDiff';
+}
