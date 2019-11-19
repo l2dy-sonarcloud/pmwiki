@@ -1747,12 +1747,15 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt,
     $LinkTitleFunction;
+  if(preg_match("/^(.*)(?:\"(.*)\")\\s*$/",$tgt,$x)) list(,$tgt,$title) = $x;
   $t = preg_replace('/[()]/','',trim($tgt));
   $t = preg_replace('/<[^>]*>/','',$t);
+  $t = trim(MarkupRestore($t));
+  $txtr = trim(MarkupRestore($txt));
+  
   preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
   if (!$m[1]) $m[1]='<:page>';
-  if (preg_match("/\"(.*)\"$/",trim($tgt),$x)) $m[4]=$x[1];
-  if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txt,$tm)) 
+  if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txtr,$tm)) 
     $txt = $LinkFunctions[$tm[2]]($pagename,$tm[2],$tm[3],@$tm[5],
       $tm[1],$ImgTagFmt);
   else {
@@ -1769,9 +1772,9 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     }
     else $txt .= $suffix;
   }
-  if (@$LinkTitleFunction) $m[4] = $LinkTitleFunction($pagename,$m,$txt);
-  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
-  return preg_replace('/(<[^>]+) title=(""|\'\')/', '$1', $out);
+  if (@$LinkTitleFunction) $title = $LinkTitleFunction($pagename,$m,$txt);
+  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$title,$txt,$fmt);
+  return preg_replace('/(<[^>]+)\\stitle=(""|\'\')/', '$1', $out);
 }
 
 function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
