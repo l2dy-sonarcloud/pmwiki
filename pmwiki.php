@@ -1753,7 +1753,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   $t = trim(MarkupRestore($t));
   $txtr = trim(MarkupRestore($txt));
   
-  preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
+  preg_match("/^($LinkPattern)?(.+)$/",$t,$m);
   if (!$m[1]) $m[1]='<:page>';
   if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txtr,$tm)) 
     $txt = $LinkFunctions[$tm[2]]($pagename,$tm[2],$tm[3],@$tm[5],
@@ -1761,7 +1761,6 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   else {
     if (is_null($txt)) {
       $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-      if (@$m[3]) $txt = preg_replace('/"(.*)"(\\s*)$/','$2',$txt);
       if ($m[1]=='<:page>') {
         $txt = preg_replace('!/\\s*$!', '', $txt);
         $txt = preg_replace('!^.*[^<]/!', '', $txt);
