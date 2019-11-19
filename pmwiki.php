@@ -1744,7 +1744,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   return FmtPageName($fmt,$tgtname);
 }
 
-function MakeLink_old($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
+function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt,
     $LinkTitleFunction;
   $t = preg_replace('/[()]/','',trim($tgt));
