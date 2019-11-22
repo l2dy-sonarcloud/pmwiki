@@ -15,6 +15,7 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
   'required', 'placeholder', 'autocomplete', 'min', 'max', 'step', 'pattern',
   'role', 'aria-label', 'aria-labelledby', 'aria-describedby',
   'aria-expanded', 'aria-pressed', 'aria-current', 'aria-hidden',
+  'formnovalidate'
   ));
 
 # Set up formatting for text, submit, hidden, radio, etc. types
@@ -400,7 +401,8 @@ SDVA($InputTags['e_previewbutton'], array(
   'accesskey' => XL('ak_preview')));
 SDVA($InputTags['e_cancelbutton'], array(
   ':html' => "<input type='submit' \$InputFormArgs />",
-  'name' => 'cancel', 'value' => ' '.XL('Cancel').' ' ));
+  'name' => 'cancel', 'value' => ' '.XL('Cancel').' ',
+  'formnovalidate' => 'formnovalidate'));
 SDVA($InputTags['e_resetbutton'], array(
   ':html' => "<input type='reset' \$InputFormArgs />",
   'value' => ' '.XL('Reset').' '));
