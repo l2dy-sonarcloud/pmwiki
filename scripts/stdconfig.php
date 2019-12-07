@@ -91,7 +91,7 @@ if (IsEnabled($EnableBlocklist, 0))
   include_once("$FarmD/scripts/blocklist.php");
 if (IsEnabled($EnableNotify,0))
   include_once("$FarmD/scripts/notify.php");
-if (IsEnabled($EnableDiag,0)) 
+if (IsEnabled($EnableDiag,0) || $action == 'recipecheck') 
   include_once("$FarmD/scripts/diag.php");
 
 if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableSortable,0)

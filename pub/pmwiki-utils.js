@@ -22,7 +22,7 @@
   var wikitext = document.getElementById('wikitext');
 
   function PmXMail() {
-    var els = wikitext.querySelectorAll('span._pmXmail');
+    var els = document.querySelectorAll('span._pmXmail');
     var LinkFmt = '<a href="%u" class="mail">%t</a>';
 
     for(var i=0; i<els.length; i++) {

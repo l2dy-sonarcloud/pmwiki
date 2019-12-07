@@ -187,9 +187,9 @@ function DiffRenderSource($in, $out, $which) {
   foreach (explode("\n", $z) as $zz) {
     if (preg_match('/^(\\d+)(,(\\d+))?([adc])(\\d+)(,(\\d+))?/',$zz,$m)) {
       $a1 = $a2 = $m[1];
-      if ($m[3]) $a2=$m[3];
+      if (@$m[3]) $a2=$m[3];
       $b1 = $b2 = $m[5];
-      if ($m[7]) $b2=$m[7];
+      if (@$m[7]) $b2=$m[7];
 
       if (!$which && ($m[4]=='c'||$m[4]=='d')) {
         $z2[$a1] = '<del>'. $z2[$a1];

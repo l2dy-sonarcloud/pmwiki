@@ -8,7 +8,7 @@
 ##  $WikiTitle is the name that appears in the browser's title bar.
 $WikiTitle = 'PmWiki';
 
-##  $ScriptUrl is your preferred URL for accessing wiki pages
+##  $ScriptUrl is the URL for accessing wiki pages with a browser.
 ##  $PubDirUrl is the URL for the pub directory.
 # $ScriptUrl = 'http://www.mydomain.com/path/to/pmwiki.php';
 # $PubDirUrl = 'http://www.mydomain.com/path/to/pub';

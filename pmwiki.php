@@ -420,7 +420,7 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
   global $MessagesFmt, $HandleActions, $HandleAuth;
   if ($msg) $MessagesFmt[] = "<div class='wikimessage'>$msg</div>";
   $fn = $HandleActions[$action];
-  $auth = $HandleAuth[$action];
+  $auth = @$HandleAuth[$action];
   if (!$auth) $auth = 'read';
   return $fn($pagename, $auth);
 }
@@ -887,7 +887,7 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
-  elseif ($PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
+  elseif (@$PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
     foreach($DefaultEmptyPageTextVars as $k=>$v) {
       if (count(MatchNames($var, $k))) {
         $PCache[$pagename]["=p_$var"] = $v;
@@ -1125,7 +1125,7 @@ class PageStore {
     if ($pagefile && ($fp=@fopen($pagefile, "r"))) {
       $page = $this->attr;
       while (!feof($fp)) {
-        $line = fgets($fp, 4096);
+        $line = @fgets($fp, 4096);
         while (substr($line, -1, 1) != "\n" && !feof($fp)) 
           { $line .= fgets($fp, 4096); }
         $line = rtrim($line);
