@@ -420,7 +420,7 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
   global $MessagesFmt, $HandleActions, $HandleAuth;
   if ($msg) $MessagesFmt[] = "<div class='wikimessage'>$msg</div>";
   $fn = $HandleActions[$action];
-  $auth = $HandleAuth[$action];
+  $auth = @$HandleAuth[$action];
   if (!$auth) $auth = 'read';
   return $fn($pagename, $auth);
 }
@@ -887,7 +887,7 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
-  elseif ($PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
+  elseif (@$PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
     foreach($DefaultEmptyPageTextVars as $k=>$v) {
       if (count(MatchNames($var, $k))) {
         $PCache[$pagename]["=p_$var"] = $v;
@@ -1125,7 +1125,7 @@ class PageStore {
     if ($pagefile && ($fp=@fopen($pagefile, "r"))) {
       $page = $this->attr;
       while (!feof($fp)) {
-        $line = fgets($fp, 4096);
+        $line = @fgets($fp, 4096);
         while (substr($line, -1, 1) != "\n" && !feof($fp)) 
           { $line .= fgets($fp, 4096); }
         $line = rtrim($line);
@@ -1747,18 +1747,20 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt,
     $LinkTitleFunction;
+  if(preg_match("/^(.*)(?:\"(.*)\")\\s*$/",$tgt,$x)) list(,$tgt,$title) = $x;
   $t = preg_replace('/[()]/','',trim($tgt));
   $t = preg_replace('/<[^>]*>/','',$t);
-  preg_match("/^($LinkPattern)?(.+?)(\"(.*)\")?$/",$t,$m);
+  $t = trim(MarkupRestore($t));
+  $txtr = trim(MarkupRestore($txt));
+  
+  preg_match("/^($LinkPattern)?(.+)$/",$t,$m);
   if (!$m[1]) $m[1]='<:page>';
-  if (preg_match("/\"(.*)\"$/",trim($tgt),$x)) $m[4]=$x[1];
-  if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txt,$tm)) 
+  if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txtr,$tm)) 
     $txt = $LinkFunctions[$tm[2]]($pagename,$tm[2],$tm[3],@$tm[5],
       $tm[1],$ImgTagFmt);
   else {
     if (is_null($txt)) {
       $txt = preg_replace('/\\([^)]*\\)/','',$tgt);
-      if (@$m[3]) $txt = preg_replace('/"(.*)"(\\s*)$/','$2',$txt);
       if ($m[1]=='<:page>') {
         $txt = preg_replace('!/\\s*$!', '', $txt);
         $txt = preg_replace('!^.*[^<]/!', '', $txt);
@@ -1769,11 +1771,11 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
     }
     else $txt .= $suffix;
   }
-  if (@$LinkTitleFunction) $m[4] = $LinkTitleFunction($pagename,$m,$txt);
-  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$txt,$fmt);
-  return preg_replace('/(<[^>]+) title=(""|\'\')/', '$1', $out);
+  if (@$LinkTitleFunction) $title = $LinkTitleFunction($pagename,$m,$txt);
+  else $title = PHSC(MarkupRestore(@$title), ENT_QUOTES);
+  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$title,$txt,$fmt);
+  return preg_replace('/(<[^>]+)\\stitle=(""|\'\')/', '$1', $out);
 }
-
 
 function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
   global $MarkupTable, $EnableMarkupDiag;
@@ -2085,12 +2087,10 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
 
-    if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
-      $bytes = strlen($new['text']) - strlen($page['text']);
-      if ($bytes>0) $bytes = "{+(+$bytes)+}";
-      elseif ($bytes==0) $bytes = "{+(&#177;$bytes)+}";
-      else $bytes = "{-($bytes)-}";
-      $pgtext .= " %diffmarkup%$bytes%%";
+    if (IsEnabled($EnableRCDiffBytes, 0)) {
+      $pgtext = PPRA(array(
+        '/\\(([+-])(\\d+)\\)(\\s*=\\]\\s*)$/'=>'$3%diffmarkup%{$1($1$2)$1}%%', 
+        '/\\(\\+(0\\)\\+\\}%%)$/'=>'(&#177;$1'), $pgtext);
     }
     $rcpage = ReadPage($rcname);
     $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
@@ -2132,7 +2132,7 @@ function PreviewPage($pagename,&$page,&$new) {
 
 function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
-    $EnablePost, $FmtV, $Now, $EditRedirectFmt, 
+    $EnablePost, $FmtV, $Now, $EditRedirectFmt, $EnableRCDiffBytes, 
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
   SDV($EditRedirectFmt, '$FullName');
   if (@$_POST['cancel']) 
@@ -2143,6 +2143,12 @@ function HandleEdit($pagename, $auth = 'edit') {
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
+    
+  if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+    $bytes = strlen($new['text']) - strlen($page['text']);
+    if ($bytes>=0) $bytes = "+$bytes";
+    $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
+  }
   $new['csum'] = $ChangeSummary;
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
   $EnablePost &= preg_grep('/^post/', array_keys(@$_POST));

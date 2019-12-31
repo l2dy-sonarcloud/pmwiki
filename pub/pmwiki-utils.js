@@ -22,7 +22,7 @@
   var wikitext = document.getElementById('wikitext');
 
   function PmXMail() {
-    var els = wikitext.querySelectorAll('span._pmXmail');
+    var els = document.querySelectorAll('span._pmXmail');
     var LinkFmt = '<a href="%u" class="mail">%t</a>';
 
     for(var i=0; i<els.length; i++) {
@@ -138,6 +138,8 @@
 
     prevlevel = 0;
     var html = '';
+    var sectionedit = hcache[0][0] ? hcache[0][0].querySelector('.sectionedit') : false;
+    var selength = sectionedit? sectionedit.textContent.length : false;
     for(var i=0; i<hcache.length; i++) {
       var hc = hcache[i];
       var actual_level = hc[1] - minlevel;
@@ -153,6 +155,8 @@
 
       if(! shouldmaketoc) { continue; }
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
+      if(selength) txt = txt.slice(0, -selength);
+      
       html += repeat('&nbsp;', 3*actual_level)
         + '<a href="#'+hc[2]+'">' + txt + '</a><br>\n';
       if(dtoc.EnableBacklinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow" href="#_toc">&uarr;</a>');
@@ -349,17 +353,17 @@
     if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
     var x = dqsa('.highlight,.hlt');
-    if (x.length) {
-      for(var i=0; i<x.length; i++) {
-        var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre'));
-        var n = x[i].nextElementSibling;
-        if (n && n.tagName == 'PRE') pre.push(n);
-        for(var j=0; j<pre.length; j++) {
-          pre[j].className += ' ' + x[i].className;
-          hljs.highlightBlock(pre[j]);
-        }
+    
+    for(var i=0; i<x.length; i++) {
+      var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre,code'));
+      var n = x[i].nextElementSibling;
+      if (n && n.tagName == 'PRE') pre.push(n);
+      for(var j=0; j<pre.length; j++) {
+        pre[j].className += ' ' + x[i].className;
+        hljs.highlightBlock(pre[j]);
       }
     }
+    
   }
 
   function ready(){

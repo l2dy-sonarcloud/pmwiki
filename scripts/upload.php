@@ -26,9 +26,10 @@ SDV($EnableUploadOverwrite,1);
 SDVA($UploadExts,array(
   'gif' => 'image/gif', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
   'png' => 'image/png', 'bmp' => 'image/bmp', 'ico' => 'image/x-icon',
-  'wbmp'=> 'image/vnd.wap.wbmp', 'svg' => 'image/svg+xml', 'svgz' => 'image/svg+xml', 'xcf' => 'image/x-xcf',
+  'wbmp'=> 'image/vnd.wap.wbmp', 'xcf' => 'image/x-xcf', 'webp' => 'image/webp',
+  'svg' => 'image/svg+xml', 'svgz' => 'image/svg+xml',
   'mp3' => 'audio/mpeg', 'au' => 'audio/basic', 'wav' => 'audio/x-wav',
-  'ogg' => 'audio/ogg', 'flac' => 'audio/x-flac',
+  'ogg' => 'audio/ogg', 'flac' => 'audio/x-flac', 'opus' => 'audio/opus', 
   'ogv' => 'video/ogg', 'mp4' => 'video/mp4', 'webm' => 'video/webm',
   'mpg' => 'video/mpeg', 'mpeg' => 'video/mpeg', 'mkv' => 'video/x-matroska',
   'm4v' => 'video/x-m4v', '3gp' => 'video/3gpp',

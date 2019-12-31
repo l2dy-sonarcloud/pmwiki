@@ -101,10 +101,10 @@ function MarkupPageList($m) {
       return FmtPageList('$MatchList', $pagename, array('o' => $m[1].' '));
     case 'searchbox': 
       return SearchBox($pagename, 
-        ParseArgs($m[1], $GLOBALS['PageListArgPattern']));
+        ParseArgs(@$m[1], $GLOBALS['PageListArgPattern']));
     case 'searchresults': 
       return FmtPageList($GLOBALS['SearchResultsFmt'], 
-        $pagename, array('req' => 1, 'request'=>1, 'o' => $m[1]));
+        $pagename, array('req' => 1, 'request'=>1, 'o' => @$m[1]));
   }
 }
 
