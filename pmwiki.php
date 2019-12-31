@@ -2087,12 +2087,10 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
     if (@$seen[$rcname]++) continue;
 
-    if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
-      $bytes = strlen($new['text']) - strlen($page['text']);
-      if ($bytes>0) $bytes = "{+(+$bytes)+}";
-      elseif ($bytes==0) $bytes = "{+(&#177;$bytes)+}";
-      else $bytes = "{-($bytes)-}";
-      $pgtext .= " %diffmarkup%$bytes%%";
+    if (IsEnabled($EnableRCDiffBytes, 0)) {
+      $pgtext = PPRA(array(
+        '/\\(([+-])(\\d+)\\)(\\s*=\\]\\s*)$/'=>'$3%diffmarkup%{$1($1$2)$1}%%', 
+        '/\\(\\+(0\\)\\+\\}%%)$/'=>'(&#177;$1'), $pgtext);
     }
     $rcpage = ReadPage($rcname);
     $rcelim = preg_quote(preg_replace("/$RCDelimPattern.*$/",' ',$pgtext),'/');
@@ -2134,7 +2132,7 @@ function PreviewPage($pagename,&$page,&$new) {
 
 function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
-    $EnablePost, $FmtV, $Now, $EditRedirectFmt, 
+    $EnablePost, $FmtV, $Now, $EditRedirectFmt, $EnableRCDiffBytes, 
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
   SDV($EditRedirectFmt, '$FullName');
   if (@$_POST['cancel']) 
@@ -2145,6 +2143,12 @@ function HandleEdit($pagename, $auth = 'edit') {
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
+    
+  if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+    $bytes = strlen($new['text']) - strlen($page['text']);
+    if ($bytes>=0) $bytes = "+$bytes";
+    $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
+  }
   $new['csum'] = $ChangeSummary;
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
   $EnablePost &= preg_grep('/^post/', array_keys(@$_POST));

@@ -114,11 +114,6 @@ include_once("scripts/xlpage-utf-8.php");
 # if ($action == 'dc')   include_once("scripts/feeds.php");  # Dublin Core
 # if ($action == 'rdf')  include_once("scripts/feeds.php");  # RSS 1.0
 
-##  In the 2.2.0-beta series, {$var} page variables were absolute, but now
-##  relative page variables provide greater flexibility and are recommended.
-##  (If you're starting a new site, it's best to leave this setting alone.)
-# $EnableRelativePageVars = 1; # 1=relative; 0=absolute
-
 ##  By default, pages in the Category group are manually created.
 ##  Uncomment the following line to have blank category pages
 ##  automatically created whenever a link to a non-existent
