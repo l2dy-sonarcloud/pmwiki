@@ -663,7 +663,7 @@ function FmtPmTOC($m) {
   if ($m[1]) return Keep('<span class="noPmTOC"></span>');
   return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
 }
-SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC {display:none;}
+SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC, .PmTOCdiv:empty {display:none;}
 .PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
 .PmTOCdiv a { text-decoration: none;}
 .back-arrow {font-size: .9em; text-decoration: none;}
