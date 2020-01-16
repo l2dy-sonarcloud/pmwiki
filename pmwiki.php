@@ -369,8 +369,8 @@ if (isset($PostConfig) && is_array($PostConfig)) {
 
 function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $httponly=null) {
   global $EnableCookieSecure, $EnableCookieHTTPOnly, $SetCookieFunction;
-  if(IsEnabled($SetCookieFunction)) 
-    return $SetCookieFunction($name, $val, $exp, $path=, $dom, $secure, $httponly);
+  if(IsEnabled($SetCookieFunction))
+    return $SetCookieFunction($name, $val, $exp, $path, $dom, $secure, $httponly);
   if (is_null($secure))   $secure   = IsEnabled($EnableCookieSecure,   false);
   if (is_null($httponly)) $httponly = IsEnabled($EnableCookieHTTPOnly, false);
   setcookie($name, $val, $exp, $path, $dom, $secure, $httponly);
