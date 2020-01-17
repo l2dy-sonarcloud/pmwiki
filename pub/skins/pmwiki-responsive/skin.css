@@ -368,6 +368,25 @@ table.sortable th.dir-d::after {
   content: "\00A0\025B4";
 }
 
+*[data-pmtoggle] {
+  cursor: pointer;
+  font-weight: bold;
+}
+*[data-pmtoggle]::before {
+  content: "\025BE\00A0";
+  float: left;
+}
+*[data-pmtoggle="closed"]::before {
+  content: "\025B8\00A0";
+}
+
+*[data-pmtoggle] + * {
+  margin-left: .8em;
+}
+*[data-pmtoggle="closed"] + * {
+  display: none;
+}
+
 @media screen and (min-width:50em) {
   html, body, #bodywrap {
     line-height: 20px;
@@ -510,6 +529,8 @@ table.sortable th.dir-d::after {
   body { width:auto; margin:0px; padding:8px; }
   #wikihead, #wikileft, #wikicmds, .footnav { display:none; }
   #wikifoot { padding:2px; }
+  *[data-pmtoggle="closed"] + * { display: inherit; }
+  *[data-pmtoggle="closed"]::before { content: "\025BE\00A0"; }
 }
 
 /* Fade-in animation */
