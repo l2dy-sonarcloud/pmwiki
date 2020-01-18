@@ -102,10 +102,20 @@
       sdata(x[i], 'pmtoggle', 'closed');
     }
     tap(tnext, function(){
-      var curr = adata(this, 'pmtoggle');
-      var next = curr=='closed' ? 'open' : 'closed';
-      sdata(this, 'pmtoggle', next);
+      var attr = adata(this, 'pmtoggle')=='closed' ? 'open' : 'closed';
+      sdata(this, 'pmtoggle', attr);
     });
+    tap('.pmtoggleall', toggleall);
+  }
+  function toggleall(){
+    var curr = adata(this, 'pmtoggleall');
+    if(!curr) curr = 'closed';
+    var toggles = dqsa('*[data-pmtoggle="'+curr+'"]');
+    var next = curr=='closed' ? 'open' : 'closed';
+    for(var i=0; i<toggles.length; i++) {
+      sdata(toggles[i], 'pmtoggle', next);
+    }
+    sdata(this, 'pmtoggleall', next);
   }
 
   function autotoc() {
