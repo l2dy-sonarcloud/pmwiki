@@ -92,20 +92,19 @@
     for(var i=0; i<times; i++) y += '' + x;
     return y;
   }
-  
-  function togglenext() {
+  function inittoggle() {
     var tnext = adata(__script__, 'toggle');
     if(! tnext) { return; }
     var x = dqsa(tnext);
     if(! x.length) return;
-    for(var i=0; i<x.length; i++) {
-      sdata(x[i], 'pmtoggle', 'closed');
-    }
-    tap(tnext, function(){
-      var attr = adata(this, 'pmtoggle')=='closed' ? 'open' : 'closed';
-      sdata(this, 'pmtoggle', attr);
-    });
+    for(var i=0; i<x.length; i++) togglenext(x[i]);
+    tap(tnext, togglenext);
     tap('.pmtoggleall', toggleall);
+  }
+  function togglenext(z) {
+    var el = z.type == 'click' ? this : z;
+    var attr = adata(el, 'pmtoggle')=='closed' ? 'open' : 'closed';
+    sdata(el, 'pmtoggle', attr);
   }
   function toggleall(){
     var curr = adata(this, 'pmtoggleall');
@@ -115,7 +114,10 @@
     for(var i=0; i<toggles.length; i++) {
       sdata(toggles[i], 'pmtoggle', next);
     }
-    sdata(this, 'pmtoggleall', next);
+    var all = dqsa('.pmtoggleall');
+    for(var i=0; i<all.length; i++) {
+      sdata(all[i], 'pmtoggleall', next);
+    }
   }
 
   function autotoc() {
@@ -395,7 +397,7 @@
 
   function ready(){
     PmXMail();
-    togglenext();
+    inittoggle();
     autotoc();
     makesortable();
     highlight_pre();
