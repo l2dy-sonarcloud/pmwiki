@@ -326,7 +326,7 @@ function MarkupLinks($m){
       return Keep(MakeLink($pagename,$m[0],$m[1]),'L');
     case 'img': 
       global $LinkFunctions, $ImgTagFmt;
-      return Keep($LinkFunctions[$m[1]]($pagename,$m[1],$m[2],$m[4],$m[1].$m[2],
+      return Keep($LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$m[4],$m[1].$m[2],
              $ImgTagFmt),'L');
   }
 }
