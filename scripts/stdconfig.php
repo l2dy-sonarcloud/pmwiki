@@ -95,7 +95,9 @@ if (IsEnabled($EnableDiag,0) || $action == 'recipecheck')
   include_once("$FarmD/scripts/diag.php");
 
 if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableSortable,0)
-  || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap' || IsEnabled($EnableHighlight, 0)) {
+  || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap' || IsEnabled($EnableHighlight, 0)
+  || IsEnabled($ToggleNextSelector, 0)
+  ) {
   $utils = "$FarmD/pub/pmwiki-utils.js";
   if(file_exists($utils)) {
     $mtime = filemtime($utils);
@@ -103,6 +105,7 @@ if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableS
       "<script type='text/javascript' src='\$FarmPubDirUrl/pmwiki-utils.js?st=$mtime'
         data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
         data-pmtoc='".PHSC(json_encode(@$PmTOC), ENT_QUOTES)."'
+        data-toggle='".PHSC(@$ToggleNextSelector, ENT_QUOTES)."'
         data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
   }
 }

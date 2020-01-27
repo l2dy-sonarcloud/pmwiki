@@ -1,7 +1,8 @@
 /*
   JavaScript utilities for PmWiki
-  (c) 2009-2019 Petko Yotov www.pmwiki.org/petko
+  (c) 2009-2020 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
+  licensed GNU GPLv2 or any more recent version.
 
   libsortable() "Sortable tables" adapted for PmWiki from
   a Public Domain event listener by github.com/tofsjonas
@@ -16,6 +17,7 @@
   function dqsa(str) { return document.querySelectorAll(str); }
   function tap(q, fn) { aE(q, 'click', fn); };
   function adata(el, x) { return el.getAttribute("data-"+x); }
+  function sdata(el, x, val) { el.setAttribute("data-"+x, val); }
   function pf(x) {return parseFloat(x);}
 
   var __script__ = dqs('script[src*="pmwiki-utils.js"]');
@@ -89,6 +91,33 @@
     var y = '';
     for(var i=0; i<times; i++) y += '' + x;
     return y;
+  }
+  function inittoggle() {
+    var tnext = adata(__script__, 'toggle');
+    if(! tnext) { return; }
+    var x = dqsa(tnext);
+    if(! x.length) return;
+    for(var i=0; i<x.length; i++) togglenext(x[i]);
+    tap(tnext, togglenext);
+    tap('.pmtoggleall', toggleall);
+  }
+  function togglenext(z) {
+    var el = z.type == 'click' ? this : z;
+    var attr = adata(el, 'pmtoggle')=='closed' ? 'open' : 'closed';
+    sdata(el, 'pmtoggle', attr);
+  }
+  function toggleall(){
+    var curr = adata(this, 'pmtoggleall');
+    if(!curr) curr = 'closed';
+    var toggles = dqsa('*[data-pmtoggle="'+curr+'"]');
+    var next = curr=='closed' ? 'open' : 'closed';
+    for(var i=0; i<toggles.length; i++) {
+      sdata(toggles[i], 'pmtoggle', next);
+    }
+    var all = dqsa('.pmtoggleall');
+    for(var i=0; i<all.length; i++) {
+      sdata(all[i], 'pmtoggleall', next);
+    }
   }
 
   function autotoc() {
@@ -368,6 +397,7 @@
 
   function ready(){
     PmXMail();
+    inittoggle();
     autotoc();
     makesortable();
     highlight_pre();

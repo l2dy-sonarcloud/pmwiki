@@ -368,7 +368,9 @@ if (isset($PostConfig) && is_array($PostConfig)) {
 }
 
 function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $httponly=null) {
-  global $EnableCookieSecure, $EnableCookieHTTPOnly;
+  global $EnableCookieSecure, $EnableCookieHTTPOnly, $SetCookieFunction;
+  if(IsEnabled($SetCookieFunction))
+    return $SetCookieFunction($name, $val, $exp, $path, $dom, $secure, $httponly);
   if (is_null($secure))   $secure   = IsEnabled($EnableCookieSecure,   false);
   if (is_null($httponly)) $httponly = IsEnabled($EnableCookieHTTPOnly, false);
   setcookie($name, $val, $exp, $path, $dom, $secure, $httponly);
@@ -1707,7 +1709,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $suffix = $txt[1];
     $txt = $txt[0];
   }
-  if (!$fmt && $path[0] == '#') {
+  if (!$fmt && @$path[0] == '#') {
     $path = preg_replace("/[^-.:\\w]/", '', $path);
     if (trim($txt) == '+') $txt = PageVar($pagename, '$Title') . @$suffix;
     if ($alt) $alt = " title='$alt'";
@@ -1754,7 +1756,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   $txtr = trim(MarkupRestore($txt));
   
   preg_match("/^($LinkPattern)?(.+)$/",$t,$m);
-  if (!$m[1]) $m[1]='<:page>';
+  if (!@$m[1]) $m[1]='<:page>';
   if (preg_match("/(($LinkPattern)([^$UrlExcludeChars]+$ImgExtPattern))(\"(.*)\")?$/",$txtr,$tm)) 
     $txt = $LinkFunctions[$tm[2]]($pagename,$tm[2],$tm[3],@$tm[5],
       $tm[1],$ImgTagFmt);
@@ -1773,7 +1775,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   }
   if (@$LinkTitleFunction) $title = $LinkTitleFunction($pagename,$m,$txt);
   else $title = PHSC(MarkupRestore(@$title), ENT_QUOTES);
-  $out = $LinkFunctions[$m[1]]($pagename,$m[1],$m[2],@$title,$txt,$fmt);
+  $out = $LinkFunctions[$m[1]]($pagename,$m[1],@$m[2],@$title,$txt,$fmt);
   return preg_replace('/(<[^>]+)\\stitle=(""|\'\')/', '$1', $out);
 }
 
