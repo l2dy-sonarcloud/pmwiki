@@ -368,7 +368,7 @@ table.sortable th.dir-d::after {
   content: "\00A0\025B4";
 }
 
-*[data-pmtoggle] {
+*[data-pmtoggle], .pmtoggleall {
   cursor: pointer;
   font-weight: bold;
 }
