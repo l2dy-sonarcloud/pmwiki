@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -660,7 +660,7 @@ if ($action!='browse') $PmTOC['Enable'] = 0;
 Markup("PmTOC", 'directives', '/^\\(:[#*]?(?:toc|tdm).*?:\\)\\s*$/im', 'FmtPmTOC');
 Markup("noPmTOC", 'directives', '/\\(:(no)(?:toc|tdm).*?:\\)/im', 'FmtPmTOC');
 function FmtPmTOC($m) {
-  if ($m[1]) return Keep('<span class="noPmTOC"></span>');
+  if (@$m[1]) return Keep('<span class="noPmTOC"></span>');
   return "<:block,1>".Keep("<div class='PmTOCdiv'></div>");
 }
 SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC, .PmTOCdiv:empty {display:none;}
