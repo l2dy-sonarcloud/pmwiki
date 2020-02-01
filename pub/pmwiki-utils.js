@@ -153,7 +153,7 @@
     if(! toc_headings.length) return;
 
     var tocdiv = dqs('.PmTOCdiv');
-    var shouldmaketoc = ( !tocdiv && toc_headings.length < dtoc.MinNumber ) ? 0:1;
+    var shouldmaketoc = ( tocdiv || (toc_headings.length >= dtoc.MinNumber && dtoc.MinNumber != -1)) ? 1:0;
     if(!dtoc.NumberedHeadings && !shouldmaketoc) return;
 
     for(var i=0; i<toc_headings.length; i++) {

@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2019 Patrick R. Michaud
+    Copyright 2001-2020 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -2147,7 +2147,7 @@ function HandleEdit($pagename, $auth = 'edit') {
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
     
   if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
-    $bytes = strlen($new['text']) - strlen($page['text']);
+    $bytes = strlen($new['text']) - strlen(@$page['text']);
     if ($bytes>=0) $bytes = "+$bytes";
     $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
   }
