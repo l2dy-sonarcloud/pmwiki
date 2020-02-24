@@ -196,8 +196,8 @@
 
     html = "<b>"+dtoc.contents+"</b> "
       +"[<input type='checkbox' id='PmTOCchk'><label for='PmTOCchk'>"
-      +"<span class='show'>"+dtoc.show+"</span>"
-      +"<span class='hide'>"+dtoc.hide+"</span></label>]"
+      +"<span class='pmtoc-show'>"+dtoc.show+"</span>"
+      +"<span class='pmtoc-hide'>"+dtoc.hide+"</span></label>]"
       +"<div class='PmTOCtable'>" + html + "</div>";
 
     if(!tocdiv) {

@@ -46,7 +46,7 @@ h6 { font-size:1.0em; }
 #wikihead input { font-size:85%; } 
 
 /* These are for the left-sidebar. */
-#wikileft { 
+#wikileft {
   width:155px; 
   padding:6px; border-right:1px #cccccc solid; 
   line-height:1.33em;
