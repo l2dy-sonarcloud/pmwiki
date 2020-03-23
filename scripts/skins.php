@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -20,6 +20,35 @@ SDV($ActionSkin['print'], 'print');
 SDV($FarmPubDirUrl, $PubDirUrl);
 SDV($PageLogoUrl, "$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 SDVA($TmplDisplay, array('PageEditFmt' => 0));
+
+## from skinchange.php
+if (IsEnabled($EnableAutoSkinList, 0) || isset($PageSkinList)) {
+  SDV($SkinCookie, $CookiePrefix.'setskin');
+  SDV($SkinCookieExpires, $Now+60*60*24*365);
+
+  if (isset($_COOKIE[$SkinCookie])) $sk = $_COOKIE[$SkinCookie];
+  if (isset($_GET['setskin'])) {
+    $sk = $_GET['setskin'];
+    pmsetcookie($SkinCookie, $sk, $SkinCookieExpires, '/');
+    if(@$EnableIMSCaching) {
+      SDV($IMSCookie, $CookiePrefix.'imstime');
+      pmsetcookie($IMSCookie, '', $Now -3600, '/');
+      $EnableIMSCaching = 0;
+    }
+  }
+  if (isset($_GET['skin'])) $sk = $_GET['skin'];
+
+  ##  If $EnableAutoSkinList is set, then we accept any skin that
+  ##  exists in pub/skins/ or $FarmD/pub/skins/ .
+  if (IsEnabled($EnableAutoSkinList, 0) 
+      && preg_match('/^[-\\w]+$/', $sk)
+      && (is_dir("pub/skins/$sk") || is_dir("$FarmD/pub/skins/$sk")))
+    $Skin = $sk;
+
+  ##  If there's a specific mapping in $PageSkinList, we use it no
+  ##  matter what.
+  if (@$PageSkinList[$sk]) $Skin = $PageSkinList[$sk];
+}
 
 # $PageTemplateFmt is deprecated
 if (isset($PageTemplateFmt)) LoadPageTemplate($pagename,$PageTemplateFmt);

@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -283,7 +283,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
 
   UploadAuth($pagename, $auth);
   $uploadfile = $_FILES['uploadfile'];
-  $upname = $_REQUEST['upname'];
+  $upname = @$_REQUEST['upname'];
   if ($upname=='') $upname=$uploadfile['name'];
   $upname = MakeUploadName($pagename,$upname);
   if (!function_exists($UploadVerifyFunction))
@@ -311,6 +311,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
       register_shutdown_function('NotifyUpdate', $pagename, getcwd());
     }
   }
+  $FmtV['$upresult'] = $result;
   SDV($UploadRedirectFunction, 'Redirect');
   $UploadRedirectFunction($pagename,"{\$PageUrl}?action=upload&uprname=$upname&$result");
 }

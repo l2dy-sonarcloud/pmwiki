@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -249,7 +249,7 @@ function MakePageList($pagename, $opt, $retpages = 1) {
   SDVA($MakePageListOpt, array('list' => 'default'));
   $opt = array_merge((array)$MakePageListOpt, (array)$opt);
   if (!@$opt['order'] && !@$opt['trail']) $opt['order'] = 'name';
-  $opt['order'] = preg_replace('/[^-\\w:$]+/', ',', $opt['order']);
+  $opt['order'] = preg_replace('/[^-\\w:$]+/', ',', @$opt['order']);
 
   ksort($opt); $opt['=key'] = md5(serialize($opt));
 

@@ -619,15 +619,15 @@ function DRange($when) {
 
 ## DiffTimeCompact subtracts 2 timestamps and outputs a compact
 ## human-readable delay in hours, days, weeks, months or years
-function DiffTimeCompact($date, $date2=null) {
-  if(is_null($date2)) $date2 = $GLOBALS['Now'];
+function DiffTimeCompact($time, $time2=null, $precision=1) {
+  if(is_null($time2)) $time2 = $GLOBALS['Now'];
   $suffix = explode(',', XL('h,d,w,m,y'));
-  $x = $hours = abs($date2 - $date)/3600;
-  if($x<24) return floor($x,1).$suffix[0];
-  $x /= 24;   if($x<14) return round($x,1).$suffix[1];
-  $x /= 7;    if($x< 9) return round($x,1).$suffix[2];
-  $x /= 30/7; if($x<24) return round($x,1).$suffix[3];
-  return round($hours/24/365.2425,1).$suffix[4];
+  $x = $hours = abs($time2 - $time)/3600;
+  if($x<24) return round($x,$precision).$suffix[0];
+  $x /= 24;   if($x<14) return round($x,$precision).$suffix[1];
+  $x /= 7;    if($x< 9) return round($x,$precision).$suffix[2];
+  $x = $hours/2/365.2425; if($x<24) return round($x,$precision).$suffix[3];
+  return round($hours/24/365.2425,$precision).$suffix[4];
 }
 
 ## FileSizeCompact outputs a human readable file size
