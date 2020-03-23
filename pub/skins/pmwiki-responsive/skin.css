@@ -1,6 +1,6 @@
 /***********************************************************************
 **  skin.css
-**  Copyright 2016-2019 Petko Yotov www.pmwiki.org/petko
+**  Copyright 2016-2020 Petko Yotov www.pmwiki.org/petko
 **  
 **  Partially based on pmwiki.css:
 **  Copyright 2004-2006 Patrick R. Michaud pmichaud@pobox.com
@@ -220,7 +220,7 @@ pre, code.escaped { max-width: 100%; overflow: auto; }
 div.scrollable { max-width: 100%; overflow: auto; border: 1px dotted red;}
 
 #wikiedit form { margin:0px; width:100%; max-width:100%; }
-#wikiedit textarea { width:99.5%; max-width:99.5%; }
+#wikiedit textarea { width:99.5%; max-width:99.5%; max-height: 60vh; }
 #wikiedit input { max-width:99.5%; }
 .wikimessage { margin-top:4px; margin-bottom:4px; font-style:italic; }
 
@@ -327,8 +327,8 @@ td.middle, th.middle { vertical-align: middle;}
 .back-arrow {font-size: .9em; text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
 #PmTOCchk {display: none;}
-#PmTOCchk:not(:checked) + label > .show {display: none;}
-#PmTOCchk:checked + label > .hide {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
 #PmTOCchk:checked + label + div {display: none;}
 
 table.simpletable {

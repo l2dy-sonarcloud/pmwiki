@@ -669,8 +669,8 @@ SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC, .PmTOCdiv:empty {display:none;}
 .back-arrow {font-size: .9em; text-decoration: none;}
 #PmTOCchk + label {cursor: pointer;}
 #PmTOCchk {display: none;}
-#PmTOCchk:not(:checked) + label > .show {display: none;}
-#PmTOCchk:checked + label > .hide {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
 #PmTOCchk:checked + label + div {display: none;}');
 
 SDV($HTMLStylesFmt['PmSortable'], 'table.sortable th { cursor: pointer; }

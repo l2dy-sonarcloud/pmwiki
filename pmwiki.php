@@ -617,6 +617,30 @@ function DRange($when) {
   return array($t0, $t1);
 }
 
+## DiffTimeCompact subtracts 2 timestamps and outputs a compact
+## human-readable delay in hours, days, weeks, months or years
+function DiffTimeCompact($time, $time2=null, $precision=1) {
+  if(is_null($time2)) $time2 = $GLOBALS['Now'];
+  $suffix = explode(',', XL('h,d,w,m,y'));
+  $x = $hours = abs($time2 - $time)/3600;
+  if($x<24) return round($x,$precision).$suffix[0];
+  $x /= 24;   if($x<14) return round($x,$precision).$suffix[1];
+  $x /= 7;    if($x< 9) return round($x,$precision).$suffix[2];
+  $x = $hours/2/365.2425; if($x<24) return round($x,$precision).$suffix[3];
+  return round($hours/24/365.2425,$precision).$suffix[4];
+}
+
+## FileSizeCompact outputs a human readable file size
+## with an appropriate suffix.
+## Note: unreliable filemtime()/stat() over 2GB @ 32bit
+function FileSizeCompact($n, $precision=1) {
+  if(!(float)$n) return 0;
+  $units = 'bkMGTPEZY';
+  $b = log((float)$n, 1024);
+  $fb = floor($b);
+  return round(pow(1024,$b-$fb),$precision).@$units[$fb];
+}
+
 ## AsSpaced converts a string with WikiWords into a spaced version
 ## of that string.  (It can be overridden via $AsSpacedFunction.)
 function AsSpaced($text) {
@@ -972,7 +996,7 @@ function FmtPageName($fmt, $pagename) {
           "cb_expandfmtv", $fmt);
   return $fmt;
 }
-function cb_expandglobal($m){ return $GLOBALS[$m[1]]; }
+function cb_expandglobal($m){ return @$GLOBALS[$m[1]]; }
 function cb_expandxlang ($m){ return NoCache(XL($m[1])); }
 function cb_expandfmtv ($m){ 
   return isset($GLOBALS['FmtV'][$m[1]]) ? $GLOBALS['FmtV'][$m[1]] : $m[1];
@@ -984,7 +1008,7 @@ function cb_expandscripturl($m) {
 }
 
 
-## FmtPageTitle returns the page title, or the page name
+## FmtPageTitle returns the page title, or the page name.
 ## It localizes standard technical pages (RecentChanges...)
 function FmtPageTitle($title, $name, $spaced=0) {
   if ($title>'') return str_replace("$", "&#036;", $title);
@@ -1001,8 +1025,8 @@ function FmtPageTitle($title, $name, $spaced=0) {
   return ($spaced || $SpaceWikiWords) ? $AsSpacedFunction($name) : $name;
 }
 
-##  FmtTemplateVars uses $vars to replace all occurrences of 
-##  {$$key} in $text with $vars['key'].
+## FmtTemplateVars uses $vars to replace all occurrences of 
+## {$$key} in $text with $vars['key'].
 function FmtTemplateVars($text, $vars, $pagename = NULL) {
   global $FmtPV, $EnableUndefinedTemplateVars;
   if ($pagename) {
@@ -1510,9 +1534,9 @@ function IncludeText($pagename, $inclspec) {
   }
   $basepage = isset($args['basepage']) 
               ? MakePageName($pagename, $args['basepage'])
-              : $iname;
+              : @$iname;
   if ($basepage) $itext = Qualify(@$basepage, @$itext);
-  return FmtTemplateVars(PVSE($itext), $args);
+  return FmtTemplateVars(PVSE(@$itext), $args);
 }
 
 
