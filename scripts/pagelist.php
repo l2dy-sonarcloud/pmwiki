@@ -517,7 +517,7 @@ function PageListSort(&$list, &$opt, $pn, &$page) {
       $PCache[$pn][$o] = PageVar($pn, $o);
   foreach($PageListSortCmp as $o=>$f)
     if(! is_callable($f)) # DEPRECATED
-      $PageListSortCmp[$o] = create_function( # old format addon
+      $PageListSortCmp[$o] = create_function( # called by old addon needing update, see pmwiki.org/CustomPagelistSortOrder
         '$x,$y', "global \$PCache; return {$f};");
 
   StopWatch('PageListSort sort');
