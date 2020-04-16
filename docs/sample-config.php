@@ -1,23 +1,22 @@
 <?php if (!defined('PmWiki')) exit();
 ##  This is a sample config.php file.  To use this file, copy it to
 ##  local/config.php, then edit it for whatever customizations you want.
-##  Also, be sure to take a look at http://www.pmwiki.org/wiki/Cookbook
-##  for more details on the types of customizations that can be added
-##  to PmWiki.
+##  Also, be sure to take a look at https://www.pmwiki.org/wiki/Cookbook
+##  for more details on the customizations that can be added to PmWiki.
 
 ##  $WikiTitle is the name that appears in the browser's title bar.
 $WikiTitle = 'PmWiki';
 
 ##  $ScriptUrl is the URL for accessing wiki pages with a browser.
 ##  $PubDirUrl is the URL for the pub directory.
-# $ScriptUrl = 'http://www.mydomain.com/path/to/pmwiki.php';
-# $PubDirUrl = 'http://www.mydomain.com/path/to/pub';
+# $ScriptUrl = 'https://www.mydomain.com/path/to/pmwiki.php';
+# $PubDirUrl = 'https://www.mydomain.com/path/to/pub';
 
 ##  If you want to use URLs of the form .../pmwiki.php/Group/PageName
 ##  instead of .../pmwiki.php?p=Group.PageName, try setting
 ##  $EnablePathInfo below.  Note that this doesn't work in all environments,
-##  it depends on your webserver and PHP configuration.  You might also 
-##  want to check http://www.pmwiki.org/wiki/Cookbook/CleanUrls more
+##  it depends on your webserver and PHP configuration.  You might also
+##  want to check https://www.pmwiki.org/wiki/Cookbook/CleanUrls more
 ##  details about this setting and other ways to create nicer-looking urls.
 # $EnablePathInfo = 1;
 
@@ -31,7 +30,7 @@ $WikiTitle = 'PmWiki';
 # $Skin = 'pmwiki-responsive';
 
 ## You'll probably want to set an administrative password that you
-## can use to get into password-protected pages.  Also, by default 
+## can use to get into password-protected pages.  Also, by default
 ## the "attr" passwords for the PmWiki and Main groups are locked, so
 ## an admin password is a good way to unlock those.  See PmWiki.Passwords
 ## and PmWiki.PasswordsAdmin.
@@ -48,7 +47,7 @@ include_once("scripts/xlpage-utf-8.php");
 # $EnableBlocklist = 10;                   # enable automatic blocklists
 
 ##  PmWiki comes with graphical user interface buttons for editing;
-##  to enable these buttons, set $EnableGUIButtons to 1.  
+##  to enable these buttons, set $EnableGUIButtons to 1.
 # $EnableGUIButtons = 1;
 
 ##  To enable markup syntax from the Creole common wiki markup language
@@ -68,11 +67,11 @@ include_once("scripts/xlpage-utf-8.php");
 ##  passwords on individual groups and pages.  For more information
 ##  see PmWiki.UploadsAdmin.
 # $EnableUpload = 1;
-# $UploadPermAdd = 0;
 # $DefaultPasswords['upload'] = pmcrypt('secret');
+$UploadPermAdd = 0; # Recommended for most new installations
 
 ##  Setting $EnableDiag turns on the ?action=diag and ?action=phpinfo
-##  actions, which often helps others to remotely troubleshoot 
+##  actions, which often helps others to remotely troubleshoot
 ##  various configuration and execution problems.
 # $EnableDiag = 1;                         # enable remote diagnostics
 
@@ -82,7 +81,7 @@ include_once("scripts/xlpage-utf-8.php");
 ##  adjusting configuration files or layout templates.
 # $EnableIMSCaching = 1;                   # allow browser caching
 
-##  Set $SpaceWikiWords if you want WikiWords to automatically 
+##  Set $SpaceWikiWords if you want WikiWords to automatically
 ##  have spaces before each sequence of capital letters.
 # $SpaceWikiWords = 1;                     # turn on WikiWord spacing
 
@@ -123,7 +122,7 @@ include_once("scripts/xlpage-utf-8.php");
 
 ##  PmWiki allows a great deal of flexibility for creating custom markup.
 ##  To add support for '*bold*' and '~italic~' markup (the single quotes
-##  are part of the markup), uncomment the following lines. 
+##  are part of the markup), uncomment the following lines.
 ##  (See PmWiki.CustomMarkup and the Cookbook for details and examples.)
 # Markup("'~", "<'''''", "/'~(.*?)~'/", "<i>$1</i>");        # '~italic~'
 # Markup("'*", "<'''''", "/'\\*(.*?)\\*'/", "<b>$1</b>");    # '*bold*'
@@ -152,5 +151,5 @@ include_once("scripts/xlpage-utf-8.php");
 # $GUIButtons['hr'] = array(540, '\\n----\\n', '', '',
 #                     '$GUIButtonDirUrlFmt/hr.gif"$[Horizontal rule]"');
 # $GUIButtons['table'] = array(600,
-#                       '||border=1 width=80%\\n||!Hdr ||!Hdr ||!Hdr ||\\n||     ||     ||     ||\\n||     ||     ||     ||\\n', '', '', 
+#                       '||border=1 width=80%\\n||!Hdr ||!Hdr ||!Hdr ||\\n||     ||     ||     ||\\n||     ||     ||     ||\\n', '', '',
 #                     '$GUIButtonDirUrlFmt/table.gif"$[Table]"');

@@ -498,7 +498,7 @@ function PCCF($code, $template = 'default', $args = '$m') {
     Abort("No \$CallbackFnTemplates[$template]).");
   $code = sprintf($CallbackFnTemplates[$template], $code);
   if (!isset($CallbackFunctions[$code])) {
-    $fn = create_function($args, $code);
+    $fn = create_function($args, $code); # old addon|skin|recipe
     if ($fn) $CallbackFunctions[$code] = $fn;
     else StopWatch("Failed to create callback function: ".PHSC($code));
   }
@@ -1889,7 +1889,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
       $MarkupToHTML['markupid'] = $id;
       if ($p[0] == '/') {
         if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
-        else $x=preg_replace($p,$r,$x);
+        else $x=preg_replace($p,$r,$x); # either simple text or old addon|skin|recipe
       }
       elseif (strstr($x,$p)!==false) $x=eval($r);
       if (isset($php_errormsg)) 

@@ -41,7 +41,7 @@ if (IsEnabled($EnableAutoSkinList, 0) || isset($PageSkinList)) {
   ##  If $EnableAutoSkinList is set, then we accept any skin that
   ##  exists in pub/skins/ or $FarmD/pub/skins/ .
   if (IsEnabled($EnableAutoSkinList, 0) 
-      && preg_match('/^[-\\w]+$/', $sk)
+      && @$sk && preg_match('/^[-\\w]+$/', $sk)
       && (is_dir("pub/skins/$sk") || is_dir("$FarmD/pub/skins/$sk")))
     $Skin = $sk;
 
