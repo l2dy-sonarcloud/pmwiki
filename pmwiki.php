@@ -791,7 +791,7 @@ function ResolvePageName($pagename) {
   $p = MakePageName($DefaultPage, $pagename);
   if (!preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $p)) {
     header('HTTP/1.1 404 Not Found');
-    Abort('$[?invalid page name]');
+    Abort("\$[?invalid page name] \"$p\"");
   }
   if (preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $pagename))
     return $p;
@@ -811,9 +811,9 @@ function MakePageName($basepage, $str) {
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage, $str);
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
-    "/'/" => '',			   # strip single-quotes
-    "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
-    '/((^|[^-\\w])\\w)/' => 'cb_toupper',
+    "/'/" => '',                      # strip single-quotes
+    "/[^$PageNameChars]+/" => ' ',    # convert everything else to space
+    '/((^|[^-\\w])\\w)/' => 'cb_toupper', # CamelCase
     '/ /' => ''));
   SDV($MakePageNameSplitPattern, '/[.\\/]/');
   $str = preg_replace('/[#?].*$/', '', $str);
