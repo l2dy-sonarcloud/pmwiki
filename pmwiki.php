@@ -498,7 +498,7 @@ function PCCF($code, $template = 'default', $args = '$m') {
     Abort("No \$CallbackFnTemplates[$template]).");
   $code = sprintf($CallbackFnTemplates[$template], $code);
   if (!isset($CallbackFunctions[$code])) {
-    $fn = create_function($args, $code);
+    $fn = create_function($args, $code); # called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
     if ($fn) $CallbackFunctions[$code] = $fn;
     else StopWatch("Failed to create callback function: ".PHSC($code));
   }
@@ -512,7 +512,7 @@ function PPRA($array, $x) {
   foreach((array)$array as $pat => $rep) {
     $fmt = $x; # for $FmtP
     if (is_callable($rep) && $rep != '_') $x = preg_replace_callback($pat,$rep,$x);
-    else $x = preg_replace($pat,$rep,$x);
+    else $x = preg_replace($pat,$rep,$x);# simple text OR called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
   }
   return $x;
 }
@@ -791,7 +791,7 @@ function ResolvePageName($pagename) {
   $p = MakePageName($DefaultPage, $pagename);
   if (!preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $p)) {
     header('HTTP/1.1 404 Not Found');
-    Abort('$[?invalid page name]');
+    Abort("\$[?invalid page name] \"$p\"");
   }
   if (preg_match("/^($GroupPattern)[.\\/]($NamePattern)$/i", $pagename))
     return $p;
@@ -811,9 +811,9 @@ function MakePageName($basepage, $str) {
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage, $str);
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
-    "/'/" => '',			   # strip single-quotes
-    "/[^$PageNameChars]+/" => ' ',         # convert everything else to space
-    '/((^|[^-\\w])\\w)/' => 'cb_toupper',
+    "/'/" => '',                      # strip single-quotes
+    "/[^$PageNameChars]+/" => ' ',    # convert everything else to space
+    '/((^|[^-\\w])\\w)/' => 'cb_toupper', # CamelCase
     '/ /' => ''));
   SDV($MakePageNameSplitPattern, '/[.\\/]/');
   $str = preg_replace('/[#?].*$/', '', $str);
@@ -1889,7 +1889,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
       $MarkupToHTML['markupid'] = $id;
       if ($p[0] == '/') {
         if (is_callable($r)) $x = preg_replace_callback($p,$r,$x);
-        else $x=preg_replace($p,$r,$x);
+        else $x=preg_replace($p,$r,$x); # simple text OR called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
       }
       elseif (strstr($x,$p)!==false) $x=eval($r);
       if (isset($php_errormsg)) 
