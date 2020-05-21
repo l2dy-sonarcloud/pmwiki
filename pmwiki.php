@@ -1518,7 +1518,7 @@ function IncludeText($pagename, $inclspec) {
         $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
         $itext = IsEnabled($PCache[$iname]['=preview'], @$ipage['text']);
       }
-      $itext = TextSection($itext, $v, array('anchors' => 1));
+      $itext = TextSection(@$itext, $v, array('anchors' => 1));
       continue;
     }
     if (preg_match('/^(?:line|para)s?$/', $k)) {

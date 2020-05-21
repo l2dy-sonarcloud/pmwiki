@@ -95,6 +95,20 @@ h6 { font-size:1.0em; }
   font-family:Verdana,sans-serif; font-size:80%; 
 }
 
+/* table class=simpletable from pmwiki-responsive.css */
+table.simpletable {
+  border-collapse: collapse;
+}
+table.simpletable tr:nth-child(odd) {
+  background-color: #eee;
+}
+table.simpletable th {
+  background-color: #ccc;
+}
+table.simpletable th, table.simpletable td {
+  border: 1px solid #888;
+}
+
 /* These affect the printed appearance of the web view (not the separate
 ** print view) of pages.  The sidebar and action links aren't printed. */
 @media print {
