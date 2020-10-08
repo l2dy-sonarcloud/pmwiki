@@ -1760,7 +1760,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (@$EnableLinkPageRelative)
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
-                     array($url.PUE($qf), $txt, $alt), $fmt);
+                     array($url.PUE($qf), $txt, Keep($alt)), $fmt);
   if(IsEnabled($AddLinkCSS['othergroup'])) {
     list($cgroup, ) = explode('.', $pagename);
     list($tgroup, ) = explode('.', $tgtname);
