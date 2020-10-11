@@ -231,8 +231,7 @@ dd {
   margin-left: 15px;
 }
 ul, ol {
-  margin: 0; 
-  padding: 0 0 0 20px;
+  margin: 0;
 }
 
 select, textarea, input {
@@ -494,7 +493,6 @@ table.sortable th.dir-d::after {
     margin-left:0; margin-right: 40px;
   }
     
-  ul, ol { padding: 0 0 0 40px; }
   dd { margin-left: 40px; }
 
   table.horiz td.markup1, table.horiz td.markup2 {
