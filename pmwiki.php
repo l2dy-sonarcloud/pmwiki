@@ -282,7 +282,7 @@ Markup('closeall', '_begin',
   '/^\\(:closeall:\\)$/', "MarkupMarkupClose");
 function MarkupMarkupClose() { return '<:block>' . MarkupClose(); }
 
-$ImgExtPattern="\\.(?:gif|jpg|jpeg|png|svgz?|GIF|JPG|JPEG|PNG|SVGZ?)";
+$ImgExtPattern="\\.(?:gif|jpg|jpeg|png|svgz?|GIF|JPG|JPEG|PNG|SVGZ?|webp|WEBP)";
 $ImgTagFmt="<img src='\$LinkUrl' alt='\$LinkAlt' title='\$LinkAlt' />";
 
 $BlockMarkups = array(
