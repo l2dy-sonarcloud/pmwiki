@@ -25,7 +25,7 @@ SDV($EnableUploadOverwrite,1);
 ## accept, along with the Content-Type: value appropriate for each.
 SDVA($UploadExts,array(
   'gif' => 'image/gif', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
-  'png' => 'image/png', 'bmp' => 'image/bmp', 'ico' => 'image/x-icon',
+  'png' => 'image/png', 'apng' => 'image/apng', 'bmp' => 'image/bmp', 'ico' => 'image/x-icon',
   'wbmp'=> 'image/vnd.wap.wbmp', 'xcf' => 'image/x-xcf', 'webp' => 'image/webp',
   'svg' => 'image/svg+xml', 'svgz' => 'image/svg+xml',
   'mp3' => 'audio/mpeg', 'au' => 'audio/basic', 'wav' => 'audio/x-wav',
