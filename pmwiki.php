@@ -2352,7 +2352,7 @@ function IsAuthorized($chal, $source, &$from) {
 ## as needed.
 function SessionAuth($pagename, $auth = NULL) {
   global $AuthId, $AuthList, $AuthPw, $SessionEncode, $SessionDecode,
-    $EnableSessionPasswords;
+    $EnableSessionPasswords, $EnableAuthPostRegenrateSID;
   static $called;
 
   @$called++;
@@ -2361,6 +2361,11 @@ function SessionAuth($pagename, $auth = NULL) {
 
   $sid = session_id();
   @session_start();
+  if($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
+    && IsEnabled($EnableAuthPostRegenrateSID, true)) {
+    session_regenerate_id();
+  }
+  
   foreach((array)$auth as $k => $v) {
     if ($k == 'authpw') {
       foreach((array)$v as $pw => $pv) {
