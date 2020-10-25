@@ -282,7 +282,7 @@ Markup('closeall', '_begin',
   '/^\\(:closeall:\\)$/', "MarkupMarkupClose");
 function MarkupMarkupClose() { return '<:block>' . MarkupClose(); }
 
-$ImgExtPattern="\\.(?:gif|jpg|jpeg|png|svgz?|GIF|JPG|JPEG|PNG|SVGZ?)";
+$ImgExtPattern="\\.(?:gif|jpg|jpeg|a?png|svgz?|GIF|JPG|JPEG|A?PNG|SVGZ?|webp|WEBP)";
 $ImgTagFmt="<img src='\$LinkUrl' alt='\$LinkAlt' title='\$LinkAlt' />";
 
 $BlockMarkups = array(
@@ -1681,7 +1681,7 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   }
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
-  $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
+  $FmtV['$LinkAlt'] = Keep(str_replace(array('"',"'"),array('&#34;','&#39;'),$alt));
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
   if(IsEnabled($AddLinkCSS['samedomain'])) {
@@ -1760,7 +1760,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (@$EnableLinkPageRelative)
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
-                     array($url.PUE($qf), $txt, $alt), $fmt);
+                     array($url.PUE($qf), $txt, Keep($alt)), $fmt);
   if(IsEnabled($AddLinkCSS['othergroup'])) {
     list($cgroup, ) = explode('.', $pagename);
     list($tgroup, ) = explode('.', $tgtname);
@@ -2352,7 +2352,7 @@ function IsAuthorized($chal, $source, &$from) {
 ## as needed.
 function SessionAuth($pagename, $auth = NULL) {
   global $AuthId, $AuthList, $AuthPw, $SessionEncode, $SessionDecode,
-    $EnableSessionPasswords;
+    $EnableSessionPasswords, $EnableAuthPostRegenerateSID;
   static $called;
 
   @$called++;
@@ -2361,6 +2361,11 @@ function SessionAuth($pagename, $auth = NULL) {
 
   $sid = session_id();
   @session_start();
+  if($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
+    && IsEnabled($EnableAuthPostRegenerateSID, true)) {
+    session_regenerate_id();
+  }
+  
   foreach((array)$auth as $k => $v) {
     if ($k == 'authpw') {
       foreach((array)$v as $pw => $pv) {

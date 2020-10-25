@@ -80,18 +80,20 @@ function StopWatchHTML($pagename, $print = 0) {
       - skip non-php files and directories
     * 2019-11-28: Added to scripts/diag.php by Petko
 */
-SDV($HandleActions['recipecheck'], 'HandleRecipeCheckCore');
-SDV($HandleAuth['recipecheck'], 'admin');
-SDV($ActionTitleFmt['recipecheck'], '| $[Recipe Check]');
+if($action=='recipecheck') {
+  SDV($HandleActions['recipecheck'], 'HandleRecipeCheckCore');
+  SDV($HandleAuth['recipecheck'], 'admin');
+  SDV($ActionTitleFmt['recipecheck'], '| $[Recipe Check]');
 
-SDV($WikiStyleApply['tr'], 'tr');
-SDV($HTMLStylesFmt['recipecheck'], '
-  table.recipecheck tr.ok { color:black; background-color:#ccffcc; }
-  table.recipecheck tr.check { color:black; background-color:#ffffcc; }
-  table.recipecheck { border:1px solid #cccccc; padding:4px; }
-');
+  SDV($WikiStyleApply['tr'], 'tr');
+  SDV($HTMLStylesFmt['recipecheck'], '
+    table.recipecheck tr.ok { color:black; background-color:#ccffcc; }
+    table.recipecheck tr.check { color:black; background-color:#ffffcc; }
+    table.recipecheck { border:1px solid #cccccc; padding:4px; }
+  ');
 
-SDV($RecipeListUrl, 'http://www.pmwiki.org/pmwiki/recipelist');
+  SDV($RecipeListUrl, 'http://www.pmwiki.org/pmwiki/recipelist');
+}
 
 function HandleRecipeCheckCore($pagename, $auth = 'admin') {
   global $RecipeListUrl, $Version, $RecipeInfo, 
