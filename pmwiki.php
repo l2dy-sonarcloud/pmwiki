@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2020 Patrick R. Michaud
+    Copyright 2001-2021 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -40,6 +40,7 @@ if (ini_get('register_globals'))
     ${$k}=''; unset(${$k}); 
   }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
+$FmtV['$TokenName'] = 'pmtoken';
 SDV($FarmD,dirname(__FILE__));
 SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
@@ -66,7 +67,7 @@ $TimeISOZFmt = '%Y-%m-%dT%H:%M:%SZ';
 $MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
-$EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
+$EditFunctions = array('AutoCheckToken', 'EditTemplate', 'RestorePage', 'ReplaceOnSave',
   'SaveAttributes', 'PostPage', 'PostRecentChanges', 'AutoCreateTargets',
   'PreviewPage');
 $EnablePost = 1;
@@ -542,6 +543,39 @@ function pmcrypt($str, $salt=null) {
   if (function_exists('password_hash'))
     return password_hash($str, PASSWORD_DEFAULT);
   return crypt($str);
+}
+
+# generate or check a random one-time token to prevent CSRF
+function pmtoken($token = null) {
+  global $SessionMaxTokens, $PmTokenFn;
+  if(IsEnabled($PmTokenFn) && function_exists($PmTokenFn))
+    return $PmTokenFn($token);
+  @session_start();
+  if(!isset($_SESSION['pmtokens'])) $_SESSION['pmtokens'] = array();
+  if(is_null($token)) { # create a one-time token
+    $len = mt_rand(20,30);
+    $token = "";
+    while(strlen($token)<$len) {
+      $token .= chr(mt_rand(32,126));
+    }
+    if(count($_SESSION['pmtokens']))
+      $id = max(array_keys($_SESSION['pmtokens']))+1;
+    else $id = 0;
+    $_SESSION['pmtokens'][$id] = $token;
+    if(IsEnabled($SessionMaxTokens, 0)) {
+      $max = $SessionMaxTokens;
+      $_SESSION['pmtokens'] = array_slice($_SESSION['pmtokens'], -$max, $max, true);
+    }
+    return "$id:" . md5($token);
+  }
+  # else: check a token, if correct, delete it
+  @list($id, $hash) = explode(':', $token);
+  $id = intval($id);
+  if(isset($_SESSION['pmtokens'][$id]) && $hash == md5($_SESSION['pmtokens'][$id])) {
+    unset($_SESSION['pmtokens'][$id]);
+    return true;
+  }
+  return false;
 }
 
 function StopWatch($x) { 
@@ -1577,13 +1611,13 @@ function Block($b) {
   }
   @list($code, $depth, $icol) = explode(',', $b);
   if (!$code) $depth = 1;
-  if ($depth == 0) $depth = strlen($depth);
-  if ($icol == 0) $icol = strlen($icol);
+  if (!is_numeric($depth)) $depth = strlen($depth); # PHP8
+  if (!is_numeric($icol)) $icol = strlen($icol); # PHP8
   if ($depth > 0) $depth += @$mf['idep'];
   if ($icol > 0) $mf['is'][$depth] = $icol + @$mf['icol'];
   @$mf['idep'] = @$mf['icol'] = 0;
   while (count($cs)>$depth) 
-    { $c = array_pop($cs); $out .= $BlockMarkups[$c][2]; }
+    { $c = array_pop($cs); $out .= @$BlockMarkups[$c][2]; }
   if (!$code) {
     if (@end($cs) == 'p') { $out .= $HTMLPNewline; $code = 'p'; }
     else if ($depth < 2) { $code = 'p'; $mf['is'][$depth] = 0; }
@@ -1892,7 +1926,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
         else $x=preg_replace($p,$r,$x); # simple text OR called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
       }
       elseif (strstr($x,$p)!==false) $x=eval($r);
-      if (isset($php_errormsg)) 
+      if (isset($php_errormsg)) ### TODO: $php_errormsg removed since PHP 8
         { echo "ERROR: pat=$p $php_errormsg"; unset($php_errormsg); }
       if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
     }
@@ -1975,6 +2009,38 @@ function UpdatePage(&$pagename, &$page, &$new, $fnlist = NULL) {
   return $IsPagePosted;
 }
 
+# AutoCheckToken verifies if the posted content was sent
+# from the website forms, to prevent CSRF
+function AutoCheckToken() {
+  # TODO: Work in progress (Jan 2021), releasing for 
+  return true;
+    
+  global $EnablePost, $AutoCheckTokenActions, $EnablePmToken, 
+    $FmtV, $action, $BlockMessageFmt, $MessagesFmt;
+  
+  # a quick way to disable tokens
+  if(! IsEnabled($EnablePmToken, 1)) return true; 
+  
+  SDVA($AutoCheckTokenActions, array( # 1=POST, 2=GET, 0=disabled
+    'edit' => 1, 
+    'postattr' => 1,
+    'postupload' => 1,
+    'approvesites' => 2,
+    'approveurls' => 2,
+  ));
+  $tname = $FmtV['$TokenName'];
+  $x = @$AutoCheckTokenActions[$action];
+  if (!$x) return true;
+  elseif ($x==1) {
+    if ( count($_POST) < 1 || pmtoken(''.@$_POST[$tname]) ) return true;
+  }
+  elseif($x==2 && pmtoken(''.@$_GET[$tname])) return true;
+  
+  $EnablePost = 0;
+  $MessagesFmt[] = $BlockMessageFmt;
+  $MessagesFmt[] = XL('Token invalid or missing.');
+  return false;
+}
 
 # EditTemplate allows a site administrator to pre-populate new pages
 # with the contents of another page.
@@ -2157,7 +2223,7 @@ function PreviewPage($pagename,&$page,&$new) {
 }
 
 function HandleEdit($pagename, $auth = 'edit') {
-  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions, 
+  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions,
     $EnablePost, $FmtV, $Now, $EditRedirectFmt, $EnableRCDiffBytes, 
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
   SDV($EditRedirectFmt, '$FullName');
@@ -2177,7 +2243,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   }
   $new['csum'] = $ChangeSummary;
   if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
-  $EnablePost &= preg_grep('/^post/', array_keys(@$_POST));
+  $EnablePost &= (bool)preg_grep('/^post/', array_keys(@$_POST));
   $new['=preview'] = @$new['text'];
   PCache($pagename, $new);
   UpdatePage($pagename, $page, $new);
@@ -2189,6 +2255,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   $FmtV['$EditText'] = 
     str_replace('$','&#036;',PHSC(@$new['text'],ENT_NOQUOTES));
   $FmtV['$EditBaseTime'] = $Now;
+  $FmtV['$TokenValue'] = pmtoken();
   if (@$PageEditForm) {
     $efpage = FmtPageName($PageEditForm, $pagename);
     $form = RetrieveAuthPage($efpage, 'read', false, READPAGE_CURRENT);
@@ -2202,6 +2269,7 @@ function HandleEdit($pagename, $auth = 'edit') {
     <input type='hidden' name='action' value='edit' />
     <input type='hidden' name='n' value='\$FullName' />
     <input type='hidden' name='basetime' value='\$EditBaseTime' />
+    <input type='hidden' name='\$TokenName' value='\$TokenValue' />
     \$EditMessageFmt
     <textarea id='text' name='text' rows='25' cols='60'
       onkeydown='if (event.keyCode==27) event.returnValue=false;'
@@ -2376,7 +2444,7 @@ function SessionAuth($pagename, $auth = NULL) {
     else if ($k) $_SESSION[$k] = (array)$v + (array)@$_SESSION[$k];
   }
 
-  if (!isset($AuthId)) $AuthId = @end($_SESSION['authid']);
+  if (!isset($AuthId)) $AuthId = @$_SESSION['authid'] ? @end($_SESSION['authid']) : '';
   $AuthPw = array_map($SessionDecode, array_keys((array)@$_SESSION['authpw']));
   if (!IsEnabled($EnableSessionPasswords, 1)) $_SESSION['authpw'] = array();
   $AuthList = array_merge($AuthList, (array)@$_SESSION['authlist']);
@@ -2412,8 +2480,10 @@ function PasswdVar($pagename, $level) {
 
 function PrintAttrForm($pagename) {
   global $PageAttributes, $PCache, $FmtV;
+  $FmtV['$TokenValue'] = pmtoken();
   echo FmtPageName("<form action='\$PageUrl' method='post'>
     <input type='hidden' name='action' value='postattr' />
+    <input type='hidden' name='\$TokenName' value='\$TokenValue' />
     <input type='hidden' name='n' value='\$FullName' />
     <table>",$pagename);
   $page = $PCache[$pagename];
@@ -2451,6 +2521,9 @@ function HandleAttr($pagename, $auth = 'attr') {
 
 function HandlePostAttr($pagename, $auth = 'attr') {
   global $PageAttributes, $EnablePostAttrClearSession;
+  if(! AutoCheckToken()) {
+    Abort('? $[Token invalid or missing.]');
+  }
   Lock(2);
   $page = RetrieveAuthPage($pagename, $auth, true);
   if (!$page) { Abort("?unable to read $pagename"); }

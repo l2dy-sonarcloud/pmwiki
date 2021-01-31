@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -881,7 +881,7 @@ function PageIndexQueueUpdate($pagelist) {
     register_shutdown_function('PageIndexUpdate', NULL, getcwd());
   $PageIndexUpdateList = array_merge((array)@$PageIndexUpdateList,
                                      (array)$pagelist);
-  $c1 = @count($pagelist); $c2 = count($PageIndexUpdateList);
+  $c1 = @count((array)$pagelist); $c2 = count($PageIndexUpdateList);
   StopWatch("PageIndexQueueUpdate: queued $c1 pages ($c2 total)");
 }
 
