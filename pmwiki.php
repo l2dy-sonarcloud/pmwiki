@@ -458,7 +458,7 @@ function PQA($x, $keep=true) {
     foreach($attr as $a) {
       if (preg_match('/^on/i', $a[1])) continue;
       $val = preg_replace('/^([\'"]?)(.*)\\1$/', '$2', $a[2]);
-      if ($keep) $val = Keep(PHSC($val, ENT_QUOTES));
+      if ($keep) $val = Keep(PHSC($val, ENT_QUOTES, null, false));
       else $val = str_replace("'", '&#39;', $val);
       
       $out .= "{$a[1]}='$val' ";
