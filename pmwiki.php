@@ -451,14 +451,16 @@ function PRR($x=NULL)
 function PUE($x)
   { return preg_replace_callback('/[\\x80-\\xff \'"<>]/', "cb_pue", $x); }
 function cb_pue($m) { return '%'.dechex(ord($m[0])); }
-function PQA($x) { 
+function PQA($x, $keep=true) { 
   $out = '';
   if (preg_match_all('/([a-zA-Z][-\\w]*)\\s*=\\s*("[^"]*"|\'[^\']*\'|\\S*)/',
                      $x, $attr, PREG_SET_ORDER)) {
     foreach($attr as $a) {
       if (preg_match('/^on/i', $a[1])) continue;
       $val = preg_replace('/^([\'"]?)(.*)\\1$/', '$2', $a[2]);
-      $val = str_replace("'", '&#39;', $val);
+      if ($keep) $val = Keep(PHSC($val, ENT_QUOTES));
+      else $val = str_replace("'", '&#39;', $val);
+      
       $out .= "{$a[1]}='$val' ";
     }
   }
@@ -989,7 +991,6 @@ function PageVar($pagename, $var, $pn = '') {
   return '';
 }
 
-  
 ## FmtPageName handles $[internationalization] and $Variable 
 ## substitutions in strings based on the $pagename argument.
 function FmtPageName($fmt, $pagename) {
