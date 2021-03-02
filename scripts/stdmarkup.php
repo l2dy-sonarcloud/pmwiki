@@ -508,6 +508,9 @@ Markup('^>><<', '<^>>',
   '/^&gt;&gt;&lt;&lt;/',
   '(:divend:)');
 
+Markup('det-summ', '<table', '/(\\(:details[ ].*?)summary=(?:([\'"])(.*?)\\2
+  |(\\S+))(.*?:\\))/xi', '$1$5<summary>$3$4</summary>'); # PITS:01465 
+
 function SimpleTableAttr($attr) {
   global $SimpleTableDefaultClassName;
   $qattr = PQA($attr);
