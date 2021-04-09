@@ -1726,6 +1726,8 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
       $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['samedomain']} ", $fmt);
     }
   }
+  # remove unused title attributes
+  if(!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
@@ -1794,6 +1796,8 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $txt = str_replace("$", "&#036;", $txt);
   if (@$EnableLinkPageRelative)
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
+  # remove unused title attributes
+  if(!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
                      array($url.PUE($qf), $txt, Keep($alt)), $fmt);
   if(IsEnabled($AddLinkCSS['othergroup'])) {
