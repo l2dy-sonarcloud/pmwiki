@@ -283,7 +283,7 @@ function MakePageList($pagename, $opt, $retpages = 1) {
   
   if ($retpages) 
     for($i=0; $i<count($list); $i++)
-      $list[$i] = &$PCache[$list[$i]];
+      $list[$i] = &$PCache[@$list[$i]];
   StopWatch('MakePageList end');
   return $list;
 }
