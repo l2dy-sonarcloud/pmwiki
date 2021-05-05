@@ -235,7 +235,7 @@ function FmtPageList($outfmt, $pagename, $opt) {
   $FmtV['$MatchCount'] = count($matches);
   if ($outfmt != '$MatchList')
     { $FmtV['$MatchList'] = $out; $out = FmtPageName($outfmt, $pagename); }
-  if ($out[0] == '<') $out = Keep($out);
+  if (@$out[0] == '<') $out = Keep($out);
   return PRR($out);
 }
 
