@@ -70,6 +70,7 @@ function AuthUserId($pagename, $id, $pw=NULL) {
     }
   }
 
+  $authlist = array();
   if (func_num_args()==2) $authid = $id;
   else
     foreach($AuthUserFunctions as $k => $fn) 
@@ -86,7 +87,7 @@ function AuthUserId($pagename, $id, $pw=NULL) {
     $authlist[$g] = 1;
   foreach(preg_grep('/^@/', array_keys($auth)) as $g) # useless? PITS:01201
     if (in_array($authid, $auth[$g])) $authlist[$g] = 1;
-  if ($auth['htgroup']) {
+  if (@$auth['htgroup']) {
     foreach(AuthUserHtGroup($pagename, $id, $pw, $auth['htgroup']) as $g)
       $authlist["@$g"] = 1;
   }
