@@ -33,6 +33,7 @@ if (IsEnabled($EnablePageIndex, 1)) {
 }
 
 SDV($StrFoldFunction, 'strtolower');
+SDV($PageIndexFoldFunction, $StrFoldFunction);
 SDV($PageListSortCmpFunction, 'strcasecmp');
 
 ## $SearchPatterns holds patterns for list= option
@@ -804,11 +805,11 @@ function FPLExpandItemVars($item, $matches, $idx, $psvars) {
 ## normalized list of associated search terms.  This reduces the
 ## size of the index and speeds up searches.
 function PageIndexTerms($terms) {
-  global $StrFoldFunction;
+  global $PageIndexFoldFunction;
   $w = array();
   foreach((array)$terms as $t) {
     $w = array_merge($w, preg_split('/[^\\w\\x80-\\xff]+/', 
-           $StrFoldFunction($t), -1, PREG_SPLIT_NO_EMPTY));
+           $PageIndexFoldFunction($t), -1, PREG_SPLIT_NO_EMPTY));
   }
  return $w;
 }

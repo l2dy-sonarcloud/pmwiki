@@ -40,7 +40,7 @@ else SessionAuth($pagename);
 
 function AuthUserId($pagename, $id, $pw=NULL) {
   global $AuthUser, $AuthUserPageFmt, $AuthUserFunctions, 
-    $AuthId, $MessagesFmt, $AuthUserPat;
+    $AuthId, $MessagesFmt, $AuthUserPat, $MultiFactorAuthFunction;
 
   $auth = array();
   foreach((array)$AuthUser as $k=>$v) $auth[$k] = (array)$v;
@@ -78,6 +78,11 @@ function AuthUserId($pagename, $id, $pw=NULL) {
         { $authid = $id; break; }
 
   if (!$authid) { $GLOBALS['InvalidLogin'] = 1; return; }
+  if (IsEnabled($MultiFactorAuthFunction, 0) && function_exists($MultiFactorAuthFunction)) {
+    if (! $MultiFactorAuthFunction($id, $pw) ) return;
+  }
+    
+  
   if (!isset($AuthId)) $AuthId = $authid;
   $authlist["id:$authid"] = 1;
   $authlist["id:-$authid"] = -1;
