@@ -1200,7 +1200,7 @@ class PageStore {
         }
         if ($k == 'newline') { $newline = $v; continue; }
         if ($since > 0 && preg_match('/:(\\d+)/', $k, $m) && $m[1] < $since) {
-          if ($ordered) break;
+          if (@$ordered) break;
           continue;
         }
         if ($newline) $v = str_replace($newline, "\n", $v);
@@ -2178,7 +2178,7 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
     $EnableRCDiffBytes;
   if (!$IsPagePosted && $Fmt==null) return;
-  if ($Fmt==null) $Fmt = $RecentChangesFmt;
+  if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
   foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
