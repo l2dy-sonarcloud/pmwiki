@@ -151,7 +151,7 @@ function AuthUserLDAP($pagename, $id, $pw, $pwlist) {
     list($z, $url, $path) = $match;
     $ds = ldap_connect($url);
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-    if(isset($AuthLDAPReferrals)) # *NOT* IsEnabled
+    if (isset($AuthLDAPReferrals)) # *NOT* IsEnabled
       ldap_set_option($ds, LDAP_OPT_REFERRALS, $AuthLDAPReferrals);
     ##  For Active Directory, don't specify a path and we simply
     ##  attempt to bind with the username and password directly
