@@ -1900,8 +1900,8 @@ function ObsoleteMarkup($m) {
   extract($GLOBALS['MarkupToHTML']);
   $id = PHSC($markupid, ENT_QUOTES);
   $txt = PHSC($m[0], ENT_QUOTES);
-  return Keep("<span title='Markup rule &quot;$id&quot; is obsolete and has been disabled. See pmwiki.org/Troubleshooting' 
-    class='obsolete-markup frame'>⚠️$txt</span>");
+  return Keep("<code title='Markup rule &quot;$id&quot; is obsolete and has been disabled. See pmwiki.org/Troubleshooting' 
+    class='obsolete-markup frame'>⚠️$txt</code>");
 }
 
 function DisableMarkup() {
