@@ -508,14 +508,21 @@ function PCCF($code, $template = 'default', $args = '$m') {
   return $CallbackFunctions[$code];
 }
 function PPRE($pat, $rep, $x) {
+  if(! function_exists('create_function')) return $x;
   $lambda = PCCF("return $rep;");
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
   foreach((array)$array as $pat => $rep) {
+    # skip broken patterns rather than crash the PHP installation
+    $oldpat = preg_match('!^/.+/[^/]*e[^/]*$!', $pat);
+    if($oldpat && PHP_VERSION_ID >= 50500) continue;
+    
     $fmt = $x; # for $FmtP
-    if (is_callable($rep) && $rep != '_') $x = preg_replace_callback($pat,$rep,$x);
-    else $x = preg_replace($pat,$rep,$x);# simple text OR called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
+    if (is_callable($rep) && $rep != '_') 
+      $x = preg_replace_callback($pat,$rep,$x);
+    else
+      $x = preg_replace($pat,$rep,$x);# simple text OR called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
   }
   return $x;
 }
@@ -1857,10 +1864,15 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
     }
   }
   if ($pat && !isset($MarkupTable[$id]['pat'])) {
+    $oldpat = preg_match('!(^/.+/[^/]*)e([^/]*)$!', $pat, $mm);
+    if($oldpat && PHP_VERSION_ID >= 50500) {
+      # disable old markup for recent PHP versions
+      $rep = 'ObsoleteMarkup';
+      $pat = $mm[1].$mm[2];
+    }    
     $MarkupTable[$id]['pat'] = $pat;
     $MarkupTable[$id]['rep'] = $rep;
-
-    $oldpat = preg_match('!/[^/]*e[^/]*$!', $pat);
+    
     if (IsEnabled($EnableMarkupDiag, 0) || $oldpat) {
       $exmark = $oldpat ? '!' : ' ';
       if (function_exists('debug_backtrace')) {
@@ -1876,8 +1888,20 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
 }
 
 function Markup_e($id, $when, $pat, $rep, $template = 'markup_e') {
-  if (!is_callable($rep)) $rep = PCCF($rep, $template);
+  if (!is_callable($rep)) {
+    if(function_exists('create_function'))
+      $rep = PCCF($rep, $template);
+    else $rep = 'ObsoleteMarkup';
+  }
   Markup($id, $when, $pat, $rep, 1);
+}
+
+function ObsoleteMarkup($m) {
+  extract($GLOBALS['MarkupToHTML']);
+  $id = PHSC($markupid, ENT_QUOTES);
+  $txt = PHSC($m[0], ENT_QUOTES);
+  return Keep("<code title='Markup rule &quot;$id&quot; is obsolete and has been disabled. See pmwiki.org/Troubleshooting' 
+    class='obsolete-markup frame'>⚠️$txt</code>");
 }
 
 function DisableMarkup() {
