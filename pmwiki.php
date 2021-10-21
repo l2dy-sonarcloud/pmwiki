@@ -1127,8 +1127,10 @@ function XLPage($lang,$p,$nohtml=false) {
 function CmpPageAttr($a, $b) {
   @list($x, $agmt) = explode(':', $a);
   @list($x, $bgmt) = explode(':', $b);
+  $nagmt = intval($agmt);
+  $nbgmt = intval($bgmt);
   if ($agmt != $bgmt) 
-    return ($agmt==0 || $bgmt==0) ? $agmt - $bgmt : $bgmt - $agmt;
+    return ($nagmt==0 || $nbgmt==0) ? $nagmt - $nbgmt : $nbgmt - $nagmt;
   return strcmp($a, $b);
 }
 
