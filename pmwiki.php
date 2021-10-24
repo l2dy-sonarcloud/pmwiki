@@ -248,12 +248,12 @@ function CondAuth($pagename, $condparm) {
 }
 ## This is an optimized version of the earlier conditional
 ## especially for pagelists
-function CondExists($condparm) {
+function CondExists($condparm, $caseinsensitive = true) {
   static $ls = false;
   if(!$ls) $ls = ListPages();
   $condparm = str_replace(array('[[',']]'), array('', ''), $condparm);
   $glob = FixGlob($condparm, '$1*.$2');
-  return (boolean)MatchPageNames($ls, $glob);
+  return (boolean)MatchPageNames($ls, $glob, $caseinsensitive);
 }
 
 ## CondExpr handles complex conditions (expressions)
@@ -798,16 +798,17 @@ function FixGlob($x, $rep = '$1*.$2') {
 ## matching the pattern(s) in $pat.  Patterns can be either
 ## regexes to include ('/'), regexes to exclude ('!'), or
 ## wildcard patterns (all others).
-function MatchPageNames($pagelist, $pat) {
+function MatchPageNames($pagelist, $pat, $caseinsensitive = true) {
   # Note: MatchNames() is the generic function matching patterns,
   # works for attachments and other arrays. We can commit to 
   # keep it generic, even if we someday change MatchPageNames().
-  return MatchNames($pagelist, $pat);
+  return MatchNames($pagelist, $pat, $caseinsensitive);
 }
-function MatchNames($list, $pat) {
+function MatchNames($list, $pat, $caseinsensitive = true) {
   global $Charset, $EnableRangeMatchUTF8;
   # allow range matches in utf8; doesn't work on pmwiki.org and possibly elsewhere
   $pcre8 = (IsEnabled($EnableRangeMatchUTF8,0) && $Charset=='UTF-8')? 'u' : '';
+  $insensitive = $caseinsensitive ? 'i' : '';
   $list = (array)$list;
   foreach((array)$pat as $p) {
     if (count($list) < 1) break;
@@ -822,9 +823,9 @@ function MatchNames($list, $pat) {
       default:
         list($inclp, $exclp) = GlobToPCRE(str_replace('/', '.', $p));
         if ($exclp) 
-          $list = array_diff($list, preg_grep("/$exclp/i$pcre8", $list));
+          $list = array_diff($list, preg_grep("/$exclp/$insensitive$pcre8", $list));
         if ($inclp)
-          $list = preg_grep("/$inclp/i$pcre8", $list);
+          $list = preg_grep("/$inclp/$insensitive$pcre8", $list);
     }
   }
   return $list;
