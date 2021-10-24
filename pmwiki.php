@@ -233,7 +233,6 @@ $Conditions['name'] =
   "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['authid'] = 'NoCache(@$GLOBALS["AuthId"] > "")';
-$Conditions['exists'] = 'CondExists($condparm)';
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
@@ -246,6 +245,7 @@ function CondAuth($pagename, $condparm) {
   if (@$HandleAuth[$level]>'') $level = $HandleAuth[$level];
   return (boolean)RetrieveAuthPage($pn, $level, false, READPAGE_CURRENT);
 }
+$Conditions['exists'] = 'CondExists($condparm)';
 ## This is an optimized version of the earlier conditional
 ## especially for pagelists
 function CondExists($condparm, $caseinsensitive = true) {
