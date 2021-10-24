@@ -233,8 +233,7 @@ $Conditions['name'] =
   "(boolean)MatchPageNames(\$pagename, FixGlob(\$condparm, '$1*.$2'))";
 $Conditions['match'] = 'preg_match("!$condparm!",$pagename)';
 $Conditions['authid'] = 'NoCache(@$GLOBALS["AuthId"] > "")';
-$Conditions['exists'] = "(boolean)ListPages(FixGlob(
-  str_replace(array('[[',']]'), array('', ''), \$condparm) , '$1*.$2'))";
+$Conditions['exists'] = 'CondExists($condparm)';
 $Conditions['equal'] = 'CompareArgs($condparm) == 0';
 function CompareArgs($arg) 
   { $arg = ParseArgs($arg); return strcmp(@$arg[''][0], @$arg[''][1]); }
@@ -246,6 +245,15 @@ function CondAuth($pagename, $condparm) {
   $pn = ($pn > '') ? MakePageName($pagename, $pn) : $pagename;
   if (@$HandleAuth[$level]>'') $level = $HandleAuth[$level];
   return (boolean)RetrieveAuthPage($pn, $level, false, READPAGE_CURRENT);
+}
+## This is an optimized version of the earlier conditional
+## especially for pagelists
+function CondExists($condparm) {
+  static $ls = false;
+  if(!$ls) $ls = ListPages();
+  $condparm = str_replace(array('[[',']]'), array('', ''), $condparm);
+  $glob = FixGlob($condparm, '$1*.$2');
+  return (boolean)MatchPageNames($ls, $glob);
 }
 
 ## CondExpr handles complex conditions (expressions)
