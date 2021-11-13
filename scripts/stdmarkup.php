@@ -214,8 +214,8 @@ Markup('messages', 'directives',
 function MarkupDirectives($m) {
   extract($GLOBALS["MarkupToHTML"]);
   switch ($markupid) {
-    case 'linkwikiwords':  return PZZ($GLOBALS['LinkWikiWords']=($m[1]!='no'));
-    case 'spacewikiwords': return PZZ($GLOBALS['SpaceWikiWords']=($m[1]!='no'));
+    case 'linkwikiwords':  return PZZ($GLOBALS['LinkWikiWords']=(@$m[1]!='no'));
+    case 'spacewikiwords': return PZZ($GLOBALS['SpaceWikiWords']=(@$m[1]!='no'));
     case 'linebreaks': 
       return PZZ($GLOBALS['HTMLPNewline'] = (@$m[1]!='no') ? '<br  />' : '');
     case 'messages': 

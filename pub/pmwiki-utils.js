@@ -383,6 +383,8 @@
   function highlight_pre() {
     if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
+    hljs.registerLanguage("pmwiki", HighlightPmWiki);
+ 
     var x = dqsa('.highlight,.hlt');
     
     for(var i=0; i<x.length; i++) {
@@ -395,6 +397,89 @@
       }
     }
     
+    var pm = dqsa('table.markup td.markup1 > pre');
+    for(var j=0; j<pm.length; j++) {
+      pm[j].classList.add('pmwiki');
+      hljs.highlightElement(pm[j]);
+    }
+  
+  }
+  function HighlightPmWiki(hljs) {
+    const WIKISTYLE = {
+      className: 'meta',
+      begin: '%\\w+.*?%|%%|^>>\\w+.*?<<|>><<'
+    };
+    const COMMENT = {
+      className: 'comment',
+      begin: /\(:comment.*?:\)/
+    }
+    const DIRECTIVE = {
+      className: 'selector-tag',
+      begin: /\(:\w+.*?:\)|\{\(\w+.*?\)\}/
+    };
+    const LIST = {
+      className: 'bullet',
+      begin: /^(\s*([*#]+)|-+[<>]|:+.*?:)/
+    };
+    const TABLECELL = {
+      className: 'bullet',
+      begin: /(\|\|)+!?/
+    };
+    const LINEBREAK = {
+      className: 'bullet',
+      begin: /\\+$/
+    }
+    const HEADING = {
+      className: 'title',
+      begin: '^!{1,6}',
+    }
+    const HORIZONTAL_RULE = {
+      className: 'section',
+      begin: '^-{4,}'
+    };
+    const VARIABLE = {
+      className: 'variable',
+      begin: '\\{([-\\w\/.]+|[*=])?\\$[$:]?\\w+\\}'
+    };
+    const I18N = {
+      className: 'string',
+      begin: /\$\[.*?\]/
+    };
+    const INLINE_MARKUP = {
+      className: 'symbol',
+      begin: /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\[[=@]|[=@]\]|\&\#?\w+;)/
+    };
+    const LINK = {
+      className: 'link',
+      variants: [
+        {
+          begin: /(\[\[[\#!]?|\+?\]\])/,
+          relevance: 0
+        },
+        {
+          begin: /((mailto):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/,
+          relevance: 2
+        },
+      ],
+    };
+    return {
+      name: 'PmWiki',
+      aliases: [ 'pmwiki', 'pm' ],
+      contains: [
+        I18N,
+        LINK,
+        COMMENT,
+        TABLECELL,
+        LINEBREAK,
+        HEADING,
+        HORIZONTAL_RULE,
+        DIRECTIVE,
+        VARIABLE,
+        LIST,
+        WIKISTYLE,
+        INLINE_MARKUP
+      ]
+    };
   }
 
   function ready(){
