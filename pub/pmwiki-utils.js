@@ -424,7 +424,7 @@
     };
     const VARIABLE = { scope: 'variable', variants:[
       {match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
-      {match: /\$(Enable\w+|\w+Fmt)\b/}
+      {match: /\$((Enable|Fmt)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD)\b/}
       ] 
     };
     const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*=/ };
