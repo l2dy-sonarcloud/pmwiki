@@ -427,7 +427,7 @@
       {match: /\$(Enable\w+|\w+Fmt)\b/}
       ] 
     };
-    const ARGS = { scope: 'symbol', match: /\s\w[-\w]*=/ };
+    const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*=/ };
     const DIRECTIVE = {
       scope: 'selector-tag',
       contains: [ ARGS, VARIABLE, ESCAPE ],
