@@ -384,7 +384,7 @@
     if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
     hljs.registerLanguage("pmwiki", HighlightPmWiki);
- 
+    
     var x = dqsa('.highlight,.hlt');
     
     for(var i=0; i<x.length; i++) {
@@ -402,83 +402,67 @@
       pm[j].classList.add('pmwiki');
       hljs.highlightElement(pm[j]);
     }
-  
   }
   function HighlightPmWiki(hljs) {
-    const WIKISTYLE = {
-      className: 'meta',
-      begin: '%\\w+.*?%|%%|^>>\\w+.*?<<|>><<'
+    const ESCAPE = {
+      scope: 'escaped', 
+      relevance: 10,
+      variants: [
+        { match: /\[@(.|\n)*?@\]/ },
+        { match: /\[=(.|\n)*?=\]/ },
+        { match: /\(:comment.*?:\)/, scope:'comment' }
+      ]
     };
-    const COMMENT = {
-      className: 'comment',
-      begin: /\(:comment.*?:\)/
-    }
+    const META = {
+      scope: 'meta',
+      variants: [
+        { match: /%\w+.*?%|%%|^>>\w+.*?<<|^>><</ }, // wikistyle
+        { match: /\(:(title|description|keywords|redirect|if\d*|else\d*|elseif\d*|if\d*end)( .*?)?:\)/i },
+        { match: /\(:((no)?linebreaks|(no)?linkwikiwords|(no)?spacewikiwords|no(action|left|right|(group)?header|(group)?footer|title|toc)):\)/i },
+        { match: /\(:[\w-]+:([^)](.|\n)*?|):\)/ } // PTV, can be multiline
+      ]
+    };
+    const VARIABLE = { scope: 'variable', match: '\\{([-\\w\/.]+|[*=])?\\$[$:]?\\w+\\}' };
+    const ARGS = { scope: 'symbol', match: /\s\w[-\w]*=/ };
     const DIRECTIVE = {
-      className: 'selector-tag',
-      begin: /\(:\w+.*?:\)|\{\(\w+.*?\)\}/
-    };
-    const LIST = {
-      className: 'bullet',
-      begin: /^(\s*([*#]+)|-+[<>]|:+.*?:)/
-    };
-    const TABLECELL = {
-      className: 'bullet',
-      begin: /(\|\|)+!?/
-    };
-    const LINEBREAK = {
-      className: 'bullet',
-      begin: /\\+$/
-    }
-    const HEADING = {
-      className: 'title',
-      begin: '^!{1,6}',
-    }
-    const HORIZONTAL_RULE = {
-      className: 'section',
-      begin: '^-{4,}'
-    };
-    const VARIABLE = {
-      className: 'variable',
-      begin: '\\{([-\\w\/.]+|[*=])?\\$[$:]?\\w+\\}'
-    };
-    const I18N = {
-      className: 'string',
-      begin: /\$\[.*?\]/
-    };
-    const INLINE_MARKUP = {
-      className: 'symbol',
-      begin: /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\[[=@]|[=@]\]|\&\#?\w+;)/
+      scope: 'selector-tag',
+      contains: [ ARGS, VARIABLE, ESCAPE ],
+      variants: [
+        { begin: /\(:[-\w]+/, end: /:\)/ },
+        { begin: /\{\(\w+/, end: /\)\}/ }
+      ]
     };
     const LINK = {
-      className: 'link',
+      scope: 'link',
       variants: [
-        {
-          begin: /(\[\[[\#!]?|\+?\]\])/,
-          relevance: 0
-        },
-        {
-          begin: /((mailto):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/,
-          relevance: 2
-        },
+        { scope: 'punctuation', match: /(\[\[[\#!~]?|([#+]\s*)?\]\])/ },
+        { match: /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/ },
       ],
     };
+    const INLINE_MARKUP = {
+      scope: 'punctuation',
+      variants: [
+        { scope: 'symbol', match: /\&\#?\w+;/ },
+        { match: /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->)/ }
+      ]
+    };
+    const LIST = {
+      scope: 'bullet',
+      variants: [
+        { begin: /^(\s*([*#]+)\s*|-+[<>]\s*|[A-Z][a-zA-Z0-9]*:|\s+)/ },
+        { begin: /^:+/, end: /:/, contains: [ ESCAPE, LINK, VARIABLE, INLINE_MARKUP ] }
+      ]
+    };
+    const TABLECELL = { scope: 'bullet', begin: /(\|\|)+!?/ };
+    const LINEBREAK = { scope: 'bullet', begin: /\\+$/ };
+    const HEADING = { scope: 'title', begin: '^(!{1,6}|[QA]:)' };
+    const SECTION = { scope: 'section', begin: '^-{4,}' };
+    const I18N = { scope: 'string', begin: /\$\[.*?\]/ };
     return {
+      case_insensitive: true,
       name: 'PmWiki',
       aliases: [ 'pmwiki', 'pm' ],
-      contains: [
-        I18N,
-        LINK,
-        COMMENT,
-        TABLECELL,
-        LINEBREAK,
-        HEADING,
-        HORIZONTAL_RULE,
-        DIRECTIVE,
-        VARIABLE,
-        LIST,
-        WIKISTYLE,
-        INLINE_MARKUP
-      ]
+      contains: [ ESCAPE, META, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, DIRECTIVE, VARIABLE, LIST, INLINE_MARKUP, LINK]
     };
   }
 
