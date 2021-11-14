@@ -2,7 +2,7 @@
   JavaScript utilities for PmWiki
   (c) 2009-2021 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
-  licensed GNU GPLv2 or any more recent version.
+  licensed GNU GPLv2 or any more recent version released by the FSF.
 
   libsortable() "Sortable tables" adapted for PmWiki from
   a Public Domain event listener by github.com/tofsjonas
@@ -422,7 +422,11 @@
         { match: /\(:[\w-]+:([^)](.|\n)*?|):\)/ } // PTV, can be multiline
       ]
     };
-    const VARIABLE = { scope: 'variable', match: '\\{([-\\w\/.]+|[*=])?\\$[$:]?\\w+\\}' };
+    const VARIABLE = { scope: 'variable', variants:[
+      {match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
+      {match: /\$(Enable\w+|\w+Fmt)\b/}
+      ] 
+    };
     const ARGS = { scope: 'symbol', match: /\s\w[-\w]*=/ };
     const DIRECTIVE = {
       scope: 'selector-tag',
