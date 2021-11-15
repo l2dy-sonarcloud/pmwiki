@@ -407,34 +407,53 @@
     const ESCAPE = {
       scope: 'escaped', 
       relevance: 10,
-      variants: [
-        { match: /\[@(.|\n)*?@\]/ },
-        { match: /\[=(.|\n)*?=\]/ },
-        { match: /\(:comment.*?:\)/, scope:'comment' }
+      match: /\[@(.|\n)*?@\]|\[=(.|\n)*?=\]/
+    };
+    const COMMENT = {
+      scope: 'comment', 
+      relevance: 10,
+      match: /\(:comment.*?:\)/ 
+    };
+    const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*(?=[ :=])/ };
+    const MARGS = { scope: 'string', match: /\s(\$:?)?\w[-\w]*(?=[= :])/ };
+    const I18N = { scope: 'string', begin: /\$\[.*?\]/ };
+    const VARIABLE = { scope: 'variable', variants:[
+      { match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
+      { match: /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/}
       ]
     };
-    const META = {
+    const STR = { scope: 'string', match: /("[^\n"]*"|'[^\n']*')/ };
+    const MX = {
+      scope: 'code',
+      contains: [ STR, ARGS, VARIABLE, ESCAPE ],
+      returnBegin: true,
+      begin: /\{\([-\w]+(.|\\\n)*?\)\}/, end: /(\)\})/
+    };
+    const CORE = {
       scope: 'meta',
       variants: [
-        { match: /%\w+.*?%|%%|^>>\w+.*?<<|^>><</ }, // wikistyle
-        { match: /\(:(title|description|keywords|redirect|if\d*|else\d*|elseif\d*|if\d*end)( .*?)?:\)/i },
-        { match: /\(:((no)?linebreaks|(no)?linkwikiwords|(no)?spacewikiwords|no(action|left|right|(group)?header|(group)?footer|title|toc)):\)/i },
-        { match: /\(:[\w-]+:([^)](.|\n)*?|):\)/ } // PTV, can be multiline
+        { match: /\(:(else\d*|if\d*|if\d*end):\)/ }, // empty conditional
+        {
+          returnBegin: true,
+          contains: [ I18N, STR, MARGS, VARIABLE, ESCAPE, MX ],
+          begin: /(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.|\\\n)*?:\)/, end: /(:\))/,
+        },
+        { match: /\(:[-\w]+ *::\)/ }, // empty PTV
+        { match: /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/ }, // core meta
+        { match: /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/ }, // core meta
+        { match: [/\(:[\w-]+:/, /([^)](.|\n)*?|)/, /:\)/], beginScope: {2:'string'} }, // PTV, can be multiline
+        
+        { match: /%(\w[-\w])?%|^>>(\w[-\w])?<</ }, // wikistyle
+        { match: /^[A-Z][a-zA-Z0-9]*:/ }, // property, or start of line PTV
+        { match: [/^>>[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
+        { match: [/%[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /%/], beginScope: {2:'string'} }, // wikistyle
       ]
     };
-    const VARIABLE = { scope: 'variable', variants:[
-      {match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
-      {match: /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD)\b/}
-      ] 
-    };
-    const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*=/ };
     const DIRECTIVE = {
       scope: 'selector-tag',
-      contains: [ ARGS, VARIABLE, ESCAPE ],
-      variants: [
-        { begin: /\(:[-\w]+/, end: /:\)/ },
-        { begin: /\{\(\w+/, end: /\)\}/ }
-      ]
+      contains: [ I18N, STR, ARGS, VARIABLE, ESCAPE, MX ],
+      returnBegin: true,
+      begin: /(\(:[-\w]+)(.|\\\n)*?:\)/, end: /(:\))/
     };
     const LINK = {
       scope: 'link',
@@ -443,7 +462,7 @@
         { match: /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/ },
       ],
     };
-    const INLINE_MARKUP = {
+    const INLINE = {
       scope: 'punctuation',
       variants: [
         { scope: 'symbol', match: /\&\#?\w+;/ },
@@ -453,20 +472,17 @@
     const LIST = {
       scope: 'bullet',
       variants: [
-        { begin: /^(\s*([*#]+)\s*|-+[<>]\s*|[A-Z][a-zA-Z0-9]*:|\s+)/ },
-        { begin: /^:+/, end: /:/, contains: [ ESCAPE, LINK, VARIABLE, INLINE_MARKUP ] }
+        { begin: /^(\s*([*#]+)\s*|-+[<>]\s*|\s+)/ },
+        { begin: /^:+/, end: /:/, contains: [ ESCAPE, MX, LINK, VARIABLE, INLINE ] }
       ]
     };
     const TABLECELL = { scope: 'bullet', begin: /(\|\|)+!?/ };
     const LINEBREAK = { scope: 'bullet', begin: /\\+$/ };
     const HEADING = { scope: 'title', begin: '^(!{1,6}|[QA]:)' };
     const SECTION = { scope: 'section', begin: '^-{4,}' };
-    const I18N = { scope: 'string', begin: /\$\[.*?\]/ };
     return {
-      case_insensitive: true,
-      name: 'PmWiki',
-      aliases: [ 'pmwiki', 'pm' ],
-      contains: [ ESCAPE, META, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, DIRECTIVE, VARIABLE, LIST, INLINE_MARKUP, LINK]
+      name: 'PmWiki', aliases: [ 'pmwiki', 'pm' ], case_insensitive: true,
+      contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, CORE, DIRECTIVE, VARIABLE, LIST, INLINE, LINK]
     };
   }
 

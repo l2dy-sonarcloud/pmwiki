@@ -389,12 +389,16 @@ table.sortable th.dir-d::after {
 .hljs.language-pmwiki {
   background-color: inherit;
 }
+.hljs.language-pmwiki span.hljs-code,
 .hljs.language-pmwiki span.hljs-punctuation,
 .hljs.language-pmwiki span.hljs-meta,
 .hljs.language-pmwiki span.hljs-bullet {
   font-weight: bold;
 }
 
+.hljs.language-pmwiki .hljs-meta {
+  background-color: #eff;
+}
 .hljs.language-pmwiki span.hljs-bullet {
   background-color: #dfd;
 }
@@ -407,7 +411,9 @@ table.sortable th.dir-d::after {
   color: #555;
   background-color: #f0f0f0;
 }
-
+.hljs.language-pmwiki > * > * {
+  font-weight: normal;
+}
 
 @media screen and (min-width:50em) {
   html, body, #bodywrap {
