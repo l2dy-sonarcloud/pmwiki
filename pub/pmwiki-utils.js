@@ -482,7 +482,7 @@
     const SECTION = { scope: 'section', begin: '^-{4,}' };
     return {
       name: 'PmWiki', aliases: [ 'pmwiki', 'pm' ], case_insensitive: true,
-      contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, CORE, DIRECTIVE, VARIABLE, LIST, INLINE, LINK]
+      contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, CORE, DIRECTIVE, VARIABLE, LIST, LINK, INLINE]
     };
   }
 
