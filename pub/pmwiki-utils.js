@@ -445,7 +445,7 @@
         
         { match: /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</ }, // wikistyle
         { match: /^[A-Z][a-zA-Z0-9]*:/ }, // property, or start of line PTV
-        { match: [/^>>[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
+        { match: [/^>>[-\w]+/, /(?:(?:[^%<]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
         { match: [/%[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /%/], beginScope: {2:'string'} }, // wikistyle
       ]
     };
