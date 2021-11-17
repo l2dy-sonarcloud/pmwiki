@@ -428,15 +428,12 @@
   
   function hltpmwiki_pre(x) {
     if(x.language != "pmwiki") return;
-    console.log(arguments);
-    
     KPV = [];    
     x.code = x.code.replace(/\[([@=])(?:.|\n)*?\1\]/g, hltKeep);
     x.code = x.code.replace(/([^\\])(\\\n)/g, hltKeep);
   }
   function hltpmwiki_post(x) {
     if(x.language != "pmwiki") return;
-    console.log(arguments);
     x.value = x.value.replace(restoreRX, hltRestore);
   }
   
