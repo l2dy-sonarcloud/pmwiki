@@ -384,6 +384,9 @@
     if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
     hljs.registerLanguage("pmwiki", HighlightPmWiki);
+  
+    hljs.addPlugin({ 'before:highlight': hltpmwiki_pre });
+    hljs.addPlugin({ 'after:highlight': hltpmwiki_post });
     
     var x = dqsa('.highlight,.hlt');
     
@@ -403,6 +406,40 @@
       hljs.highlightElement(pm[j]);
     }
   }
+  
+  
+  var KeepToken = "\034\034", KPV = [];
+  var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
+  
+  function hltKeep() {
+    var match = arguments[0];
+    var cnt = KPV.length;
+    if(match.match(/^\[[=@]/)) {
+      KPV.push('<span class="hljs-escaped">'+match+'</span>');
+      return KeepToken+cnt+KeepToken;
+    }
+    if (arguments[2] == '\\\n') {
+      KPV.push('<span class="hljs-bullet">\\\n</span>');
+      return arguments[1] + KeepToken+cnt+KeepToken;
+    }
+    return match; // shouldn't happen
+  }
+  function hltRestore(all, n) { return KPV[parseInt(n)]; }
+  
+  function hltpmwiki_pre(x) {
+    if(x.language != "pmwiki") return;
+    console.log(arguments);
+    
+    KPV = [];    
+    x.code = x.code.replace(/\[([@=])(?:.|\n)*?\1\]/g, hltKeep);
+    x.code = x.code.replace(/([^\\])(\\\n)/g, hltKeep);
+  }
+  function hltpmwiki_post(x) {
+    if(x.language != "pmwiki") return;
+    console.log(arguments);
+    x.value = x.value.replace(restoreRX, hltRestore);
+  }
+  
   function HighlightPmWiki(hljs) {
     const ESCAPE = {
       scope: 'escaped', 
@@ -416,7 +453,7 @@
     };
     const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*(?=[ :=])/ };
     const MARGS = { scope: 'string', match: /\s(\$:?)?\w[-\w]*(?=[= :])/ };
-    const I18N = { scope: 'string', begin: /\$\[.*?\]/ };
+    const I18N = { scope: 'string', match: /\$\[.*?\]/ };
     const VARIABLE = { scope: 'variable', variants:[
       { match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
       { match: /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/}
@@ -472,14 +509,14 @@
     const LIST = {
       scope: 'bullet',
       variants: [
-        { begin: /^(\s*([*#]+)\s*|-+[<>]\s*|\s+)/ },
+        { match: /^(\s*([*#]+)\s*|-+[<>]\s*|\s+)/ },
         { begin: /^:+/, end: /:/, contains: [ ESCAPE, MX, LINK, VARIABLE, INLINE ] }
       ]
     };
-    const TABLECELL = { scope: 'bullet', begin: /(\|\|)+!?/ };
-    const LINEBREAK = { scope: 'bullet', begin: /\\+$/ };
-    const HEADING = { scope: 'title', begin: '^(!{1,6}|[QA]:)' };
-    const SECTION = { scope: 'section', begin: '^-{4,}' };
+    const TABLECELL = { scope: 'bullet', match: /(\|\|)+!?/ };
+    const LINEBREAK = { scope: 'bullet', match: /\\+$/ };
+    const HEADING = { scope: 'title', match: '^(!{1,6}|[QA]:)' };
+    const SECTION = { scope: 'section', match: '^-{4,}' };
     return {
       name: 'PmWiki', aliases: [ 'pmwiki', 'pm' ], case_insensitive: true,
       contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, CORE, DIRECTIVE, VARIABLE, LIST, LINK, INLINE]
