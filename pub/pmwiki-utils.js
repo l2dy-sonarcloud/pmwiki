@@ -416,7 +416,7 @@
     var cnt = KPV.length;
     if(match.match(/^\[[=@]/)) {
       KPV.push('<span class="hljs-escaped">'
-        +match.replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;')+'</span>');
+        +match.replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;').replace(/[&]/g, '&amp;')+'</span>');
       return KeepToken+cnt+KeepToken;
     }
     if (arguments[2] == '\\\n') {
