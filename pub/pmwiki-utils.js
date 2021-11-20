@@ -439,6 +439,11 @@
   }
   
   function HighlightPmWiki(hljs) {
+    const ESCAPE = { // only used for detection
+      scope: 'escaped', 
+      relevance: 10,
+      match: /\[([@=])(?:.|\n)*?\1\]/ 
+    }
     const COMMENT = {
       scope: 'comment', 
       relevance: 10,
@@ -456,41 +461,42 @@
     const MX = {
       scope: 'code',
       contains: [ STR, ARGS, VARIABLE ],
-      returnBegin: true,
+      returnBegin: true, relevance: 10,
       begin: /\{\([-\w]+(.|\\\n)*?\)\}/, end: /(\)\})/
     };
     const CORE = {
       scope: 'meta',
       variants: [
-        { match: /\(:(else\d*|if\d*|if\d*end):\)/ }, // empty conditional
+        { match: /\(:(else\d*|if\d*|if\d*end):\)/, relevance: 10 }, // empty conditional
         {
           returnBegin: true,
           contains: [ I18N, STR, MARGS, VARIABLE, MX ],
           begin: /(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.|\\\n)*?:\)/, end: /(:\))/,
+          relevance: 10
         },
         { match: /\(:[-\w]+ *::\)/ }, // empty PTV
-        { match: /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/ }, // core meta
-        { match: /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/ }, // core meta
+        { match: /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/, relevance: 10 }, // core meta
+        { match: /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/, relevance: 10 }, // core meta
         
-        { match: [/\(:[\w-]+:/, /([^)](.|\n)*?|)/, /:\)/], beginScope: {2:'string'} }, // PTV, can be multiline
+        { match: [/\(:[\w-]+:/, /([^)](.|\n)*?|)/, /:\)/], beginScope: {2:'string'}, relevance: 10 }, // PTV, can be multiline
         { match: /^[A-Z][a-zA-Z0-9]*:/ }, // property, or start of line PTV
         
-        { match: /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</ }, // short wikistyle
-        { match: [/^>>[-\w]+/, /(?:(?:[^%<]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
-        { match: [/%[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /%/], beginScope: {2:'string'} }, // wikistyle
+        { match: /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</, relevance: 10 }, // short wikistyle
+        { match: [/^>>[-\w]+/, /(?:(?:[^%<]|\\\n)+)?/, /<</], beginScope: {2:'string'}, relevance: 10  }, // wikistyle
+        { match: [/%[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /%/], beginScope: {2:'string'}, relevance: 10 } // wikistyle
       ]
     };
     const DIRECTIVE = {
       scope: 'selector-tag',
       contains: [ I18N, STR, ARGS, VARIABLE, MX ],
-      returnBegin: true,
+      returnBegin: true, relevance: 10,
       begin: /(\(:[-\w]+)(.|\\\n)*?:\)/, end: /(:\))/
     };
     const LINK = {
       scope: 'link',
       variants: [
-        { scope: 'punctuation', match: /(\[\[[\#!~]?|([#+]\s*)?\]\])/ },
-        { match: /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/ },
+        { scope: 'punctuation', match: /(\[\[[\#!~]?|([#+]\s*)?\]\])/, relevance: 5 },
+        { match: /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/ }
       ],
     };
     const INLINE = {
@@ -509,11 +515,11 @@
     };
     const TABLECELL = { scope: 'bullet', match: /(\|\|)+!?/ };
     const LINEBREAK = { scope: 'bullet', match: /\\+$/ };
-    const HEADING = { scope: 'title', match: '^(!{1,6}|[QA]:)' };
+    const HEADING = { scope: 'title', match: '^(!{1,6}|[QA]:)', relevance: 10 };
     const SECTION = { scope: 'section', match: '^-{4,}' };
     return {
       name: 'PmWiki', aliases: [ 'pmwiki', 'pm' ], case_insensitive: true,
-      contains: [ COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, LINK, CORE, DIRECTIVE, VARIABLE, LIST, INLINE]
+      contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, LINK, CORE, DIRECTIVE, VARIABLE, LIST, INLINE]
     };
   }
 
