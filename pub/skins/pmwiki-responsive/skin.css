@@ -406,6 +406,10 @@ table.sortable th.dir-d::after {
   color: #a00;
 }
 
+.hljs.language-pmwiki span.hljs-title{
+  background-color: #ffeaea;
+}
+
 .hljs.language-pmwiki span.hljs-escaped {
   font-weight: normal;
   color: #555;
