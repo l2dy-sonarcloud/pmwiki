@@ -480,7 +480,7 @@
         { match: /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/ }, // core meta
         
         { match: [/\(:[\w-]+:/, /([^)](.|\n)*?|)/, /:\)/], beginScope: {2:'string'} }, // PTV, can be multiline
-        { match: /^[A-Z][a-zA-Z0-9]*:/ }, // property, or start of line PTV
+        { match: /^[A-Z][_a-zA-Z0-9]*:/ }, // property, or start of line PTV
         
         { match: /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</ }, // short wikistyle
         { match: [/^>>[-\w]+/, /(?:(?:[^%<]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
