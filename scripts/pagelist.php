@@ -326,6 +326,7 @@ function PageListSources(&$list, &$opt, $pn, &$page) {
   global $SearchPatterns;
 
   StopWatch('PageListSources begin');
+  if (!isset($SearchPatterns[$opt['list']])) $opt['list'] = 'default';
   if ($opt['list'] == 'grouphomes') EnablePageListGroupHomes();
   ## add the list= option to our list of pagename filter patterns
   $opt['=pnfilter'] = array_merge((array)@$opt['=pnfilter'], 
