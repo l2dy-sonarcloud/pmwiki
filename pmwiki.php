@@ -1912,7 +1912,7 @@ function ObsoleteMarkup($m) {
   $id = PHSC($markupid, ENT_QUOTES);
   $txt = PHSC($m[0], ENT_QUOTES);
   return Keep("<code title='Markup rule &quot;$id&quot; is obsolete and has been disabled. See pmwiki.org/Troubleshooting' 
-    class='obsolete-markup frame'>⚠️$txt</code>");
+    class='obsolete-markup frame'>&#9888; $txt</code>");
 }
 
 function DisableMarkup() {
