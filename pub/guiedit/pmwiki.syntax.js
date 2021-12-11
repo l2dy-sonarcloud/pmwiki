@@ -178,7 +178,8 @@
       text.insertAdjacentHTML('beforebegin', '<div id="hwrap"><pre id="htext" class="pmhlt"></pre></div>');
       updatePre();
       resizePre();
-
+      
+      htext.inert = true;
       htext.addEventListener('scroll', preScrolled);
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);

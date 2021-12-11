@@ -112,8 +112,8 @@ code.pmhlt, .pmhlt code {
 }
 .pmhlt .pmhline {
   background-color: var(--pmhi-headingbg);
-/*   display: inline-block; */
-/*   width: 100%; */
+  display: inline-block;
+  width: calc( 100% - 1em);
 }
 .pmhlt .pmescaped {
   color: var(--pmhi-escaped);
