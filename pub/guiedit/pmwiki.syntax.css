@@ -1,0 +1,176 @@
+/*
+  EditHighlight: Syntax highlighting for the PmWiki edit form
+  Author (c) 2021 Petko Yotov https://www.pmwiki.org/support
+  License: GNU GPLv2 or any more recent version released by the FSF
+  Version: 20211211
+*/
+:root {
+  --pmhi-color: inherit;
+  --pmhi-bgcolor: inherit;
+  --pmhi-border:  1px inset #ccc;
+  --pmhi-radpad: 3px;
+  --pmhi-fontfamily: monospace;
+  --pmhi-fontsize: 14px;
+  --pmhi-lineheight: 1.3;
+  --pmhi-caretcolor: red;
+  
+  --pmhi-meta: #1f7199;
+  --pmhi-metabg: #eff;
+  
+  --pmhi-escaped: #555;
+  --pmhi-escapedbg: #f0f0f0;
+  
+  --pmhi-heading: #800;
+  --pmhi-headingbg: #ffeaea;
+  
+  --pmhi-directive: black;
+  --pmhi-directivebg: #f0f0f0;
+  
+  
+  --pmhi-mx: #397300;
+  --pmhi-mxbg: #efe;
+  
+  --pmhi-bullet: #397300;
+  --pmhi-bulletbg: #dfd;
+  --pmhi-tab: #397300;
+  --pmhi-tabbg: #dfd;
+  
+  --pmhi-punct: #a00;
+  
+  --pmhi-symbol: #bc6060;
+  --pmhi-string: #800;
+  
+  --pmhi-comment: #777;
+  
+  --pmhi-attr: #bc6060;
+  --pmhi-value: #a00;
+  --pmhi-var: #bc6060;
+  
+  --pmhi-link: #2f6fab;
+  
+}
+
+pre.pmhlt, .pmhlt pre, 
+code.pmhlt, .pmhlt code {
+  color: var(--pmhi-color);
+  background-color: var(--pmhi-bgcolor);
+  font-family: var(--pmhi-fontfamily);
+  font-size: var(--pmhi-fontsize);
+}
+.pmhlt .pmmx,
+.pmhlt .pmpunctuation,
+.pmhlt .pmmeta,
+.pmhlt .pmdirective,
+.pmhlt .pmtab,
+.pmhlt .pmheading,
+.pmhlt .pmbullet {
+  font-weight: bold;
+}
+
+.pmhlt .pmcomment {
+  color: var(--pmhi-comment);
+}
+.pmhlt .pmmx {
+  color: var(--pmhi-mx);
+  background-color: var(--pmhi-mxbg);
+}
+
+
+.pmhlt .pmdirective {
+  color: var(--pmhi-directive);
+  background-color: var(--pmhi-directivebg);
+}
+.pmhlt .pmstring {
+  color: var(--pmhi-string);
+}
+.pmhlt .pmvar {
+  color: var(--pmhi-var);
+}
+
+
+.pmhlt .pmmeta {
+  color: var(--pmhi-meta);
+  background-color: var(--pmhi-metabg);
+}
+.pmhlt .pmbullet {
+  color: var(--pmhi-bullet);
+  background-color: var(--pmhi-bulletbg);
+}
+.pmhlt .pmtab {
+  color: var(--pmhi-tab);
+  background-color: var(--pmhi-tabbg);
+}
+.pmhlt .pmpunctuation {
+  color: var(--pmhi-punct);
+}
+.pmhlt .pmlink{
+  color: var(--pmhi-link);
+}
+
+.pmhlt .pmheading {
+  color: var(--pmhi-heading);
+  background-color: var(--pmhi-headingbg);
+}
+.pmhlt .pmhline {
+  background-color: var(--pmhi-headingbg);
+}
+.pmhlt .pmescaped {
+  color: var(--pmhi-escaped);
+  background-color: var(--pmhi-escapedbg);
+}
+.pmhlt .pmattr {
+  color: var(--pmhi-attr);
+}
+.pmhlt .pmvalue {
+  color: var(--pmhi-value);
+}
+.pmhlt > * > * {
+  font-weight: normal;
+}
+
+
+#wikiedit #hwrap {
+  position: relative;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+#wikiedit #text, #wikiedit #htext {
+  border: var(--pmhi-border);
+  border-radius: var(--pmhi-radpad);
+  padding: var(--pmhi-radpad);
+  box-sizing: border-box;
+  font-family: var(--pmhi-fontfamily);
+  font-size: var(--pmhi-fontsize);
+  line-height: var(--pmhi-lineheight);
+  background-color: transparent;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  word-wrap: break-word;
+}
+#wikiedit #hwrap #htext {
+  display: none;
+  position: absolute;
+  top: 1px;
+  left: 0px;
+  background-color: var(--pmhi-bgcolor);
+  white-space: pre-wrap;
+  border-color: transparent;
+  overflow: auto;
+  user-select: none;
+}
+
+#wikiedit #chk_hlt_wrap[data-checked="true"] ~ * #htext {
+  display: block;
+}
+#chk_hlt_wrap {
+  float: right;
+}
+#wikiedit #chk_hlt_wrap[data-checked="true"] ~ * #text,
+#wikiedit #chk_hlt_wrap[data-checked="true"] ~ #text {
+  position: relative;
+  z-index: 2;
+  color: transparent;
+  caret-color: var(--pmhi-caretcolor);
+}

@@ -40,6 +40,12 @@ if (isset($PostConfig) && is_array($PostConfig)) {
   }
 }
 
+
+if(IsEnabled($EnablePmSyntax, 0)) { # before skins
+  $HTMLHeaderFmt['PmHighlight'] = "<link rel='stylesheet' href='\$FarmPubDirUrl/guiedit/pmwiki.syntax.css'>
+  <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' data-mode='$EnablePmSyntax'></script>";
+}
+
 if (IsEnabled($EnableRobotControl,1))
   include_once("$FarmD/scripts/robots.php");
 
