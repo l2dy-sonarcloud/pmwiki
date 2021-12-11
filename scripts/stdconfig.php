@@ -40,14 +40,6 @@ if (isset($PostConfig) && is_array($PostConfig)) {
   }
 }
 
-
-if(IsEnabled($EnablePmSyntax, 0)) { # before skins
-  $HTMLHeaderFmt['PmHighlight'] = "<link rel='stylesheet' 
-    href='\$FarmPubDirUrl/guiedit/pmwiki.syntax.css'>
-  <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' 
-    data-label=\"$[Highlight]\" data-mode='$EnablePmSyntax'></script>";
-}
-
 if (IsEnabled($EnableRobotControl,1))
   include_once("$FarmD/scripts/robots.php");
 
@@ -116,6 +108,14 @@ if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableS
         data-toggle='".PHSC(@$ToggleNextSelector, ENT_QUOTES)."'
         data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
   }
+}
+
+if (IsEnabled($EnablePmSyntax, 0)) { 
+  # before skins and local.css
+  array_unshift($HTMLHeaderFmt, "<link rel='stylesheet' 
+    href='\$FarmPubDirUrl/guiedit/pmwiki.syntax.css'>
+  <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' 
+    data-label=\"$[Highlight]\" data-mode='$EnablePmSyntax'></script>");
 }
 
 if (IsEnabled($EnableUpgradeCheck,1)) {
