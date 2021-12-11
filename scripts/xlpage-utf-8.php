@@ -75,7 +75,6 @@ function utf8toupper($x) {
   return str_replace($lower, $upper, $x);
 }
 
-
 function utf8fold($x) {
   global $StringFolding;
   static $source, $target;

@@ -381,148 +381,23 @@
   }
 
   function highlight_pre() {
-    if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
-    hljs.registerLanguage("pmwiki", HighlightPmWiki);
-  
-    hljs.addPlugin({ 'before:highlight': hltpmwiki_pre });
-    hljs.addPlugin({ 'after:highlight': hltpmwiki_post });
     
     var x = dqsa('.highlight,.hlt');
     
     for(var i=0; i<x.length; i++) {
+      if(x[i].className.match(/(^| )(pm|pmwiki)( |$)/)) { continue;} // core highlighter
       var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre,code'));
-      var n = x[i].nextElementSibling;
+      var n = x[i].nextElementSibling;.className.match(/(^| )(pm|pmwiki)( |$)/)
       if (n && n.tagName == 'PRE') pre.push(n);
       for(var j=0; j<pre.length; j++) {
         pre[j].className += ' ' + x[i].className;
         hljs.highlightElement(pre[j]);
       }
     }
-    
-    var pm = dqsa('table.markup td.markup1 > pre');
-    for(var j=0; j<pm.length; j++) {
-      pm[j].classList.add('pmwiki');
-      hljs.highlightElement(pm[j]);
-    }
+
   }
   
-  
-  var KeepToken = "\034\034", KPV = [];
-  var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  
-  function hltKeep() {
-    var match = arguments[0];
-    var cnt = KPV.length;
-    if(match.match(/^\[[=@]/)) {
-      KPV.push('<span class="hljs-escaped">'
-        + match.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;')
-        +'</span>');
-      return KeepToken+cnt+KeepToken;
-    }
-    if (arguments[2] == '\\\n') {
-      KPV.push('<span class="hljs-bullet">\\\n</span>');
-      return arguments[1] + KeepToken+cnt+KeepToken;
-    }
-    return match; // shouldn't happen
-  }
-  function hltRestore(all, n) { return KPV[parseInt(n)]; }
-  
-  function hltpmwiki_pre(x) {
-    if(x.language != "pmwiki") return;
-    KPV = [];    
-    x.code = x.code.replace(/\[([@=])(?:.|\n)*?\1\]/g, hltKeep);
-    x.code = x.code.replace(/([^\\])(\\\n)/g, hltKeep);
-  }
-  function hltpmwiki_post(x) {
-    if(x.language != "pmwiki") return;
-    x.value = x.value.replace(restoreRX, hltRestore);
-  }
-  
-  function HighlightPmWiki(hljs) {
-    const ESCAPE = { // only used for detection
-      scope: 'escaped', 
-      relevance: 10,
-      match: /\[([@=])(?:.|\n)*?\1\]/ 
-    }
-    const COMMENT = {
-      scope: 'comment', 
-      relevance: 10,
-      match: /\(:comment.*?:\)/ 
-    };
-    const ARGS = { scope: 'symbol', match: /\s(\$:?)?\w[-\w]*(?=[ :=])/ };
-    const MARGS = { scope: 'string', match: /\s(\$:?)?\w[-\w]*(?=[= :])/ };
-    const I18N = { scope: 'string', match: /\$\[.*?\]/ };
-    const VARIABLE = { scope: 'variable', variants:[
-      { match: /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/},
-      { match: /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/}
-      ]
-    };
-    const STR = { scope: 'string', match: /("[^\n"]*"|'[^\n']*')/ };
-    const MX = {
-      scope: 'code',
-      contains: [ STR, ARGS, VARIABLE ],
-      returnBegin: true, relevance: 10,
-      begin: /\{\([-\w]+(.|\\\n)*?\)\}/, end: /(\)\})/
-    };
-    const CORE = {
-      scope: 'meta', 
-      relevance: 10,
-      variants: [
-        { match: /\(:(else\d*|if\d*|if\d*end):\)/ }, // empty conditional
-        {
-          returnBegin: true,
-          contains: [ I18N, STR, MARGS, VARIABLE, MX ],
-          begin: /(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.|\\\n)*?:\)/, end: /(:\))/
-        },
-        { match: /\(:[-\w]+ *::\)/ }, // empty PTV
-        { match: /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/ }, // core meta
-        { match: /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/ }, // core meta
-        
-        { match: [/\(:[\w-]+:/, /([^)](.|\n)*?|)/, /:\)/], beginScope: {2:'string'} }, // PTV, can be multiline
-        { match: /^[A-Z][_a-zA-Z0-9]*:/ }, // property, or start of line PTV
-        
-        { match: /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</ }, // short wikistyle
-        { match: [/^>>[-\w]+/, /(?:(?:[^%<]|\\\n)+)?/, /<</], beginScope: {2:'string'}  }, // wikistyle
-        { match: [/%[-\w]+/, /(?:(?:[^%]|\\\n)+)?/, /%/], beginScope: {2:'string'} } // wikistyle
-      ]
-    };
-    const DIRECTIVE = {
-      scope: 'selector-tag',
-      contains: [ I18N, STR, ARGS, VARIABLE, MX ],
-      returnBegin: true, relevance: 10,
-      begin: /(\(:[-\w]+)(.|\\\n)*?:\)/, end: /(:\))/
-    };
-    const LINK = {
-      scope: 'link',
-      variants: [
-        { scope: 'punctuation', match: /(\[\[[\#!~]?|([#+]\s*)?\]\])/, relevance: 5 },
-        { match: /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/ }
-      ],
-    };
-    const INLINE = {
-      scope: 'punctuation',
-      variants: [
-        { scope: 'symbol', match: /\&\#?\w+;/ },
-        { match: /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/ }
-      ]
-    };
-    const LIST = {
-      scope: 'bullet',
-      variants: [
-        { match: /^(\s*([*#]+)\s*|-+[<>]\s*|\s+)/ },
-        { begin: /^:+/, end: /:/, contains: [ MX, LINK, VARIABLE, INLINE ] }
-      ]
-    };
-    const TABLECELL = { scope: 'bullet', match: /(\|\|)+!?/ };
-    const LINEBREAK = { scope: 'bullet', match: /\\+$/ };
-    const HEADING = { scope: 'title', match: '^(!{1,6}|[QA]:)', relevance: 5 };
-    const SECTION = { scope: 'section', match: '^-{4,}' };
-    return {
-      name: 'PmWiki', aliases: [ 'pmwiki', 'pm' ], case_insensitive: true,
-      contains: [ ESCAPE, COMMENT, I18N, TABLECELL, LINEBREAK, HEADING, SECTION, MX, LINK, CORE, DIRECTIVE, VARIABLE, LIST, INLINE]
-    };
-  }
 
   function ready(){
     PmXMail();
