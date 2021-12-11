@@ -32,7 +32,7 @@
   }
   
   function hheading(a, a1, a2){
-    return Keep(a1, 'heading') + Keep(a2, 'hline');
+    return Keep(Keep(a1, 'heading') + a2, 'hline');
   }
   
   function hmeta(a, a1, a2, a3){
@@ -204,7 +204,8 @@
     function initCheckbox(){
       var form = text.closest('form');
       form.insertAdjacentHTML('afterbegin', '<span id="chk_hlt_wrap">'
-        +'<input type="checkbox" name="chk_hlt" id="chk_hlt"/><label for="chk_hlt"> Highlight</label></span>');
+        +'<input type="checkbox" name="chk_hlt" id="chk_hlt"/><label for="chk_hlt"> '
+        + script.dataset.label +'</label></span>');
 
       initPre();
       var enabled = localStorage.getItem('EnableHighlight');
@@ -216,8 +217,7 @@
     }
     initCheckbox();
   }
-  
-  
+
   document.addEventListener('DOMContentLoaded', function(){
     PmHiAll();
     initEditForm();

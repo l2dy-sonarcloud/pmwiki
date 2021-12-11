@@ -109,10 +109,11 @@ code.pmhlt, .pmhlt code {
 
 .pmhlt .pmheading {
   color: var(--pmhi-heading);
-  background-color: var(--pmhi-headingbg);
 }
 .pmhlt .pmhline {
   background-color: var(--pmhi-headingbg);
+/*   display: inline-block; */
+/*   width: 100%; */
 }
 .pmhlt .pmescaped {
   color: var(--pmhi-escaped);
