@@ -2,7 +2,7 @@
   JavaScript utilities for PmWiki
   (c) 2009-2021 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
-  licensed GNU GPLv2 or any more recent version.
+  licensed GNU GPLv2 or any more recent version released by the FSF.
 
   libsortable() "Sortable tables" adapted for PmWiki from
   a Public Domain event listener by github.com/tofsjonas
@@ -381,11 +381,12 @@
   }
 
   function highlight_pre() {
-    if (! pf(adata(__script__, 'highlight'))) return;
     if (typeof hljs == 'undefined') return;
+    
     var x = dqsa('.highlight,.hlt');
     
     for(var i=0; i<x.length; i++) {
+      if(x[i].className.match(/(^| )(pm|pmwiki)( |$)/)) { continue;} // core highlighter
       var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre,code'));
       var n = x[i].nextElementSibling;
       if (n && n.tagName == 'PRE') pre.push(n);
@@ -394,8 +395,9 @@
         hljs.highlightElement(pre[j]);
       }
     }
-    
+
   }
+  
 
   function ready(){
     PmXMail();
