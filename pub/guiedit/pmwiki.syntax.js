@@ -53,6 +53,9 @@
   function hesc(a, t1, sigil, content, t2){
     return Keep3('escaped', t1, content, '', t2);
   }
+  function hcomment(a, a1, a2, a3){
+    return Keep3('comment', a1, a2, '', a3);
+  }
   function joinlines(a, a1, a2) {
     return a1 + Keep(a2, 'bullet tag');
   }
@@ -85,7 +88,7 @@
     [10, /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
     [20, /([^\\])(\\\n)/g, joinlines],
     [30, /\\+$/gm, 'bullet tag'],
-    [40, /\(:comment.*?:\)/gi, 'comment'],
+    [40, /(\(:comment)(.*?)(:\))/gi, hcomment],
     
     [50, /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
     [60, /\$\[.*?\]/g, 'string'], // i18n
