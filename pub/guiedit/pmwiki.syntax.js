@@ -122,9 +122,10 @@
     [260, /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
     [270, /^[A-Z][_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
     
-    [280, /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
+    [280, /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet tag'], // list item, initial space
+    
+    [290, /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
 
-    [290, /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet tag'], // list item, initial space
     [300, /^([:]+)(.*?)([:])/mg, hdlist], // definition term / PTV
     [310, /^(!{1,6})(.*)$/mg, hheading], // heading
 
