@@ -41,9 +41,10 @@
     attr = PHSC(attr);
     attr = attr.replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); });
     
-    attr = attr.replace(/((?:\$:?)?[-\w]+)([:=])(\S+)/g, function(a, attr, op, val){
+    attr = attr.replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
       if(! val.match(restoreRXV)) val = '<span class="pmvalue">' + val + "</span>";
-      return '<span class="pmattr">' + attr + "</span>" + op + val;
+      if(attr) attr = '<span class="pmattr">' + attr + "</span>";
+      return attr + op + val;
     });
     
     return attr;
