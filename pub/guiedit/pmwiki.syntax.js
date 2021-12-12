@@ -110,7 +110,7 @@
     
     [160, /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'link'], // before wikistyle
       
-    [170, /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</gim, 'meta tag'], // short wikistyle
+    [170, /%%|^>><</gim, 'meta tag'], // short wikistyle
     [180, /(^>>[-\w]+)(.*?)(<<)/gim, hmetaattr], // wikistyle
     [190, /(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
     [200, /(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
