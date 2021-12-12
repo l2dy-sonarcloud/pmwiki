@@ -1,8 +1,13 @@
-/*
-  EditHighlight: Syntax highlighting for the PmWiki edit form
-  Author (c) 2021 Petko Yotov https://www.pmwiki.org/support
-  License: GNU GPLv2 or any more recent version released by the FSF
-  Version: 20211211
+/*  PmSyntax: Syntax highlighting for PmWiki markup
+    Copyright 2021 Petko Yotov https://www.pmwiki.org/support
+    This file is part of PmWiki; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published
+    by the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.  See pmwiki.php for full details.
+
+    This file provides Javascript functions for syntax highlighting of 
+    PmWiki markup, to be used in the PmWiki documentation, and optionally 
+    in the edit form.
 */
 
 (function(){
@@ -79,7 +84,7 @@
     [30, /\\+$/m, 'bullet'],
     [40, /\(:comment.*?:\)/gi, 'comment'],
     
-    [50, /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/g, 'var'],
+    [50, /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
     [60, /\$\[.*?\]/g, 'string'], // i18n
     [70, /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
     
