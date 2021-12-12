@@ -82,8 +82,7 @@ code.pmhlt, .pmhlt code {
 }
 .pmhlt .pmtag,
 .pmhlt .pmpunctuation,
-.pmhlt .pmheading,
-.pmhlt .pmbullet {
+.pmhlt .pmheading {
   font-weight: bold;
 }
 

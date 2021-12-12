@@ -53,7 +53,7 @@
     return Keep3('escaped', t1, content, '', t2);
   }
   function joinlines(a, a1, a2) {
-    return a1 + Keep(a2, 'bullet');
+    return a1 + Keep(a2, 'bullet tag');
   }
   function hmeta(a, a1, a2, a3){
     return Keep3('meta', a1, a2, '', a3);
@@ -70,7 +70,9 @@
   function hheading(a, a1, a2){
     return Keep(a1, 'heading') + Keep(a2, 'hline');
   }
-  
+  function hdlist(a, a1, a2, a3){
+    return Keep3('bullet', a1, a2, '', a3);
+  }
   function htab(a){
     if(a.substr(2).indexOf('||') == -1) return Keep3('tab', a.substr(0, 2), '', a.substr(2)); // first line
     var b = a.match(/^(\|\|!)(.*)(!\|\|)$/); // caption
@@ -81,7 +83,7 @@
   var hrx = [ // find a way to add custom patterns
     [10, /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
     [20, /([^\\])(\\\n)/g, joinlines],
-    [30, /\\+$/m, 'bullet'],
+    [30, /\\+$/m, 'bullet tag'],
     [40, /\(:comment.*?:\)/gi, 'comment'],
     
     [50, /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
@@ -120,12 +122,11 @@
     [260, /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
     [270, /^[A-Z][_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
     
+    [280, /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
 
-    [280, /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet'], // list item, initial space
-    [290, /^:.*?:/mg, 'bullet'], // definition term / PTV
-    [300, /^(!{1,6})(.*)$/mg, hheading], // heading
-
-    [310, /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
+    [290, /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet tag'], // list item, initial space
+    [300, /^([:]+)(.*?)([:])/mg, hdlist], // definition term / PTV
+    [310, /^(!{1,6})(.*)$/mg, hheading], // heading
 
     [800, /[<>&]+/g, PHSC],// escape entities
     [900, restoreRX, Restore]
@@ -252,7 +253,6 @@
       }
     }
     sorted_hrx = hrx.sort(function(a, b){return a[0]-b[0];});
-    console.log(sorted_hrx);
     PmHiAll();
     initEditForm();
   });
