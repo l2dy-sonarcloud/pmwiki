@@ -74,7 +74,7 @@
 }
 
 pre.pmhlt, .pmhlt pre, 
-code.pmhlt, .pmhlt code {
+code.pmhlt, .pmhlt code, #htext.pmhlt {
   color: var(--pmhi-color);
   background-color: var(--pmhi-bgcolor);
   font-family: var(--pmhi-fontfamily);
