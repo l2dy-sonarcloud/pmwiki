@@ -83,7 +83,7 @@
   var hrx = [ // find a way to add custom patterns
     [10, /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
     [20, /([^\\])(\\\n)/g, joinlines],
-    [30, /\\+$/m, 'bullet tag'],
+    [30, /\\+$/gm, 'bullet tag'],
     [40, /\(:comment.*?:\)/gi, 'comment'],
     
     [50, /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
