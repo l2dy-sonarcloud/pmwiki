@@ -181,5 +181,6 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   position: relative;
   z-index: 2;
   color: transparent;
+  background-image: none;
   caret-color: var(--pmhi-caretcolor);
 }
