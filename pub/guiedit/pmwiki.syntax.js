@@ -101,20 +101,21 @@
     [140, /[&]\#?\w+;/g, 'string'], // entity
     
     [150, /(\{\([-\w]+)(.*?)(\)\})/g, hmx], // markup expressions
+    
+    [160, /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'link'], // before wikistyle
       
-    [160, /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</gim, 'meta tag'], // short wikistyle
-    [170, /(^>>[-\w]+)(.*?)(<<)/gim, hmetaattr], // wikistyle
-    [180, /(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
-    [190, /(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
+    [170, /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</gim, 'meta tag'], // short wikistyle
+    [180, /(^>>[-\w]+)(.*?)(<<)/gim, hmetaattr], // wikistyle
+    [190, /(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
+    [200, /(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
 
-    [200, /(\(:template\s+(?:!\s*)?\w+)(.*?)(:\))/g, hmetaattr], // templates
-    [210, /(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
-    [220, /(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
+    [210, /(\(:template\s+(?:!\s*)?\w+)(.*?)(:\))/g, hmetaattr], // templates
+    [220, /(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
+    [230, /(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
     
-    [230, /^\|\|.*$/mg, htab], // simple tables
+    [240, /^\|\|.*$/mg, htab], // simple tables
     
-    [240, /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
-    [250, /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'link'],
+    [250, /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
 
     [260, /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
     [270, /^[A-Z][_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
