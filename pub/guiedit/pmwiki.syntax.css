@@ -18,13 +18,13 @@
   --pmhi-metabg: #eff;
   
   --pmhi-escaped: #555;
-  --pmhi-escapedbg: #f0f0f0;
+  --pmhi-escapedbg: rgba(0,0,0,.1);
   
   --pmhi-heading: #800;
   --pmhi-headingbg: #ffeaea;
   
   --pmhi-directive: black;
-  --pmhi-directivebg: #f0f0f0;
+  --pmhi-directivebg: #eee;
   
   
   --pmhi-mx: #397300;
@@ -47,7 +47,6 @@
   --pmhi-var: #bc6060;
   
   --pmhi-link: #2f6fab;
-  
 }
 
 pre.pmhlt, .pmhlt pre, 
@@ -57,11 +56,8 @@ code.pmhlt, .pmhlt code {
   font-family: var(--pmhi-fontfamily);
   font-size: var(--pmhi-fontsize);
 }
-.pmhlt .pmmx,
+.pmhlt .pmtag,
 .pmhlt .pmpunctuation,
-.pmhlt .pmmeta,
-.pmhlt .pmdirective,
-.pmhlt .pmtab,
 .pmhlt .pmheading,
 .pmhlt .pmbullet {
   font-weight: bold;
@@ -74,8 +70,6 @@ code.pmhlt, .pmhlt code {
   color: var(--pmhi-mx);
   background-color: var(--pmhi-mxbg);
 }
-
-
 .pmhlt .pmdirective {
   color: var(--pmhi-directive);
   background-color: var(--pmhi-directivebg);
@@ -86,8 +80,6 @@ code.pmhlt, .pmhlt code {
 .pmhlt .pmvar {
   color: var(--pmhi-var);
 }
-
-
 .pmhlt .pmmeta {
   color: var(--pmhi-meta);
   background-color: var(--pmhi-metabg);
@@ -106,14 +98,11 @@ code.pmhlt, .pmhlt code {
 .pmhlt .pmlink{
   color: var(--pmhi-link);
 }
-
-.pmhlt .pmheading {
-  color: var(--pmhi-heading);
-}
-.pmhlt .pmhline {
+.pmhlt .pmheading, .pmhlt .pmhline {
   background-color: var(--pmhi-headingbg);
-  display: inline-block;
-  width: calc( 100% - 1em);
+}
+.pmhlt .pmheading  {
+  color: var(--pmhi-heading);
 }
 .pmhlt .pmescaped {
   color: var(--pmhi-escaped);
@@ -125,10 +114,6 @@ code.pmhlt, .pmhlt code {
 .pmhlt .pmvalue {
   color: var(--pmhi-value);
 }
-.pmhlt > * > * {
-  font-weight: normal;
-}
-
 
 #wikiedit #hwrap {
   position: relative;

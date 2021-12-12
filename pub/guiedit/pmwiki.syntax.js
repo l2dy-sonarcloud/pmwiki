@@ -8,108 +8,128 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
+  var restoreRXV = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
   function Restore(all, n) { return KPV[parseInt(n)]; }
-  function Keep(text, cname){
+  function Keep(text, cname) {
     text = PHSC(text).replace(restoreRX, Restore);
-    if(cname) text = "<span class='pm"+cname+"'>" + text + "</span>";
+    if(cname) text = "<span class='pm"+cname.split(/ +/g).join(' pm')+"'>" + text + "</span>";
     KPV.push(text);
     return KeepToken+(KPV.length-1)+KeepToken;
   }
   
+  function Keep3(cname, tag1, plain, attrs, tag2) {
+    var out = '<span class="pm'+cname+'">';
+    if(tag1) out += '<span class="pmtag">'+PHSC(tag1)+'</span>';
+    if(plain) out += PHSC(plain);
+    if(attrs) out += hattr(attrs);
+    if(tag2) out += '<span class="pmtag">'+PHSC(tag2)+'</span>';
+    
+    out += '</span>';
+    
+    KPV.push(out.replace(restoreRX, Restore));
+    return KeepToken+(KPV.length-1)+KeepToken;
+  }
+  
   function hattr(attr) {
+    attr = PHSC(attr);
     attr = attr.replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); });
     
     attr = attr.replace(/((?:\$:?)?[-\w]+)([:=])(\S+)/g, function(a, attr, op, val){
-      return Keep(Keep(attr, 'attr') + op + Keep(val, 'value'), '');
+      if(! val.match(restoreRXV)) val = '<span class="pmvalue">' + val + "</span>";
+      return '<span class="pmattr">' + attr + "</span>" + op + val;
     });
-    attr = attr.replace(/\S+/g, function(a){ 
-      if(a.indexOf(KeepToken)>=0) return a;
-      return Keep(a, 'plain');
-    });
+    
     return attr;
   }
   
-  function hheading(a, a1, a2){
-    return Keep(Keep(a1, 'heading') + a2, 'hline');
+  function hesc(a, t1, sigil, content, t2){
+    return Keep3('escaped', t1, content, '', t2);
   }
-  
+  function joinlines(a, a1, a2) {
+    return a1 + Keep(a2, 'bullet');
+  }
   function hmeta(a, a1, a2, a3){
-    return Keep(a1 + Keep(a2, 'plain') + a3, 'meta');// not hattr
+    return Keep3('meta', a1, a2, '', a3);
   }
   function hmetaattr(a, a1, a2, a3){
-    return Keep(a1 + hattr(a2) + a3, 'meta');
+    return Keep3('meta', a1, '', a2, a3);
   }
   function hdir(a, a1, a2, a3){
-    return Keep(a1 + hattr(a2) + a3, 'directive');
+    return Keep3('directive', a1, '', a2, a3);
   }
   function hmx(a, a1, a2, a3){
-    return Keep(a1 + hattr(a2) + a3, 'mx');
+    return Keep3('mx', a1, '', a2, a3);
+  }
+  function hheading(a, a1, a2){
+    return Keep(a1, 'heading') + Keep(a2, 'hline');
   }
   
   function htab(a){
-    if(a.substr(2).indexOf('||') == -1) return Keep(a.substr(0, 2) + hattr(a.substr(2)), 'tab'); // first line
-    if(a.match(/^\|\|!.*!\|\|$/)) return Keep(a, 'tab'); // caption
-    return a.replace(/(\|\|)+!?/g, function(b){return Keep(b, 'tab');}); // cells
+    if(a.substr(2).indexOf('||') == -1) return Keep3('tab', a.substr(0, 2), '', a.substr(2)); // first line
+    var b = a.match(/^(\|\|!)(.*)(!\|\|)$/); // caption
+    if(b) return Keep3('tab', b[1], b[2], '', b[3]);
+    return a.replace(/(\|\|)+!?/g, function(c){return Keep(c, 'tab tag');}); // cells
   }
   
   var hrx = [ // find a way to add custom patterns
-    [/\[([@=])(?:.|\n)*?\1\]/g, 'escaped'],
-    [/([^\\])(\\\n)/g, function(a, a1, a2){ return a1 + Keep(a2, 'bullet'); }],
-    [/\\+$/m, 'bullet'],
-    [/\(:comment.*?:\)/gi, 'comment'],
+    [10, /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
+    [20, /([^\\])(\\\n)/g, joinlines],
+    [30, /\\+$/m, 'bullet'],
+    [40, /\(:comment.*?:\)/gi, 'comment'],
     
-    [/\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/g, 'var'],
-    [/\$\[.*?\]/g, 'string'], // i18n
-    [/\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
+    [50, /\{([-\w\/.]+|[*=])?\$[$:]?\w+\}/g, 'var'],
+    [60, /\$\[.*?\]/g, 'string'], // i18n
+    [70, /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
     
-    [/\(:(else\d*|if\d*|if\d*end):\)/gi, 'meta'], // empty conditional
-    [/(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
+    [80, /\(:(else\d*|if\d*|if\d*end):\)/gi, 'meta tag'], // empty conditional
+    [90, /(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
 
-    [/\(:[-\w]+ *:\s*:\)/ig, 'meta'], // empty ptv
+    [100, /\(:[-\w]+ *:\s*:\)/ig, 'meta tag'], // empty ptv
 
     
-    [/\(:no(left|right|(group)?header|(group)?footer|title|action):\)/gi, 'meta' ], // core meta
-    [/\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/gi, 'meta'], // core meta
-    [/(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, hmeta], // PTV, can be multiline
+    [110, /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/gi, 'meta tag' ], // core meta
+    [120, /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/gi, 'meta tag'], // core meta
+    [130, /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, hmeta], // PTV, can be multiline
     
-    [/[&]\#?\w+;/g, 'string'], // entity
+    [140, /[&]\#?\w+;/g, 'string'], // entity
     
-    [/(\{\([-\w]+)(.*?)(\)\})/g, hmx], // markup expressions
+    [150, /(\{\([-\w]+)(.*?)(\)\})/g, hmx], // markup expressions
       
-    [/%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</gim, 'meta'], // short wikistyle
-    [/(^>>[-\w]+)(.*?)(<<)/gim, hmetaattr], // wikistyle
-    [/(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
-    [/(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
+    [160, /%(\w[-\w]+)?%|^>>(\w[-\w]+)?<</gim, 'meta tag'], // short wikistyle
+    [170, /(^>>[-\w]+)(.*?)(<<)/gim, hmetaattr], // wikistyle
+    [180, /(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
+    [190, /(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
 
-    [/(\(:template\s+(?:!\s*)?\w+)(.*?)(:\))/g, hmetaattr], // templates
-    [/(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
-    [/(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
+    [200, /(\(:template\s+(?:!\s*)?\w+)(.*?)(:\))/g, hmetaattr], // templates
+    [210, /(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
+    [220, /(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
     
-    [/^\|\|.*$/mg, htab], // simple tables
+    [230, /^\|\|.*$/mg, htab], // simple tables
     
-    [/(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
-    [/((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'link'],
+    [240, /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
+    [250, /((mailto|tel|Attach|PmWiki|Cookbook|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'link'],
 
-    [/^([QA]:|-{4,})/mg, 'heading'], //Q:/A:, horizontal rule
-    [/^[A-Z][_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
+    [260, /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
+    [270, /^[A-Z][_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
     
 
-    [/^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet'], // list item, initial space
-    [/^:.*?:/mg, 'bullet'], // definition term / PTV
-    [/^(!{1,6})(.*)$/mg, hheading], // heading
+    [280, /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet'], // list item, initial space
+    [290, /^:.*?:/mg, 'bullet'], // definition term / PTV
+    [300, /^(!{1,6})(.*)$/mg, hheading], // heading
 
-    [/('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
-    [/[<>&]+/g, ''],// just escape entities
+    [310, /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|\||->|~~~~?)/g, 'punctuation'], // inline
 
-    [restoreRX, Restore]
+    [800, /[<>&]+/g, PHSC],// escape entities
+    [900, restoreRX, Restore]
   ];
+  var sorted_hrx = [];
   
   function PmHi(text){
     KPV = [];
-    for(var i=0; i<hrx.length; i++) {
-      let s = hrx[i][0], r = hrx[i][1];
+    for(var i=0; i<sorted_hrx.length; i++) {
+      let s = sorted_hrx[i][1], r = sorted_hrx[i][2];
       if(typeof r == 'function') text = text.replace(s, r);
       else text = text.replace(s, function(a){return Keep(a, r)});
     }
@@ -220,6 +240,13 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
+    if(window.PmSyntaxCustomMarkup) {
+      for(var i=0; i<window.PmSyntaxCustomMarkup.length; i++) {
+        hrx.push(window.PmSyntaxCustomMarkup[i]);
+      }
+    }
+    sorted_hrx = hrx.sort(function(a, b){return a[0]-b[0];});
+    console.log(sorted_hrx);
     PmHiAll();
     initEditForm();
   });
