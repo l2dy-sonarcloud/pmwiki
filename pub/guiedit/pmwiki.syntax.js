@@ -96,10 +96,8 @@
     
     [80, /\(:(else\d*|if\d*|if\d*end):\)/gi, 'meta tag'], // empty conditional
     [90, /(\(:(?:title|description|keywords|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
-    [95, /(\(:redirect)(.*?)(:\))/ig, hmetaattr],
 
     [100, /\(:[-\w]+ *:\s*:\)/ig, 'meta tag'], // empty ptv
-
     
     [110, /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/gi, 'meta tag' ], // core meta
     [120, /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/gi, 'meta tag'], // core meta
@@ -116,8 +114,9 @@
     [190, /(%(?:define|apply)=\w+)(.*?)(%)/gi, hmetaattr], // wikistyle
     [200, /(%[-\w]+)(.*?)(%)/gi, hmetaattr], // wikistyle
 
-    [210, /(\(:template\s+(?:!\s*)?\w+)(.*?)(:\))/g, hmetaattr], // templates
+    [210, /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, hmetaattr], // redirect/templates
     [220, /(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
+    
     [230, /(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
     
     [240, /^\|\|.*$/mg, htab], // simple tables
