@@ -579,7 +579,7 @@ function MarkupMarkup($pagename, $text, $opt = '') {
                            "<caption>{$opt['caption']}</caption>");
   $class = preg_replace('/[^-\\s\\w]+/', ' ', @$opt['class']);
   $sep = '';
-  if (strpos($class, 'nohtml') !== false) $markup2 = '';
+  if (strpos($class, 'norender') !== false) $markup2 = '';
   else {
     if (strpos($class, 'horiz') === false) $sep = '</tr><tr>';
     $html = MarkupToHTML($pagename, $text, array('escape' => 0));
