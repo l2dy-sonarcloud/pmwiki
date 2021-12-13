@@ -60,7 +60,7 @@
   --pmhi-var: #f40;
 
   /* Link URLs, some InterMap links */
-  --pmhi-link: #37a;
+  --pmhi-url: #37a;
 
   /* the textarea of the edit form, and the highlighted block under it */
   --pmhi-border:  1px inset #ccc;
@@ -80,9 +80,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-family: var(--pmhi-fontfamily);
   font-size: var(--pmhi-fontsize);
 }
-.pmhlt .pmtag,
-.pmhlt .pmpunctuation,
-.pmhlt .pmheading {
+.pmhlt .pmtag, .pmhlt .pmpunctuation {
   font-weight: bold;
 }
 
@@ -118,17 +116,17 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 .pmhlt .pmpunctuation {
   color: var(--pmhi-punct);
 }
-.pmhlt .pmlink{
-  color: var(--pmhi-link);
-}
-.pmhlt .pmheading, .pmhlt .pmhline {
-  background-color: var(--pmhi-headingbg);
+.pmhlt .pmurl{
+  color: var(--pmhi-url);
 }
 .pmhlt .pmheading  {
+  background-color: var(--pmhi-headingbg);
+}
+.pmhlt .pmheading .pmtag,
+.pmhlt .pmheading.pmtag  {
   color: var(--pmhi-heading);
 }
 .pmhlt .pmescaped {
-  color: var(--pmhi-escaped);
   background-color: var(--pmhi-escapedbg);
 }
 .pmhlt .pmattr {
