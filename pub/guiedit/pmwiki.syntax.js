@@ -84,7 +84,7 @@
     return a.replace(/(\|\|)+!?/g, function(c){return Keep(c, 'tab tag');}); // cells
   }
   
-  var hrx = [ // find a way to add custom patterns
+  var hrx = [
     [10, /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
     [20, /([^\\])(\\\n)/g, joinlines],
     [30, /\\+$/gm, 'bullet tag'],
@@ -95,7 +95,8 @@
     [70, /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
     
     [80, /\(:(else\d*|if\d*|if\d*end):\)/gi, 'meta tag'], // empty conditional
-    [90, /(\(:(?:title|description|keywords|redirect|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
+    [90, /(\(:(?:title|description|keywords|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
+    [95, /(\(:redirect)(.*?)(:\))/ig, hmetaattr],
 
     [100, /\(:[-\w]+ *:\s*:\)/ig, 'meta tag'], // empty ptv
 
