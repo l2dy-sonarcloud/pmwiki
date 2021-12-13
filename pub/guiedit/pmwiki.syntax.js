@@ -94,10 +94,10 @@
     [60, /\$\[.*?\]/g, 'string'], // i18n
     [70, /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
     
-    [80, /\(:(else\d*|if\d*|if\d*end):\)/gi, 'meta tag'], // empty conditional
-    [90, /(\(:(?:title|description|keywords|(?:else)?if\d*))(.*?)(:\))/ig, hmeta],
+    [80, /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'], // empty conditional
+    [90, /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, hmeta],
 
-    [100, /\(:[-\w]+ *:\s*:\)/ig, 'meta tag'], // empty ptv
+    [100, /\(:[-\w]+ *: *:\)/ig, 'meta tag'], // empty ptv
     
     [110, /\(:no(left|right|(group)?header|(group)?footer|title|action):\)/gi, 'meta tag' ], // core meta
     [120, /\(:(no)?(linkwikiwords|spacewikiwords|linebreaks):\)/gi, 'meta tag'], // core meta
@@ -117,6 +117,7 @@
     [210, /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, hmetaattr], // redirect/templates
     [220, /(\(:input\s+\w+)(.*?)(:\))/g, hdir], // forms
     
+    [225, /\(:[-\w]+ *:\)/g, 'directive tag'], // simple directives
     [230, /(\(:[-\w]+)(.*?)(:\))/g, hdir], // other directives
     
     [240, /^\|\|.*$/mg, htab], // simple tables
