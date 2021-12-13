@@ -53,11 +53,11 @@
   --pmhi-string: #800;
 
   /* attributes and values in directives and wikistyles */
-  --pmhi-attr: #f60;
+  --pmhi-attr: #f70;
   --pmhi-value: #a00;
 
   /* page (text) variables, template variables, like {*$:Summary} */
-  --pmhi-var: #b66;
+  --pmhi-var: #f40;
 
   /* Link URLs, some InterMap links */
   --pmhi-link: #37a;
