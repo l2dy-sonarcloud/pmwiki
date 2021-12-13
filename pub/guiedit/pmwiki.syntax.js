@@ -272,7 +272,6 @@
       }
       catch(e) { }
     }
-    
     for(var i=0; i<cm.length; i++) {
       var key = cm[i].shift();
       if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i]);
@@ -281,7 +280,6 @@
         custom_hrx[key] = [];
       }
     }
-    
     sorted_hrx = [];
     for(var i=0; i<hrx.length; i++) {
       let key = hrx[i].shift();
@@ -289,9 +287,7 @@
         sorted_hrx.push(custom_hrx[key][j]);
       } 
       sorted_hrx.push(hrx[i]);
-    }
-    console.log(sorted_hrx);
-    
+    }    
     PmHiAll();
     initEditForm();
   });
