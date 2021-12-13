@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -571,20 +571,24 @@ function MarkupMarkup($pagename, $text, $opt = '') {
   global $MarkupWordwrapFunction, $MarkupWrapTag;
   SDV($MarkupWordwrapFunction, 'IsEnabled');
   SDV($MarkupWrapTag, 'pre');
+  $tag = $MarkupWrapTag;
   $MarkupMarkupOpt = array('class' => 'vert');
   $opt = array_merge($MarkupMarkupOpt, ParseArgs($opt));
-  $html = MarkupToHTML($pagename, $text, array('escape' => 0));
   if (@$opt['caption']) 
     $caption = str_replace("'", '&#039;', 
                            "<caption>{$opt['caption']}</caption>");
   $class = preg_replace('/[^-\\s\\w]+/', ' ', @$opt['class']);
-  if (strpos($class, 'horiz') !== false) 
-    { $sep = ''; $pretext = $MarkupWordwrapFunction($text, 40); } 
-  else 
-    { $sep = '</tr><tr>'; $pretext = $MarkupWordwrapFunction($text, 75); }
+  $sep = '';
+  if (strpos($class, 'nohtml') !== false) $markup2 = '';
+  else {
+    if (strpos($class, 'horiz') === false) $sep = '</tr><tr>';
+    $html = MarkupToHTML($pagename, $text, array('escape' => 0));
+    $markup2 = "<td class='markup2' valign='top'>$html</td>";
+  }
+  $pretext = $MarkupWordwrapFunction($text, ($markup2 xor $sep)? 40:75);
+  $markup1 = @"<td class='markup1' valign='top'><$tag>$pretext</$tag></td>";
   return Keep(@"<table class='markup $class' align='center'>$caption
-      <tr><td class='markup1' valign='top'><$MarkupWrapTag>$pretext</$MarkupWrapTag></td>$sep<td 
-        class='markup2' valign='top'>$html</td></tr></table>");
+      <tr>$markup1$sep$markup2</tr></table>");
 }
 
 Markup('markup', '<[=',
