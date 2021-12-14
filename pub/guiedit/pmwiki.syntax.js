@@ -13,8 +13,9 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  var restoreRXV = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
+  var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
+  var log = console.log;
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
   function Restore(all, n) { return KPV[parseInt(n)]; }
   function keep0(text) {
@@ -30,7 +31,8 @@
   function span(cname, text, escaped) {
     if(text==='') return '';
     if(!escaped) text = PHSC(text);
-    return "<span class='pm"+cname.split(/ +/g).join(' pm')+"'>" + text + "</span>";
+    return "<span class='pm"+cname.replace(/^\*/, 'tag ')
+     .split(/ +/g).join(' pm')+"'>" + text + "</span>";
   }
   
   function Keep3(cname, tag1, plain, attrs, tag2) {
@@ -48,88 +50,90 @@
     attr = PHSC(attr)
     .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
     .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
-      if(! val.match(restoreRXV)) val = span('value', val, 1);
+      if(! val.match(Kept)) val = span('value', val, 1);
       if(attr) attr = span('attr', attr, 1);
       return attr + op + val;
     });
     return attr;
   }
   
-  var hrx = [
-    ['_start', '', ''],
-    ['preserve', [/\[([@=])(?:.|\n)*?\1\]/g, /^(\[[@=])((?:.|\n)*)([@=]\])$/], '=escaped'],
-    ['joinline', [/([^\\])(\\\n)/g, /\\\n/], 'bullet tag'],
+  var hrx = [ // rule_name, [*=!]classname|function, regexp, [only_in_container_regexp]
+    ['_start'],
+    ['preserve', '=escaped', /^(\[[@=])(.*)([@=]\])$/s, /\[([@=]).*?\1\]/gs],
+    ['joinline', '*bullet', /\\\n/, /([^\\])(\\\n)/g],
     
     // variables
-    ['pagevar', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
-    ['phpvar', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
-    ['i18n', /\$\[.*?\]/g, 'string'],
+    ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
+    ['phpvar',  'var', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g],
+    ['i18n', 'string', /\$\[.*?\]/g],
 
     // markup expressions
-    ['mx', /(\{\([-\w]+)(.*?)(\)\})/g, '!mx'], 
+    ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
  
     // core meta directives
-    ['comment', /(\(:comment)(.*?)(:\))/gi, '=comment'],
-    ['skin', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi, 'meta tag' ], 
-    ['meta0', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi, 'meta tag'],
-    ['meta1', /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'],
-    ['meta2', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, '=meta'],
-    ['meta3', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, '!meta'],
+    ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
+    ['skin',  '*meta', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi ], 
+    ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
+    ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end) *:\)/gi],
+    ['meta2', '=meta',    /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig],
+    ['meta3', '!meta',    /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g],
  
     // page text vars, can be empty or multiline
-    ['ptv0', /\(:[-\w]+ *: *:\)/g, 'meta tag'],
-    ['ptv1', /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, '=meta'],
+    ['ptv0', '*meta', /\(:[-\w]+ *: *:\)/g],
+    ['ptv1', '=meta', /(\(:[\w-]+:)([^\)].*?)(:\))/gs],
     
-    ['url', /((mailto|tel|geo|Attach|PmWiki|Cookbook|Skins|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'url'], // before wikistyle
+    ['url', 'url', /((mailto|tel|geo|Attach|PmWiki|Cookbook|Skins|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g], // before wikistyle
     
     // wikistyles
-    ['ws0', /%%|^>><</gm, 'meta tag'],
-    ['ws1', /(^>>\w[-\w]*)(.*?)(<<)/gm, '!meta'],
-    ['ws2', /(%(?:define|apply)=\w+)(.*?)(%)/gi, '!meta'],
-    ['ws3', /(%\w[-\w]*)(.*?)(%)/g, '!meta'],
+    ['ws0', '*meta', /%%|^>><</gm],
+    ['ws1', '!meta', /(^>>\w[-\w]*)(.*?)(<<)/gm],
+    ['ws2', '!meta', /(%(?:define|apply)=\w+)(.*?)(%)/gi],
+    ['ws3', '!meta', /(%\w[-\w]*)(.*?)(%)/g],
 
     // directives, forms
-    ['dir0', /\(:[-\w]+ *:\)/g, 'directive tag'],
-    ['dir1', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g, '!directive'],
+    ['dir0', '*directive', /\(:[-\w]+ *:\)/g],
+    ['dir1', '!directive', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g],
     
-    ['link', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punct'], // link
+    ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
     
-    ['QA', /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
-    ['prop', /^[A-Z][-_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
+    ['QA', '*heading', /^([QA]:|-{4,})/mg], //Q:/A:, horizontal rule
+    ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV
     
     // list item, initial space, indent, linebreak; inline punctuation; entity
-    ['bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg, 'bullet tag'], 
-    ['punct', /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g, 'punct'], 
-    ['entity', /[&]\#?\w+;/g, 'string'],
+    ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg], 
+    ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g], 
+    ['entity', 'string',  /[&]\#?\w+;/g],
 
     // simple tables
-    ['tablecaption', /^(\|\|!)(.+)(!\|\|)$/mg, '=tab'],
-    ['tablerow', [/^\|\|.*\|\|/mg, /(\|\|)+!?/g], 'tab tag'],
-    ['tableattr', /^(\|\|)(.*)($)/mg, '!tab'],
+    ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
+    ['tablerow',  '*tab', /(\|\|)+!?/g, /^\|\|.*\|\|.*$/mg],
+    ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
     
     // wikitrails
-    ['trail1', /(<<?\|)(.*?)(\|>>?)/g, '=url'],
-    ['trail2', /(\^\|)(.*?)(\|\^)/g, '=url'],
+    ['trail1', '=url', /(<<?\|)(.*?)(\|>>?)/g],
+    ['trail2', '=url', /(\^\|)(.*?)(\|\^)/g],
     
-    ['pipe', /\|/g, 'punct'], // inline
+    ['pipe', 'punct', /\|/g], // inline
     
     // may contain inline markup
-    ['dlist', /^([:]+)(.*?)([:])/mg, '=bullet'],
-    ['heading', /^(!{1,6})(.*)($)/mg, '=heading'],
+    ['deflist', '=bullet', /^([:]+)(.*?)([:])/mg],
+    ['heading', '=heading', /^(!{1,6})(.*)($)/mg],
     
-    ['cleanup', /[<>&]+/g, PHSC],// raw HTML/XSS
-    ['restore', restoreRX, Restore],
-    ['_end', '', '']
+    ['cleanup', PHSC, /[<>&]+/g],// raw HTML/XSS
+    ['restore', Restore, restoreRX],
+    ['_end']
   ];
   var custom_hrx = {}, sorted_hrx = [];
   for(var i=0; i<hrx.length; i++) custom_hrx[ hrx[i][0] ] = [];
   
-  function PmHi1(text, s, r){
-    if(Array.isArray(s)) {
-      text = text.replace(s[0], function(a){
-        return PmHi1(a, s[1], r);
+  function PmHi1(text, rule){
+    if(rule.length > 2) {
+      let container = rule.pop();
+      return text.replace(container, function(a){
+        return PmHi1(a, rule);
       });
     }
+    var r = rule[0], s = rule[1];
     if(typeof r == 'function') text = text.replace(s, r);
     else text = text.replace(s, function(a, a1, a2, a3){
       if(r.charAt(0)==='!') // tag with attributes
@@ -140,13 +144,12 @@
     });
     return text;
   }
-  
   function PmHi(text){
     KPV = [];
     for(var i=0; i<sorted_hrx.length; i++) {
-      let s = sorted_hrx[i][0], r = sorted_hrx[i][1];
-      if(!s) continue; // _start, _end
-      text = PmHi1(text, s, r);
+      var rule = sorted_hrx[i];
+      if(rule.length<2)  continue; // _start, _end
+      text = PmHi1(text, rule);
     }
     return text;
   }
@@ -156,10 +159,17 @@
   }
 
   function PmHiAll(){
-    var pm = document.querySelectorAll('table.markup td.markup1 > pre, .hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
+    var pm = document.querySelectorAll('table.markup td.markup1 > pre, '
+      + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     for(var j=0; j<pm.length; j++) {
       PmHiEl(pm[j]);
     }
+  }
+  function str2rx(str) {
+    if(typeof str != 'string') return str; // assume regexp
+    var a = str.match(/^\/(.*)\/([gimsyu]*)$/);
+    if(!a) return false;
+    return new RegExp(a[1], a[2]);
   }
   
   var _script;
@@ -173,11 +183,8 @@
         var list = JSON.parse(_script.dataset.custom);
         for(var i=0; i<list.length; i++) {
           var rule = list[i];
-          var rx = new RegExp(rule[1], rule[2]);
-          if(rule.length == 6) {
-            rx = [rx, new RegExp(rule[3], rule[4])];
-          }
-          cm.push([rule[0], rx, rule.pop()]);
+          for(var j=2; j<rule.length; j++) rule[j] = str2rx(rule[j]);
+          cm.push(rule);
         }
       }
       catch(e) { }
@@ -185,17 +192,13 @@
     for(var i=0; i<cm.length; i++) {
       var key = cm[i].shift();
       if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i]);
-      else {
-        hrx.push([key, cm[i][0], cm[i][1]]);
-        custom_hrx[key] = [];
-      }
     }
     sorted_hrx = [];
     for(var i=0; i<hrx.length; i++) {
       let key = hrx[i].shift();
       for(var j=0; j<custom_hrx[key].length; j++) {
         sorted_hrx.push(custom_hrx[key][j]);
-      } 
+      }
       sorted_hrx.push(hrx[i]);
     }
   }
