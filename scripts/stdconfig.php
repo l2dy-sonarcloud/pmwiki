@@ -114,7 +114,10 @@ if (IsEnabled($EnablePmSyntax, 0)) { # before skins and local.css
   array_unshift($HTMLHeaderFmt, "<link rel='stylesheet' 
     href='\$FarmPubDirUrl/guiedit/pmwiki.syntax.css'>
   <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' 
-    data-label=\"$[Highlight]\" data-mode='$EnablePmSyntax'></script>");
+    data-label=\"$[Highlight]\" data-mode='$EnablePmSyntax'
+    data-custom=\"".(is_array(@$CustomSyntax)
+      ? PHSC(json_encode(array_values($CustomSyntax)), ENT_QUOTES)
+      : '')."\"></script>");
 }
 
 if (IsEnabled($EnableUpgradeCheck,1)) {

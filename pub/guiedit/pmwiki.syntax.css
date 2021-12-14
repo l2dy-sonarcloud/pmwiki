@@ -113,7 +113,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   color: var(--pmhi-tab);
   background-color: var(--pmhi-tabbg);
 }
-.pmhlt .pmpunctuation {
+.pmhlt .pmpunct {
   color: var(--pmhi-punct);
 }
 .pmhlt .pmurl{

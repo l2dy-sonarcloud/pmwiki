@@ -33,7 +33,6 @@
     return "<span class='pm"+cname.split(/ +/g).join(' pm')+"'>" + text + "</span>";
   }
   
-  
   function Keep3(cname, tag1, plain, attrs, tag2) {
     var out = '';
     if(tag1) out += span('tag', tag1);
@@ -71,40 +70,37 @@
  
     // core meta directives
     ['comment', /(\(:comment)(.*?)(:\))/gi, '=comment'],
-    ['cond0', /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'], // empty conditional
     ['skin', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi, 'meta tag' ], 
-    ['meta0', /\(:(no)?((link|space)wikiwords|linebreaks) *:\)/gi, 'meta tag'],
-    ['meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, '=meta'],
-    ['meta1', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, '!meta'],
+    ['meta0', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi, 'meta tag'],
+    ['meta1', /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'],
+    ['meta2', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, '=meta'],
+    ['meta3', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, '!meta'],
  
-
-    // page text vars, can be multiline
+    // page text vars, can be empty or multiline
     ['ptv0', /\(:[-\w]+ *: *:\)/g, 'meta tag'],
-    ['ptv', /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, '=meta'],
-    
+    ['ptv1', /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, '=meta'],
     
     ['url', /((mailto|tel|geo|Attach|PmWiki|Cookbook|Skins|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'url'], // before wikistyle
     
     // wikistyles
     ['ws0', /%%|^>><</gm, 'meta tag'],
-    ['ws1', /(^>>[-\w]+)(.*?)(<<)/gm, '!meta'],
+    ['ws1', /(^>>\w[-\w]*)(.*?)(<<)/gm, '!meta'],
     ['ws2', /(%(?:define|apply)=\w+)(.*?)(%)/gi, '!meta'],
     ['ws3', /(%\w[-\w]*)(.*?)(%)/g, '!meta'],
 
     // directives, forms
     ['dir0', /\(:[-\w]+ *:\)/g, 'directive tag'],
-    ['dir', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g, '!directive'],
+    ['dir1', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g, '!directive'],
     
-    ['link', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
+    ['link', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punct'], // link
     
     ['QA', /^([QA]:|-{4,})/mg, 'heading tag'], //Q:/A:, horizontal rule
-    ['var1', /^[A-Z][-_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
+    ['prop', /^[A-Z][-_a-zA-Z0-9]*:/mgi, 'meta'], // property, or start of line PTV
     
-    ['bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)/mg, 'bullet tag'], // list item, initial space, indent
-    
-    ['punct', /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g, 'punctuation'], // inline
-    ['linebreak', /\\+$/gm, 'bullet tag'],
-    ['entity', /[&]\#?\w+;/g, 'string'], // entity
+    // list item, initial space, indent, linebreak; inline punctuation; entity
+    ['bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg, 'bullet tag'], 
+    ['punct', /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g, 'punct'], 
+    ['entity', /[&]\#?\w+;/g, 'string'],
 
     // simple tables
     ['tablecaption', /^(\|\|!)(.+)(!\|\|)$/mg, '=tab'],
@@ -112,10 +108,10 @@
     ['tableattr', /^(\|\|)(.*)($)/mg, '!tab'],
     
     // wikitrails
-    ['trail1', /(<<?\|)(.*?)(\|>>?)/g, '=meta'],
-    ['trail2', /(\^\|)(.*?)(\|\^)/g, '=meta'],
+    ['trail1', /(<<?\|)(.*?)(\|>>?)/g, '=url'],
+    ['trail2', /(\^\|)(.*?)(\|\^)/g, '=url'],
     
-    ['pipe', /\|/g, 'punctuation'], // inline
+    ['pipe', /\|/g, 'punct'], // inline
     
     // may contain inline markup
     ['dlist', /^([:]+)(.*?)([:])/mg, '=bullet'],
@@ -163,6 +159,44 @@
     var pm = document.querySelectorAll('table.markup td.markup1 > pre, .hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     for(var j=0; j<pm.length; j++) {
       PmHiEl(pm[j]);
+    }
+  }
+  
+  var _script;
+  function sortRX(){
+    _script = document.querySelector('script[src*="pmwiki.syntax.js"]');
+    var cm = (window.PmSyntaxCustomMarkup)? window.PmSyntaxCustomMarkup : [];
+    
+    var custom = _script.dataset.custom;
+    if(custom) {
+      try {
+        var list = JSON.parse(_script.dataset.custom);
+        for(var i=0; i<list.length; i++) {
+          var rule = list[i];
+          var rx = new RegExp(rule[1], rule[2]);
+          if(rule.length == 5) {
+            rx = [rx, new RegExp(rule[3], rule[4])];
+          }
+          cm.push([rule[0], rx, rule.pop()]);
+        }
+      }
+      catch(e) { }
+    }
+    for(var i=0; i<cm.length; i++) {
+      var key = cm[i].shift();
+      if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i]);
+      else {
+        hrx.push([key, cm[i][0], cm[i][1]]);
+        custom_hrx[key] = [];
+      }
+    }
+    sorted_hrx = [];
+    for(var i=0; i<hrx.length; i++) {
+      let key = hrx[i].shift();
+      for(var j=0; j<custom_hrx[key].length; j++) {
+        sorted_hrx.push(custom_hrx[key][j]);
+      } 
+      sorted_hrx.push(hrx[i]);
     }
   }
 
@@ -256,36 +290,9 @@
     }
     initCheckbox();
   }
-  var _script;
+
   document.addEventListener('DOMContentLoaded', function(){
-    _script = document.querySelector('script[src*="pmwiki.syntax.js"]');
-    var cm = (window.PmSyntaxCustomMarkup)? window.PmSyntaxCustomMarkup : [];
-    
-    var custom = _script.dataset.custom;
-    if(custom) {
-      try {
-        var list = JSON.parse(_script.dataset.custom);
-        for(var i=0; i<list.length; i++) 
-          cm.push(list[i][0], new RegExp(list[i][1], list[i][2]), list[i][3]);
-      }
-      catch(e) { }
-    }
-    for(var i=0; i<cm.length; i++) {
-      var key = cm[i].shift();
-      if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i]);
-      else {
-        hrx.push([key, cm[i][0], cm[i][1]]);
-        custom_hrx[key] = [];
-      }
-    }
-    sorted_hrx = [];
-    for(var i=0; i<hrx.length; i++) {
-      let key = hrx[i].shift();
-      for(var j=0; j<custom_hrx[key].length; j++) {
-        sorted_hrx.push(custom_hrx[key][j]);
-      } 
-      sorted_hrx.push(hrx[i]);
-    }    
+    sortRX();
     PmHiAll();
     initEditForm();
   });
