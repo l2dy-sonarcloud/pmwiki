@@ -80,7 +80,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-family: var(--pmhi-fontfamily);
   font-size: var(--pmhi-fontsize);
 }
-.pmhlt .pmtag, .pmhlt .pmpunctuation {
+.pmhlt .pmtag, .pmhlt .pmpunct {
   font-weight: bold;
 }
 
