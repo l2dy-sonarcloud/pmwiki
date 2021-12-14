@@ -174,7 +174,7 @@
         for(var i=0; i<list.length; i++) {
           var rule = list[i];
           var rx = new RegExp(rule[1], rule[2]);
-          if(rule.length == 5) {
+          if(rule.length == 6) {
             rx = [rx, new RegExp(rule[3], rule[4])];
           }
           cm.push([rule[0], rx, rule.pop()]);
