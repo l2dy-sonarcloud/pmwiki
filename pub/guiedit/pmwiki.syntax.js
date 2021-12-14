@@ -56,54 +56,44 @@
     return attr;
   }
   
-  function hesc(a, t1, sigil, content, t2){
-    return Keep3('escaped', t1, content, '', t2);
-  }
-  function joinlines(a, a1, a2) {
-    return a1 + Keep(a2, 'bullet tag');
-  }
-  function htab(a){
-    if(a.substr(2).indexOf('||') == -1) return Keep3('tab', a.substr(0, 2), '', a.substr(2)); // first line
-    var b = a.match(/^(\|\|!)(.*)(!\|\|)$/); // caption
-    if(b) return Keep3('tab', b[1], b[2], '', b[3]);
-    return a.replace(/(\|\|)+!?/g, function(c){return Keep(c, 'tab tag');}); // cells
-  }
-  
   var hrx = [
     ['_start', '', ''],
-    ['preserve', /(\[([@=]))((?:.|\n)*?)(\2\])/g, hesc],
-    ['joinline', /([^\\])(\\\n)/g, joinlines],
+    ['preserve', [/\[([@=])(?:.|\n)*?\1\]/g, /^(\[[@=])((?:.|\n)*)([@=]\])$/], '=escaped'],
+    ['joinline', [/([^\\])(\\\n)/g, /\\\n/], 'bullet tag'],
     
+    // variables
     ['pagevar', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g, 'var'],
     ['phpvar', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g, 'var'],
-    ['i18n', /\$\[.*?\]/g, 'string'], // i18n
-    
-    ['comment', /(\(:comment)(.*?)(:\))/gi, '=comment'],
- 
-    ['cond0', /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'], // empty conditional
+    ['i18n', /\$\[.*?\]/g, 'string'],
 
-    
-    ['skin', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi, 'meta tag' ], // core meta
-    ['meta0', /\(:(no)?((link|space)wikiwords|linebreaks) *:\)/gi, 'meta tag'], // core meta
+    // markup expressions
+    ['mx', /(\{\([-\w]+)(.*?)(\)\})/g, '!mx'], 
  
+    // core meta directives
+    ['comment', /(\(:comment)(.*?)(:\))/gi, '=comment'],
+    ['cond0', /\(:(else\d*|if\d*|if\d*end) *:\)/gi, 'meta tag'], // empty conditional
+    ['skin', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi, 'meta tag' ], 
+    ['meta0', /\(:(no)?((link|space)wikiwords|linebreaks) *:\)/gi, 'meta tag'],
     ['meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, '=meta'],
+    ['meta1', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, '!meta'],
  
-    ['ptv0', /\(:[-\w]+ *: *:\)/g, 'meta tag'], // empty ptv
-    ['ptv', /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, '=meta'], // PTV, can be multiline
+
+    // page text vars, can be multiline
+    ['ptv0', /\(:[-\w]+ *: *:\)/g, 'meta tag'],
+    ['ptv', /(\(:[\w-]+:)([^\)](?:.|\n)*?)(:\))/g, '=meta'],
     
-    ['mx', /(\{\([-\w]+)(.*?)(\)\})/g, '!mx'], // markup expressions
     
     ['url', /((mailto|tel|geo|Attach|PmWiki|Cookbook|Skins|Path):|(?:http|ftp)s?:\/\/)[^\s<>"{}|\\\^`()[\]']*[^\s.,?!<>"{}|\^`()[\]'\\]/g, 'url'], // before wikistyle
-      
-    ['ws0', /%%|^>><</gm, 'meta tag'], // short wikistyle
-    ['ws1', /(^>>[-\w]+)(.*?)(<<)/gm, '!meta'], // bloc wikistyle
-    ['ws2', /(%(?:define|apply)=\w+)(.*?)(%)/gi, '!meta'], // special wikistyle
-    ['ws3', /(%[-\w]+)(.*?)(%)/g, '!meta'], // inline wikistyle
-
-    ['meta1', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g, '!meta'], // redirect/templates
     
-    ['dir0', /\(:[-\w]+ *:\)/g, 'directive tag'], // simple directives
-    ['dir', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g, '!directive'], // forms, directives
+    // wikistyles
+    ['ws0', /%%|^>><</gm, 'meta tag'],
+    ['ws1', /(^>>[-\w]+)(.*?)(<<)/gm, '!meta'],
+    ['ws2', /(%(?:define|apply)=\w+)(.*?)(%)/gi, '!meta'],
+    ['ws3', /(%\w[-\w]*)(.*?)(%)/g, '!meta'],
+
+    // directives, forms
+    ['dir0', /\(:[-\w]+ *:\)/g, 'directive tag'],
+    ['dir', /(\(:(?:input\s+\w+|[-\w]+))(.*?)(:\))/g, '!directive'],
     
     ['link', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g, 'punctuation'], // link
     
@@ -116,14 +106,20 @@
     ['linebreak', /\\+$/gm, 'bullet tag'],
     ['entity', /[&]\#?\w+;/g, 'string'], // entity
 
-    ['table', /^\|\|.*$/mg, htab], // simple tables
-    ['dlist', /^([:]+)(.*?)([:])/mg, '=bullet'], // definition term / PTV
-    ['heading', /^(!{1,6})(.*)($)/mg, '=heading'], // heading
+    // simple tables
+    ['tablecaption', /^(\|\|!)(.+)(!\|\|)$/mg, '=tab'],
+    ['tablerow', [/^\|\|.*\|\|/mg, /(\|\|)+!?/g], 'tab tag'],
+    ['tableattr', /^(\|\|)(.*)($)/mg, '!tab'],
     
-    ['trail1', /(<<?\|)(.*?)(\|>>?)/g, '=meta'], // trails
-    ['trail2', /(\^\|)(.*?)(\|\^)/g, '=meta'], // trails
+    // wikitrails
+    ['trail1', /(<<?\|)(.*?)(\|>>?)/g, '=meta'],
+    ['trail2', /(\^\|)(.*?)(\|\^)/g, '=meta'],
     
     ['pipe', /\|/g, 'punctuation'], // inline
+    
+    // may contain inline markup
+    ['dlist', /^([:]+)(.*?)([:])/mg, '=bullet'],
+    ['heading', /^(!{1,6})(.*)($)/mg, '=heading'],
     
     ['cleanup', /[<>&]+/g, PHSC],// raw HTML/XSS
     ['restore', restoreRX, Restore],
@@ -132,10 +128,12 @@
   var custom_hrx = {}, sorted_hrx = [];
   for(var i=0; i<hrx.length; i++) custom_hrx[ hrx[i][0] ] = [];
   
-  
-  
-  
   function PmHi1(text, s, r){
+    if(Array.isArray(s)) {
+      text = text.replace(s[0], function(a){
+        return PmHi1(a, s[1], r);
+      });
+    }
     if(typeof r == 'function') text = text.replace(s, r);
     else text = text.replace(s, function(a, a1, a2, a3){
       if(r.charAt(0)==='!') // tag with attributes
