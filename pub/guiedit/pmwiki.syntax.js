@@ -127,10 +127,10 @@
   for(var i=0; i<hrx.length; i++) custom_hrx[ hrx[i][0] ] = [];
   
   function PmHi1(text, rule){
-    if(rule.length > 2) {
-      let container = rule.pop();
-      return text.replace(container, function(a){
-        return PmHi1(a, rule);
+    if(rule.length>2) {
+      var last = rule[rule.length-1], rule2 = rule.slice(0,-1);
+      return text.replace(last, function(a){
+        return PmHi1(a, rule2);
       });
     }
     var r = rule[0], s = rule[1];
