@@ -155,6 +155,7 @@ $FmtPV = array(
   '$PasswdRead'   => 'PasswdVar($pn, "read")',
   '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
   '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
+  '$EnabledIMap'  => 'implode("|", array_keys($GLOBALS["IMap"]))',
   );
 $SaveProperties = array('title', 'description', 'keywords');
 $PageTextVarPatterns = array(

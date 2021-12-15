@@ -113,7 +113,7 @@ if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableS
 if (IsEnabled($EnablePmSyntax, 0)) { # before skins and local.css
   array_unshift($HTMLHeaderFmt, "<link rel='stylesheet' 
     href='\$FarmPubDirUrl/guiedit/pmwiki.syntax.css'>
-  <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' 
+  <script src='\$FarmPubDirUrl/guiedit/pmwiki.syntax.js' data-imap='{\$EnabledIMap}'
     data-label=\"$[Highlight]\" data-mode='$EnablePmSyntax'
     data-custom=\"".(is_array(@$CustomSyntax)
       ? PHSC(json_encode(array_values($CustomSyntax)), ENT_QUOTES)

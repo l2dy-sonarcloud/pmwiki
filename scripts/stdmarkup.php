@@ -389,7 +389,7 @@ function cb_qualifylinks($m) {
   extract($GLOBALS['tmp_qualify']);
   return "{$m[1]}$group/{$m[2]}";
 }  
-  
+
 ## bare wikilinks
 ##    v2.2: markup rule moved to scripts/wikiwords.php)
 Markup('wikilink', '>urllink');
