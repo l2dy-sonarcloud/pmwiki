@@ -63,7 +63,6 @@
     ['joinline', '*bullet', /\\\n/, /([^\\])(\\\n)/g],
     
     // variables
-    ['_vars'],
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
     ['phpvar',  'var', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g],
     ['i18n', 'string', /\$\[.*?\]/g],
@@ -71,7 +70,7 @@
     // markup expressions
     ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
  
-    ['_meta'], // core meta directives
+    // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
     ['skin',  '*meta', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi ], 
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
@@ -79,13 +78,14 @@
     ['meta2', '=meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig],
     ['meta3', '!meta', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g],
 
-    ['_ptv'], // page text vars, can be empty or multiline
+    // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
     ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
     
-    ['_url'], // bare urls, can have percents so before wikistyle
+    // bare urls, can have percents so before wikistyle
+    ['_url'], 
     
-    ['_wikistyles'], // wikistyles
+    // wikistyles
     ['ws0', '*meta', /%%|^>><</gm],
     ['ws1', '!meta', /(^>>\w[-\w]*)(.*?)(<<)/gm],
     ['ws2', '!meta', /(%(?:define|apply)=\w+)(.*?)(%)/gi],
@@ -95,7 +95,7 @@
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
     ['dir1', '!directive', /(\(: *(?:input\s+\w+|\w[-\w]*))(.*?)(:\))/g],
     
-    ['_inline'],
+    // inline
     ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
     ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg], 
     
@@ -106,7 +106,7 @@
     ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g], 
     ['entity', 'string',  /[&]\#?\w+;/g],
 
-    ['_tables'], // simple tables
+    // simple tables
     ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
     ['tablerow',  '*tab', /(\|\|)+!?/g, /^\|\|.*\|\|.*$/mg],
     ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
