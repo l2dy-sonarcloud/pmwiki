@@ -32,7 +32,7 @@
     if(text==='') return '';
     if(!escaped) text = PHSC(text);
     return "<span class='pm"+cname.replace(/^\*/, 'tag ')
-     .split(/ +/g).join(' pm')+"'>" + text + "</span>";
+     .split(/[ _]+/g).join(' pm')+"'>" + text + "</span>";
   }
   
   function Keep3(cname, tag1, plain, attrs, tag2) {
@@ -132,13 +132,26 @@
   }
   
   function PmHi1(text, rule){
-    if(rule.length>2) {
-      var last = rule[rule.length-1], rule2 = rule.slice(0,-1);
-      return text.replace(last, function(a){
-        return PmHi1(a, rule2);
-      });
-    }
     var r = rule[0], s = rule[1];
+    if(!!rule[2]) {
+      m = (typeof r == 'function') ? false : r.split(/[>]/g);
+      if(m && m.length>1) { // parent>nested
+        r = m[0];
+        text = text.replace(s, function(a){
+          for(var i=1; i<m.length; i++) {
+            if(rule[i+1]) a = PmHi1(a, [m[i], rule[i+1]]);
+          }
+          return a;
+        })
+        // NOT return
+      }
+      else { // match only_in_container
+        var last = rule[rule.length-1], rule2 = rule.slice(0,-1);
+        return text.replace(last, function(a){
+          return PmHi1(a, rule2);
+        });
+      }
+    }
     if(typeof r == 'function') text = text.replace(s, r);
     else text = text.replace(s, function(a, a1, a2, a3){
       if(r.charAt(0)==='!') // tag with attributes
@@ -171,10 +184,19 @@
     }
   }
   function str2rx(str) {
-    if(typeof str != 'string') return str; // assume regexp
+    if(typeof str.flags == 'string') return str; // regexp
+    if(typeof str != 'string') {
+      log("Not a string", str);
+      return false;
+    }
     var a = str.match(/^\/(.*)\/([gimsyu]*)$/);
-    if(!a) return false;
-    return new RegExp(a[1], a[2]);
+    try {
+      if(a) return new RegExp(a[1], a[2]); 
+      return new RegExp(str, 'g');  
+    }
+    catch(e) {
+      log('Could not create RegExp.', str);
+    }
   }
   
   var _script;
@@ -186,36 +208,42 @@
     if(custom) {
       try {
         var list = JSON.parse(_script.dataset.custom);
-        for(var i=0; i<list.length; i++) {
-          var rule = list[i];
-          if(rule[0]=='InterMap') {
-            imaps.push(rule[1]);
-            continue;
-          }
-          for(var j=2; j<rule.length; j++) rule[j] = str2rx(rule[j]);
-          cm.push(rule);
-        }
       }
-      catch(e) { }
+      catch(e) {
+        log("Parsing custom rules failed.", _script.dataset.custom);
+        var list = [];
+      }
+      
+      for(var i=0; i<list.length; i++) {
+        var rule = list[i];
+        if(typeof rule == 'string') rule = rule.split(/\s+/g);
+        if(rule[0]=='InterMap') {
+          imaps.push(rule[1]);
+          continue;
+        }
+        for(var j=2; j<rule.length; j++) rule[j] = str2rx(rule[j]);
+        cm.push(rule);
+      }
     }
     var uec = '<>"{}|\\\\^`()[\\]\'';
-    cm.push(['_url', 'url', new RegExp(
+    cm.push(['>_url', 'url', new RegExp(
       '\\b(' +imaps.join('|')+ ')[^\\s'+uec+']*[^\\s.,?!'+uec+']', 'g'
     )]);
     for(var i=0; i<cm.length; i++) {
-      var key = cm[i].shift().replace(/^</, '');
-      if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i]);
+      var key = cm[i][0].replace(/^</, '');
+      if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i].slice(1));
+      else log('No rule name to attach to.', cm[i]);
     }
     sorted_hrx = [];
     for(var i=0; i<hrx.length; i++) {
-      let key = hrx[i].shift();
-      let keys = [key, '>'+key];
+      var key = hrx[i][0];
+      var keys = [key, '>'+key];
       for(var k=0; k<2; k++) {
+        if(k) sorted_hrx.push(hrx[i].slice(1));
         var kk = keys[k];
         for(var j=0; j<custom_hrx[kk].length; j++) {
           sorted_hrx.push(custom_hrx[kk][j]);
         }
-        if(!k) sorted_hrx.push(hrx[i]);
       }
     }
   }
