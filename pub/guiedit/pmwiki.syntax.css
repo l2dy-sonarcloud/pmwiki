@@ -135,6 +135,9 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 .pmhlt .pmvalue {
   color: var(--pmhi-value);
 }
+.pmhlt .pmnobg {
+  background-color: transparent;
+}
 
 #wikiedit #hwrap {
   position: relative;
