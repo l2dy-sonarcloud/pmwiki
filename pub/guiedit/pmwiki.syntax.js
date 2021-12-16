@@ -91,7 +91,7 @@
     ['ws2', '!meta', /(%(?:define|apply)=\w+)(.*?)(%)/gi],
     ['ws3', '!meta', /(%\w[-\w]*)(.*?)(%)/g],
 
-    ['_directives'],// directives, forms
+    // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
     ['dir1', '!directive', /(\(: *(?:input\s+\w+|\w[-\w]*))(.*?)(:\))/g],
     
@@ -134,7 +134,7 @@
   function PmHi1(text, rule){
     var r = rule[0], s = rule[1];
     if(!!rule[2]) {
-      m = (typeof r == 'function') ? false : r.split(/[>]/g);
+      var m = (typeof r == 'function') ? false : r.split(/[>]/g);
       if(m && m.length>1) { // parent>nested
         r = m[0];
         text = text.replace(s, function(a){
