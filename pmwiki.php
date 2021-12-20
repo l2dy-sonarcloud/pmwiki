@@ -1925,10 +1925,10 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     return '';
   $tgtname = MakePageName($pagename, $match[1]); 
   if (!$tgtname) return '';
-  $qf = @$match[2];
+  $qf = @$match[2]? $match[2] : '';
   @$LinkTargets[$tgtname]++;
   if (!$fmt) {
-    if (@$qf && !PageExists($tgtname) && !preg_match('/[&?]action=/', $qf))
+    if (!PageExists($tgtname) && !preg_match('/[&?]action=/', $qf))
       $fmt = preg_match('/\\s/', $txt) 
              ? $LinkPageCreateSpaceFmt : $LinkPageCreateFmt;
     else
