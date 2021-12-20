@@ -507,6 +507,19 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
   if (@$fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
   if (is_null($stamp)) $stamp = $Now;
   
+  if (PHP_VERSION_ID<80100) {
+    $dloc = setlocale(LC_TIME, 0);
+    $dtz = date_default_timezone_get();
+    if(@$locale) 
+      setlocale(LC_TIME, preg_split('/[, ]+/', $argp['locale'], null, PREG_SPLIT_NO_EMPTY));
+    if(@$tz) @date_default_timezone_set($argp['tz']);
+    $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $stamp), $fmt);
+    $ret = strftime($fmt, $time);
+    if ($tz) date_default_timezone_set($dtz);
+    if(@$locale) setlocale(LC_TIME, $dloc);
+    return $ret;
+  }
+
   $vars = array();
   if($locale) $vars['locale'] = substr($locale, 0, 5);
   
