@@ -57,10 +57,10 @@
     return attr;
   }
   
-  var hrx = [ // rule_name, [*=!]classname|function, regexp, [only_in_container_regexp]
+  var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_start'],
-    ['preserve', '=escaped', /^(\[[@=])(.*)([@=]\])$/s, /\[([@=]).*?\1\]/gs],
-    ['joinline', '*bullet', /\\\n/, /([^\\])(\\\n)/g],
+    ['preserve', '=escaped', /\[([@=]).*?\1\]/gs, /^(\[[@=])(.*)([@=]\])$/s],
+    ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
     
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
@@ -82,8 +82,8 @@
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
     ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
     
-    // bare urls, can have percents so before wikistyle
-    ['_url'], 
+    // urls can have percents so before wikistyle (populated by InterMap)
+    ['_url'],
     
     // wikistyles
     ['ws0', '*meta', /%%|^>><</gm],
@@ -108,7 +108,7 @@
 
     // simple tables
     ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
-    ['tablerow',  '*tab', /(\|\|)+!?/g, /^\|\|.*\|\|.*$/mg],
+    ['tablerow',  '*tab', /^\|\|.*\|\|.*$/mg, /(\|\|)+!?/g],
     ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
     
     // wikitrails
@@ -145,10 +145,9 @@
         })
         // NOT return
       }
-      else { // match only_in_container
-        var last = rule[rule.length-1], rule2 = rule.slice(0,-1);
-        return text.replace(last, function(a){
-          return PmHi1(a, rule2);
+      else { // one classname, return match only_in_container
+        return text.replace(s, function(a){
+          return PmHi1(a, rule[2]);
         });
       }
     }
