@@ -137,7 +137,7 @@ $FmtPV = array(
   '$Title'        => 'FmtPageTitle(@$page["title"], $name, 0)',
   '$LastModifiedBy' => '@$page["author"]',
   '$LastModifiedHost' => '@$page["host"]',
-  '$LastModified' => 'strftime($GLOBALS["TimeFmt"], $page["time"])',
+  '$LastModified' => 'PSFT($GLOBALS["TimeFmt"], $page["time"])',
   '$LastModifiedSummary' => '@$page["csum"]',
   '$LastModifiedTime' => '$page["time"]',
   '$Description'  => '@$page["description"]',
@@ -251,7 +251,7 @@ $Conditions['exists'] = 'CondExists($condparm)';
 ## especially for pagelists
 function CondExists($condparm, $caseinsensitive = true) {
   static $ls = false;
-  if(!$ls) $ls = ListPages();
+  if (!$ls) $ls = ListPages();
   $condparm = str_replace(array('[[',']]'), array('', ''), $condparm);
   $glob = FixGlob($condparm, '$1*.$2');
   return (boolean)MatchPageNames($ls, $glob, $caseinsensitive);
@@ -362,8 +362,8 @@ if (IsEnabled($EnableLocalConfig,1)) {
     include_once('config.php');
 }
 
-SDV($CurrentTime, strftime($TimeFmt, $Now));
-SDV($CurrentTimeISO, strftime($TimeISOFmt, $Now));
+SDV($CurrentTime, PSFT($TimeFmt, $Now));
+SDV($CurrentTimeISO, PSFT($TimeISOFmt, $Now));
 
 if (IsEnabled($EnableStdConfig,1))
   include_once("$FarmD/scripts/stdconfig.php");
@@ -379,7 +379,7 @@ if (isset($PostConfig) && is_array($PostConfig)) {
 
 function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $httponly=null) {
   global $EnableCookieSecure, $EnableCookieHTTPOnly, $SetCookieFunction;
-  if(IsEnabled($SetCookieFunction))
+  if (IsEnabled($SetCookieFunction))
     return $SetCookieFunction($name, $val, $exp, $path, $dom, $secure, $httponly);
   if (is_null($secure))   $secure   = IsEnabled($EnableCookieSecure,   false);
   if (is_null($httponly)) $httponly = IsEnabled($EnableCookieHTTPOnly, false);
@@ -458,9 +458,10 @@ function PZZ($x,$y='') { return ''; }
 function PRR($x=NULL) 
   { if ($x || is_null($x)) $GLOBALS['RedoMarkupLine']++; return $x; }
 function PUE($x)
-  { return preg_replace_callback('/[\\x80-\\xff \'"<>]/', "cb_pue", $x); }
+  { return $x? preg_replace_callback('/[\\x80-\\xff \'"<>]/', "cb_pue", $x) : ''; }
 function cb_pue($m) { return '%'.dechex(ord($m[0])); }
 function PQA($x, $keep=true) { 
+  if (!@$x) return ''; # PHP 8.1
   $out = '';
   if (preg_match_all('/([a-zA-Z][-\\w]*)\\s*=\\s*("[^"]*"|\'[^\']*\'|\\S*)/',
                      $x, $attr, PREG_SET_ORDER)) {
@@ -501,6 +502,108 @@ function PHSC($x, $flags=ENT_COMPAT, $enc=null, $dbl_enc=true) { # for PHP 5.4
   foreach($x as $k=>$v) $x[$k] = PHSC($v, $flags, $enc, $dbl_enc);
   return $x;
 }
+function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacement
+  global $Now, $FTimeFmt, $TimeFmt;
+  if (@$fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
+  if (is_null($stamp)) $stamp = $Now;
+  
+  $vars = array();
+  if($locale) $vars['locale'] = substr($locale, 0, 5);
+  
+  $timestamp = date_create("@$stamp");
+  if($tz) {
+    $tzo = @timezone_open($tz);
+    if(!@$tzo) unset($tz);
+  }
+  if (!@$tz) { // GMT if $tz null 
+    $tz = date_default_timezone_get();
+    $tzo = timezone_open($tz);
+  }
+  date_timezone_set($timestamp, $tzo);
+  
+  $vars['tz'] = $tz;
+  $vars['timestamp'] = $timestamp;
+  $vars['formats'] = array(
+    '%d' => 'd',
+    '%e' => ' j', # day " 1"-"31"
+    '%u' => 'N',
+    '%w' => 'w',
+    '%m' => 'm',
+    '%s' => 'U',
+    '%n' => "\n",
+    '%t' => "\t",
+    '%V' => 'W', # ISO-8601 week number, starts Monday, first week with 4+ weekdays
+    
+    '%H' => 'H',
+    '%I' => 'h', # hour 01-12
+    '%k' => ' G', # hour " 1"-"23"
+    '%l' => ' g', # hour " 1"-"12"
+    '%M' => 'i',
+    '%S' => 's',
+    '%R' => 'H:i',
+    '%T' => 'H:i:s',
+    '%r' => 'h:i:s A',
+    '%D' => 'm/d/y',
+    '%F' => 'Y-m-d',
+    
+    '%G' => 'o', # ISO-8601 year (like %V)
+    '%y' => 'y', # 21
+    '%Y' => 'Y', # 2021
+    
+    '%Z' => 'T', # tz: EST
+    '%z' => 'O', # tz offset: -0500
+  );
+  
+  $full = IntlDateFormatter::FULL;
+  $long = IntlDateFormatter::LONG;
+  $short = IntlDateFormatter::SHORT;
+  $none = IntlDateFormatter::NONE;
+  $medium = IntlDateFormatter::MEDIUM;
+  
+  $vars['iformats'] = array(
+    '%a' => array($full, $full, 'EEE'),  # Mon
+    '%A' => array($full, $full, 'EEEE'), # Monday
+    '%h' => array($full, $full, 'MMM'), 	# Jan
+    '%b' => array($full, $full, 'MMM'),		# Jan
+    '%B' => array($full, $full, 'MMMM'),	# January
+    '%p' => array($full, $full, 'aa'),	# AM/PM
+    '%P' => array($full, $full, 'aa'),	# am/pm
+    '%c' => array($long, $short), # date time
+    '%x' => array($short, $none), # date
+    '%X' => array($none, $medium),# time
+  );
+  
+  $cb = new PPRC($vars);
+  $fmt = preg_replace_callback('/(?<!%)(%[a-zA-Z])/', array($cb, 'ftime'), $fmt);
+  return str_replace('%%', '%', $fmt);
+}
+function cb_PSFT($fmt, $vars) {
+  extract($vars); # $timestamp, $tz, $locale, $formats, $iformats
+  
+  if(isset($formats[$fmt])) {
+    $fmt = $timestamp->format($formats[$fmt]);
+    if($fmt[0]==' ' && strlen($fmt)>2) $fmt = substr($fmt, 1);
+    return $fmt;
+  }
+  if($fmt=='%j') return sprintf('%03d',$timestamp->format('z')+1);
+  if($fmt=='%C') return floor($timestamp->format('Y')/100);
+  if($fmt=='%g') return sprintf('%02d', $timestamp->format('o') % 100);
+  if($fmt=='%U') return cb_PSFT_UW($timestamp, $tz, 'Sunday');
+  if($fmt=='%W') return cb_PSFT_UW($timestamp, $tz, 'Monday');
+
+  if(isset($iformats[$fmt])) {
+    $ifmt = $iformats[$fmt];
+    return datefmt_create(@$locale, $ifmt[0], $ifmt[1], $tz, null, @$ifmt[2])->format($timestamp);
+  }
+  return $fmt;
+}
+function cb_PSFT_UW($timestamp, $tz, $day) { # helper for %U %W
+  $first = strtotime(sprintf("%d-01 $day", $timestamp->format('Y')));
+  $stamp1 = date_create("@$first");
+  date_timezone_set($stamp1, timezone_open($tz));
+  $days = $timestamp->format('z') - $stamp1->format('z');
+  return sprintf('%02d', floor($days/7)+1);
+}
 function PCCF($code, $template = 'default', $args = '$m') {
   global $CallbackFnTemplates, $CallbackFunctions, $PCCFOverrideFunction;
   if ($PCCFOverrideFunction && is_callable($PCCFOverrideFunction))
@@ -517,15 +620,16 @@ function PCCF($code, $template = 'default', $args = '$m') {
   return $CallbackFunctions[$code];
 }
 function PPRE($pat, $rep, $x) {
-  if(! function_exists('create_function')) return $x;
+  if (! function_exists('create_function')) return $x;
   $lambda = PCCF("return $rep;");
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
+  if(!$x) return '';
   foreach((array)$array as $pat => $rep) {
     # skip broken patterns rather than crash the PHP installation
     $oldpat = preg_match('!^/.+/[^/]*e[^/]*$!', $pat);
-    if($oldpat && PHP_VERSION_ID >= 50500) continue;
+    if ($oldpat && PHP_VERSION_ID >= 50500) continue;
     
     $fmt = $x; # for $FmtP
     if (is_callable($rep) && $rep != '_') 
@@ -544,6 +648,10 @@ class PPRC { # PmWiki preg replace callbacks + pass local vars
   function pagevar($m) { # called from FmtPageName
     $pagename = $this->vars;
     return PageVar($pagename, $m[1]);
+  }
+  function ftime($m) { # called from PSFT
+    $vars = $this->vars;
+    return cb_PSFT($m[0], $vars);
   }
 }
 
@@ -566,21 +674,21 @@ function pmcrypt($str, $salt=null) {
 # generate or check a random one-time token to prevent CSRF
 function pmtoken($token = null) {
   global $SessionMaxTokens, $PmTokenFn;
-  if(IsEnabled($PmTokenFn) && function_exists($PmTokenFn))
+  if (IsEnabled($PmTokenFn) && function_exists($PmTokenFn))
     return $PmTokenFn($token);
   @session_start();
-  if(!isset($_SESSION['pmtokens'])) $_SESSION['pmtokens'] = array();
-  if(is_null($token)) { # create a one-time token
+  if (!isset($_SESSION['pmtokens'])) $_SESSION['pmtokens'] = array();
+  if (is_null($token)) { # create a one-time token
     $len = mt_rand(20,30);
     $token = "";
     while(strlen($token)<$len) {
       $token .= chr(mt_rand(32,126));
     }
-    if(count($_SESSION['pmtokens']))
+    if (count($_SESSION['pmtokens']))
       $id = max(array_keys($_SESSION['pmtokens']))+1;
     else $id = 0;
     $_SESSION['pmtokens'][$id] = $token;
-    if(IsEnabled($SessionMaxTokens, 0)) {
+    if (IsEnabled($SessionMaxTokens, 0)) {
       $max = $SessionMaxTokens;
       $_SESSION['pmtokens'] = array_slice($_SESSION['pmtokens'], -$max, $max, true);
     }
@@ -589,7 +697,7 @@ function pmtoken($token = null) {
   # else: check a token, if correct, delete it
   @list($id, $hash) = explode(':', $token);
   $id = intval($id);
-  if(isset($_SESSION['pmtokens'][$id]) && $hash == md5($_SESSION['pmtokens'][$id])) {
+  if (isset($_SESSION['pmtokens'][$id]) && $hash == md5($_SESSION['pmtokens'][$id])) {
     unset($_SESSION['pmtokens'][$id]);
     return true;
   }
@@ -672,13 +780,13 @@ function DRange($when) {
 ## DiffTimeCompact subtracts 2 timestamps and outputs a compact
 ## human-readable delay in hours, days, weeks, months or years
 function DiffTimeCompact($time, $time2=null, $precision=1) {
-  if(is_null($time2)) $time2 = $GLOBALS['Now'];
+  if (is_null($time2)) $time2 = $GLOBALS['Now'];
   $suffix = explode(',', XL('h,d,w,m,y'));
   $x = $hours = abs($time2 - $time)/3600;
-  if($x<24) return round($x,$precision).$suffix[0];
-  $x /= 24;   if($x<14) return round($x,$precision).$suffix[1];
-  $x /= 7;    if($x< 9) return round($x,$precision).$suffix[2];
-  $x = $hours/2/365.2425; if($x<24) return round($x,$precision).$suffix[3];
+  if ($x<24) return round($x,$precision).$suffix[0];
+  $x /= 24;   if ($x<14) return round($x,$precision).$suffix[1];
+  $x /= 7;    if ($x< 9) return round($x,$precision).$suffix[2];
+  $x = $hours/2/365.2425; if ($x<24) return round($x,$precision).$suffix[3];
   return round($hours/24/365.2425,$precision).$suffix[4];
 }
 
@@ -686,7 +794,7 @@ function DiffTimeCompact($time, $time2=null, $precision=1) {
 ## with an appropriate suffix.
 ## Note: unreliable filemtime()/stat() over 2GB @ 32bit
 function FileSizeCompact($n, $precision=1) {
-  if(!(float)$n) return 0;
+  if (!(float)$n) return 0;
   $units = 'bkMGTPEZY';
   $b = log((float)$n, 1024);
   $fb = floor($b);
@@ -995,7 +1103,7 @@ function PageVar($pagename, $var, $pn = '') {
     }
     @list($d, $group, $name) = $match;
     $page = &$PCache[$pn];
-    if (strpos(@$FmtPV[$var], '$authpage') !== false) {
+    if (@$FmtPV[$var] && strpos(@$FmtPV[$var], '$authpage') !== false) {
       if (!isset($page['=auth']['read'])) {
         $x = RetrieveAuthPage($pn, 'read', false, READPAGE_CURRENT);
         if ($x) PCache($pn, $x);
@@ -1014,6 +1122,7 @@ function FmtPageName($fmt, $pagename) {
   # Perform $-substitutions on $fmt relative to page given by $pagename
   global $GroupPattern, $NamePattern, $EnablePathInfo, $ScriptUrl,
     $GCount, $UnsafeGlobals, $FmtV, $FmtP, $FmtPV, $PCache, $AsSpacedFunction;
+  if (! @$fmt) { return ''; }
   if (strpos($fmt,'$')===false) return $fmt;
   $fmt = preg_replace_callback('/\\$([A-Z]\\w*Fmt)\\b/','cb_expandglobal',$fmt);
   $fmt = preg_replace_callback('/\\$\\[(?>([^\\]]+))\\]/',"cb_expandxlang",$fmt);
@@ -1157,7 +1266,7 @@ class PageStore {
   }
   function recodefn($s,$from,$to) {
     static $able;
-    if(is_null($able)) {
+    if (is_null($able)) {
       # can we rely on iconv() or on mb_convert_encoding() ?
       if (function_exists('iconv') && @iconv("UTF-8", "WINDOWS-1252//IGNORE", "te\xd0\xafst")=='test' )
         $able = 'iconv';
@@ -1236,7 +1345,7 @@ class PageStore {
     $page['time'] = $Now;
     $page['host'] = $_SERVER['REMOTE_ADDR'];
     $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
-    if(IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
+    if (IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
     $page['rev'] = @$page['rev']+1;
     unset($page['version']); unset($page['newline']);
     uksort($page, 'CmpPageAttr');
@@ -1307,7 +1416,8 @@ class PageStore {
   function recode($pagename, $a) {
     if (!$a) return false;
     global $Charset, $PageRecodeFunction, $DefaultPageCharset, $EnableOldCharset;
-    if (function_exists($PageRecodeFunction)) return $PageRecodeFunction($a);
+    if (@$PageRecodeFunction && function_exists($PageRecodeFunction)) 
+      return $PageRecodeFunction($a);
     if (IsEnabled($EnableOldCharset)) $a['=oldcharset'] = @$a['charset'];
     SDVA($DefaultPageCharset, array(''=>@$Charset)); # pre-2.2.31 RecentChanges
     if (@$DefaultPageCharset[$a['charset']]>'')  # wrong pre-2.2.30 encs. *-2, *-9, *-13
@@ -1315,7 +1425,7 @@ class PageStore {
     if (!$a['charset'] || $Charset==$a['charset']) return $a;
     $from = ($a['charset']=='ISO-8859-1') ? 'WINDOWS-1252' : $a['charset'];
     $to = ($Charset=='ISO-8859-1') ? 'WINDOWS-1252' : $Charset;
-    if($from != $to) {
+    if ($from != $to) {
       foreach($a as $k=>$v) $a[$k] = $this->recodefn($v,$from,$to);
     }
     $a['charset'] = $Charset;
@@ -1330,7 +1440,7 @@ function ReadPage($pagename, $since=0) {
     $page = $dir->read($pagename, $since);
     if ($page) break;
   }
-  if (@!$page) $page['ctime'] = $Now;
+  if (@!$page) $page = array('ctime' => $Now);
   if (@!$page['time']) $page['time'] = $Now;
   return $page;
 }
@@ -1453,7 +1563,8 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
 }
 
 function Keep($x, $pool=NULL) {
-  if(is_array($x)) $x = $x[0]; # used in many callbacks
+  if (is_array($x)) $x = $x[0]; # used in many callbacks
+  if($x=='') return '';
   # Keep preserves a string from being processed by wiki markups
   global $BlockPattern, $KeepToken, $KPV, $KPCount;
   $x = preg_replace_callback("/$KeepToken(\\d.*?)$KeepToken/", 'cb_expandkpv', $x);
@@ -1473,6 +1584,7 @@ function MarkupEscape($text) {
 }
 function MarkupRestore($text) {
   global $KeepToken, $KPV;
+  if (!$text) return '';
   return preg_replace_callback("/$KeepToken(\\d.*?)$KeepToken/", 'cb_expandkpv', $text);
 }
 
@@ -1513,6 +1625,7 @@ function CondText($pagename,$condspec,$condtext) {
 ##  Returns the text unchanged if no sections are requested,
 ##  or false if a requested beginning anchor isn't in the text.
 function TextSection($text, $sections, $args = NULL) {
+  if (!$text) return false; # PHP 8.1
   $args = (array)$args;
   $npat = '[[:alpha:]][-\\w.]*';
   if (!preg_match("/#($npat)?(\\.\\.)?(#($npat)?)?/", $sections, $match))
@@ -1631,8 +1744,8 @@ function Block($b) {
   }
   @list($code, $depth, $icol) = explode(',', $b);
   if (!$code) $depth = 1;
-  if (!is_numeric($depth)) $depth = strlen($depth); # PHP8
-  if (!is_numeric($icol)) $icol = strlen($icol); # PHP8
+  if (!is_numeric($depth)) $depth = @$depth? strlen($depth) : 0; # PHP8.1
+  if (!is_numeric($icol)) $icol = @$icol? strlen($icol) : 0; # PHP8.1
   if ($depth > 0) $depth += @$mf['idep'];
   if ($icol > 0) $mf['is'][$depth] = $icol + @$mf['icol'];
   @$mf['idep'] = @$mf['icol'] = 0;
@@ -1735,18 +1848,18 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   }
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
-  $FmtV['$LinkAlt'] = Keep(str_replace(array('"',"'"),array('&#34;','&#39;'),$alt));
+  if (@$alt) $FmtV['$LinkAlt'] = Keep(str_replace(array('"',"'"),array('&#34;','&#39;'),$alt));
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
-  if(IsEnabled($AddLinkCSS['samedomain'])) {
+  if (IsEnabled($AddLinkCSS['samedomain'])) {
     $parsed_url = parse_url($FmtV['$LinkUrl']);
     $parsed_wiki = parse_url($ScriptUrl);
-    if(! @$parsed_url['host'] || $parsed_url['host'] == $parsed_wiki['host']) {
+    if (! @$parsed_url['host'] || $parsed_url['host'] == $parsed_wiki['host']) {
       $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['samedomain']} ", $fmt);
     }
   }
   # remove unused title attributes
-  if(!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
+  if (!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
   return str_replace(array_keys($FmtV),array_values($FmtV),$fmt);
 }
 
@@ -1761,7 +1874,7 @@ function ObfuscateLinkIMap($pagename,$imap,$path,$title,$txt,$fmt=NULL) {
     "<span class='_pmXmail' title=\"\$LinkAlt\"><span class='_t'>\$LinkText</span><span class='_m'>\$LinkUrl</span></span>"));
   $FmtV['$LinkUrl'] = cb_obfuscate_mail(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = cb_obfuscate_mail(preg_replace('/^mailto:/i', '', $txt));
-  if($FmtV['$LinkText'] == preg_replace('/^mailto:/i', '', $FmtV['$LinkUrl'])) $FmtV['$LinkUrl'] = '';
+  if ($FmtV['$LinkText'] == preg_replace('/^mailto:/i', '', $FmtV['$LinkUrl'])) $FmtV['$LinkUrl'] = '';
   else $FmtV['$LinkUrl'] = " -&gt; ".$FmtV['$LinkUrl'];
   $FmtV['$LinkAlt'] = str_replace(array('"',"'"),array('&#34;','&#39;'),cb_obfuscate_mail($title, 0));
   return str_replace(array_keys($FmtV),array_values($FmtV), $IMapLinkFmt['obfuscate-mailto:']);
@@ -1783,7 +1896,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
     $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
-  $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
+  if($alt) $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', $path); # PITS:01388
   if (is_array($txt)) { # PITS:01392
     $suffix = $txt[1];
@@ -1802,7 +1915,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $qf = @$match[2];
   @$LinkTargets[$tgtname]++;
   if (!$fmt) {
-    if (!PageExists($tgtname) && !preg_match('/[&?]action=/', $qf))
+    if (@$qf && !PageExists($tgtname) && !preg_match('/[&?]action=/', $qf))
       $fmt = preg_match('/\\s/', $txt) 
              ? $LinkPageCreateSpaceFmt : $LinkPageCreateFmt;
     else
@@ -1816,13 +1929,13 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (@$EnableLinkPageRelative)
     $url = preg_replace('!^[a-z]+://[^/]*!i', '', $url);
   # remove unused title attributes
-  if(!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
+  if (!$alt) $fmt = preg_replace('/\\stitle=([\'"])\\$LinkAlt\\1/', '', $fmt);
   $fmt = str_replace(array('$LinkUrl', '$LinkText', '$LinkAlt'),
                      array($url.PUE($qf), $txt, Keep($alt)), $fmt);
-  if(IsEnabled($AddLinkCSS['othergroup'])) {
+  if (IsEnabled($AddLinkCSS['othergroup'])) {
     list($cgroup, ) = explode('.', $pagename);
     list($tgroup, ) = explode('.', $tgtname);
-    if($cgroup != $tgroup) 
+    if ($cgroup != $tgroup) 
       $fmt = preg_replace('/(<a[^>]*class=["\'])/', "$1{$AddLinkCSS['othergroup']} ", $fmt);
   }
   return FmtPageName($fmt,$tgtname);
@@ -1831,7 +1944,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
 function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   global $LinkPattern,$LinkFunctions,$UrlExcludeChars,$ImgExtPattern,$ImgTagFmt,
     $LinkTitleFunction;
-  if(preg_match("/^(.*)(?:\"(.*)\")\\s*$/",$tgt,$x)) list(,$tgt,$title) = $x;
+  if (preg_match("/^(.*)(?:\"(.*)\")\\s*$/",$tgt,$x)) list(,$tgt,$title) = $x;
   $t = preg_replace('/[()]/','',trim($tgt));
   $t = preg_replace('/<[^>]*>/','',$t);
   $t = trim(MarkupRestore($t));
@@ -1877,7 +1990,7 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
   }
   if ($pat && !isset($MarkupTable[$id]['pat'])) {
     $oldpat = preg_match('!(^/.+/[^/]*)e([^/]*)$!', $pat, $mm);
-    if($oldpat && PHP_VERSION_ID >= 50500) {
+    if ($oldpat && PHP_VERSION_ID >= 50500) {
       # disable old markup for recent PHP versions
       $rep = 'ObsoleteMarkup';
       $pat = $mm[1].$mm[2];
@@ -1901,7 +2014,7 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
 
 function Markup_e($id, $when, $pat, $rep, $template = 'markup_e') {
   if (!is_callable($rep)) {
-    if(function_exists('create_function'))
+    if (function_exists('create_function'))
       $rep = PCCF($rep, $template);
     else $rep = 'ObsoleteMarkup';
   }
@@ -2060,7 +2173,7 @@ function AutoCheckToken() {
     $FmtV, $action, $BlockMessageFmt, $MessagesFmt;
   
   # a quick way to disable tokens
-  if(! IsEnabled($EnablePmToken, 1)) return true; 
+  if (! IsEnabled($EnablePmToken, 1)) return true; 
   
   SDVA($AutoCheckTokenActions, array( # 1=POST, 2=GET, 0=disabled
     'edit' => 1, 
@@ -2470,7 +2583,7 @@ function SessionAuth($pagename, $auth = NULL) {
 
   $sid = session_id();
   @session_start();
-  if($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
+  if ($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
     && IsEnabled($EnableAuthPostRegenerateSID, true)) {
     session_regenerate_id();
   }
@@ -2562,7 +2675,7 @@ function HandleAttr($pagename, $auth = 'attr') {
 
 function HandlePostAttr($pagename, $auth = 'attr') {
   global $PageAttributes, $EnablePostAttrClearSession;
-  if(! AutoCheckToken()) {
+  if (! AutoCheckToken()) {
     Abort('? $[Token invalid or missing.]');
   }
   Lock(2);

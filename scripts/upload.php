@@ -419,7 +419,7 @@ function FmtUploadList($pagename, $args) {
     $lnk = FmtPageName($fmt, $pagename);
     $out[] = "<li> $lnk$overwrite ... ".
       number_format($stat['size']) . " bytes ... " . 
-      strftime($TimeFmt, $stat['mtime']) . "</li>";
+      PSFT($TimeFmt, $stat['mtime']) . "</li>";
   }
   return implode("\n",$out);
 }

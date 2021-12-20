@@ -79,7 +79,7 @@ function PrintDiff($pagename) {
     $diffclass = $match[3];
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = $match[1];
-    $FmtV['$DiffTime'] = strftime($TimeFmt,$diffgmt);
+    $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
     if (!$diffauthor) $diffauthor="unknown";

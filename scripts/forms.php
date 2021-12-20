@@ -223,7 +223,7 @@ function InputDefault($pagename, $type, $args) {
   $args = ParseArgs($args);
   $args[''] = (array)@$args[''];
   $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
-  $name = preg_replace('/^\\$:/', 'ptv_', $name);
+  $name = $name ? preg_replace('/^\\$:/', 'ptv_', $name) : '';
   $value = (isset($args['value'])) ? $args['value'] : $args[''];
   if (!isset($InputValues[$name])) $InputValues[$name] = $value;
   if (@$args['request']) {

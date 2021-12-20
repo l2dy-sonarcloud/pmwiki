@@ -77,7 +77,7 @@ if (IsEnabled($EnablePageList,1))
   include_once("$FarmD/scripts/pagelist.php");
 if (IsEnabled($EnableVarMarkup,1))
   include_once("$FarmD/scripts/vardoc.php");
-if (!function_exists(@$DiffFunction)) 
+if (!@$DiffFunction || !function_exists($DiffFunction)) 
   include_once("$FarmD/scripts/phpdiff.php");
 if ($action=='crypt')
   include_once("$FarmD/scripts/crypt.php");

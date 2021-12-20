@@ -1,7 +1,7 @@
 <?php  if (!defined('PmWiki')) exit();
 /*  
     Copyright 2003,2004 Nils Knappmeier (nk@knappi.org)
-    Copyright 2004-2015 Patrick R. Michaud (pmichaud@pobox.com)
+    Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
 
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
@@ -113,6 +113,6 @@ function PHPDiff($old, $new)
   return join("\n",$out);
 }
 
-if (!function_exists(@$DiffFunction))
+if (!@$DiffFunction || !function_exists($DiffFunction))
   $DiffFunction = 'PHPDiff';
 
