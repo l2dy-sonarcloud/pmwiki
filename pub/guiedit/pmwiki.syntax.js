@@ -147,7 +147,7 @@
       }
       else { // one classname, return match only_in_container
         return text.replace(s, function(a){
-          return PmHi1(a, rule[2]);
+          return PmHi1(a, [r, rule[2]]);
         });
       }
     }
