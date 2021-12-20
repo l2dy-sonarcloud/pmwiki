@@ -514,7 +514,7 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
       setlocale(LC_TIME, preg_split('/[, ]+/', $locale, null, PREG_SPLIT_NO_EMPTY));
     if(@$tz) @date_default_timezone_set($tz);
     $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $stamp), $fmt);
-    $ret = strftime($fmt, $time);
+    $ret = strftime($fmt, $stamp);
     if ($tz) date_default_timezone_set($dtz);
     if(@$locale) setlocale(LC_TIME, $dloc);
     return $ret;
