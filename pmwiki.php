@@ -503,88 +503,115 @@ function PHSC($x, $flags=ENT_COMPAT, $enc=null, $dbl_enc=true) { # for PHP 5.4
   return $x;
 }
 function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacement
-  global $Now, $FTimeFmt, $TimeFmt;
-  if (@$fmt == '') { SDV($FTimeFmt, $TimeFmt); $fmt = $FTimeFmt; }
-  if (is_null($stamp)) $stamp = $Now;
+  global $Now, $FTimeFmt, $TimeFmt, $EnableFTimeNew;
+  static $cached;
+  if (!@$cached) {
+    SDV($FTimeFmt, $TimeFmt);
+    $cached['dloc'] = setlocale(LC_TIME, 0);
+    $cached['dtz'] = date_default_timezone_get();
+    $cached['dtzo'] = timezone_open($cached['dtz']);
+    $cached['formats'] = array(
+      '%d' => 'd',
+      '%e' => ' j', # day " 1"-"31"
+      '%u' => 'N',
+      '%w' => 'w',
+      '%m' => 'm',
+      '%s' => 'U',
+      '%n' => "\n",
+      '%t' => "\t",
+      '%V' => 'W', # ISO-8601 week number, starts Monday, first week with 4+ weekdays
+      
+      '%H' => 'H',
+      '%I' => 'h', # hour 01-12
+      '%k' => ' G', # hour " 1"-"23"
+      '%l' => ' g', # hour " 1"-"12"
+      '%M' => 'i',
+      '%S' => 's',
+      '%R' => 'H:i',
+      '%T' => 'H:i:s',
+      '%r' => 'h:i:s A',
+      '%D' => 'm/d/y',
+      '%F' => 'Y-m-d',
+      
+      '%G' => 'o', # ISO-8601 year (like %V)
+      '%y' => 'y', # 21
+      '%Y' => 'Y', # 2021
+      
+      '%Z' => 'T', # tz: EST
+      '%z' => 'O', # tz offset: -0500
+    );
+    if (extension_loaded('intl')) {
+      $full = IntlDateFormatter::FULL;
+      $long = IntlDateFormatter::LONG;
+      $short = IntlDateFormatter::SHORT;
+      $none = IntlDateFormatter::NONE;
+      $medium = IntlDateFormatter::MEDIUM;
+      
+      $cached['iformats'] = array(
+        '%a' => array($full, $full, 'EEE'),  # Mon
+        '%A' => array($full, $full, 'EEEE'), # Monday
+        '%h' => array($full, $full, 'MMM'),  # Jan
+        '%b' => array($full, $full, 'MMM'),  # Jan
+        '%B' => array($full, $full, 'MMMM'), # January
+        '%p' => array($full, $full, 'aa'), # AM/PM
+        '%P' => array($full, $full, 'aa'), # am/pm (no lowercase for intl am/pm)
+        '%c' => array($long, $short), # date time
+        '%x' => array($short, $none), # date
+        '%X' => array($none, $medium),# time
+      );
+    }
+    else {
+      $cached['iformats'] = array();
+      $cached['formats'] += array(
+        '%a' => 'D', # Mon
+        '%A' => 'l', # Monday
+        '%h' => 'M', # Jan
+        '%b' => 'M', # Jan
+        '%B' => 'F', # January
+        '%p' => 'a', # AM/PM
+        '%P' => 'A', # am/pm
+        '%c' => 'D M j H:i:s Y', # date time
+        '%x' => 'm/d/y', # date
+        '%X' => 'H:i:s', # time
+      );
+    }
+    $cached['new'] = isset($EnableFTimeNew) 
+      ? $EnableFTimeNew
+      : (PHP_VERSION_ID>=80100);
+  }
   
-  if (PHP_VERSION_ID<80100) {
-    $dloc = setlocale(LC_TIME, 0);
-    $dtz = date_default_timezone_get();
-    if(@$locale) 
-      setlocale(LC_TIME, preg_split('/[, ]+/', $locale, null, PREG_SPLIT_NO_EMPTY));
-    if(@$tz) @date_default_timezone_set($tz);
+  if (@$fmt == '') $fmt = $FTimeFmt;
+  $stamp = is_numeric($stamp)? intval($stamp) : $Now;
+
+  if (! $cached['new']) {
+    if (@$locale) 
+      setlocale(LC_TIME, preg_split('/[, ]+/', $locale, -1, PREG_SPLIT_NO_EMPTY));
+    if (@$tz) @date_default_timezone_set($tz);
     $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $stamp), $fmt);
     $ret = strftime($fmt, $stamp);
-    if ($tz) date_default_timezone_set($dtz);
-    if(@$locale) setlocale(LC_TIME, $dloc);
+    if ($tz) date_default_timezone_set($cached['dtz']);
+    if (@$locale) setlocale(LC_TIME, $cached['dloc']);
     return $ret;
   }
-
-  $vars = array();
-  if($locale) $vars['locale'] = substr($locale, 0, 5);
   
   $timestamp = date_create("@$stamp");
   if($tz) {
     $tzo = @timezone_open($tz);
     if(!@$tzo) unset($tz);
   }
-  if (!@$tz) { // GMT if $tz null 
-    $tz = date_default_timezone_get();
-    $tzo = timezone_open($tz);
+  if (!@$tz) { # need to set it otherwise resets to GMT
+    $tz = $cached['dtz'];
+    $tzo = $cached['dtzo'];
   }
   date_timezone_set($timestamp, $tzo);
   
-  $vars['tz'] = $tz;
-  $vars['timestamp'] = $timestamp;
-  $vars['formats'] = array(
-    '%d' => 'd',
-    '%e' => ' j', # day " 1"-"31"
-    '%u' => 'N',
-    '%w' => 'w',
-    '%m' => 'm',
-    '%s' => 'U',
-    '%n' => "\n",
-    '%t' => "\t",
-    '%V' => 'W', # ISO-8601 week number, starts Monday, first week with 4+ weekdays
-    
-    '%H' => 'H',
-    '%I' => 'h', # hour 01-12
-    '%k' => ' G', # hour " 1"-"23"
-    '%l' => ' g', # hour " 1"-"12"
-    '%M' => 'i',
-    '%S' => 's',
-    '%R' => 'H:i',
-    '%T' => 'H:i:s',
-    '%r' => 'h:i:s A',
-    '%D' => 'm/d/y',
-    '%F' => 'Y-m-d',
-    
-    '%G' => 'o', # ISO-8601 year (like %V)
-    '%y' => 'y', # 21
-    '%Y' => 'Y', # 2021
-    
-    '%Z' => 'T', # tz: EST
-    '%z' => 'O', # tz offset: -0500
+  $vars = array(
+    'tz' => $tz,
+    'timestamp' => $timestamp,
+    'formats' =>  $cached['formats'],
+    'iformats' =>  $cached['iformats'],
   );
-  
-  $full = IntlDateFormatter::FULL;
-  $long = IntlDateFormatter::LONG;
-  $short = IntlDateFormatter::SHORT;
-  $none = IntlDateFormatter::NONE;
-  $medium = IntlDateFormatter::MEDIUM;
-  
-  $vars['iformats'] = array(
-    '%a' => array($full, $full, 'EEE'),  # Mon
-    '%A' => array($full, $full, 'EEEE'), # Monday
-    '%h' => array($full, $full, 'MMM'), 	# Jan
-    '%b' => array($full, $full, 'MMM'),		# Jan
-    '%B' => array($full, $full, 'MMMM'),	# January
-    '%p' => array($full, $full, 'aa'),	# AM/PM
-    '%P' => array($full, $full, 'aa'),	# am/pm
-    '%c' => array($long, $short), # date time
-    '%x' => array($short, $none), # date
-    '%X' => array($none, $medium),# time
-  );
+  if($locale) $vars['locale'] = substr($locale, 0, 5);
   
   $cb = new PPRC($vars);
   $fmt = preg_replace_callback('/(?<!%)(%[a-zA-Z])/', array($cb, 'ftime'), $fmt);
@@ -2313,7 +2340,7 @@ function PostPage($pagename, &$page, &$new) {
     $new['author'] = @$Author;
     $new["author:$Now"] = @$Author;
     $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
-    $diffclass = preg_replace('/\\W/','',@$_POST['diffclass']);
+    $diffclass = preg_replace('/\\W/','',strval(@$_POST['diffclass']));
     if ($page['time']>0 && function_exists(@$DiffFunction)) 
       $new["diff:$Now:{$page['time']}:$diffclass"] =
         $DiffFunction($new['text'],@$page['text']);

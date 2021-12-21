@@ -125,7 +125,7 @@ function NotifyUpdate($pagename, $dir='') {
   ##   if this is for a newly posted page, get its information
   if ($IsPagePosted || $IsUploadPosted) {
     $page = ReadPage($pagename, READPAGE_CURRENT);
-    $FmtV['$PostTime'] = strftime($NotifyTimeFmt, $Now);
+    $FmtV['$PostTime'] = PSFT($NotifyTimeFmt, $Now);
     $item = urlencode(FmtPageName($NotifyItemFmt, $pagename));
     if ($firstpost < 1) $firstpost = $Now;
   }
