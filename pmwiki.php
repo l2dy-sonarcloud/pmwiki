@@ -487,7 +487,7 @@ function NoCache($x = '') { $GLOBALS['NoHTMLCache'] |= 1; return $x; }
 function ParseArgs($x, $optpat = '(?>(\\w+)[:=])') {
   $z = array();
   preg_match_all("/($optpat|[-+])?(\"[^\"]*\"|'[^']*'|\\S+)/",
-    $x, $terms, PREG_SET_ORDER);
+    strval($x), $terms, PREG_SET_ORDER);
   foreach($terms as $t) {
     $v = preg_replace('/^([\'"])?(.*)\\1$/', '$2', $t[3]);
     if ($t[2]) { $z['#'][] = $t[2]; $z[$t[2]] = $v; }
@@ -1097,7 +1097,7 @@ function PageTextVar($pagename, $var) {
     $page = RetrieveAuthPage($pagename, 'read', false, READPAGE_CURRENT);
     if ($page) {
       foreach((array)$PageTextVarPatterns as $pat) 
-        if (preg_match_all($pat, IsEnabled($pc['=preview'],@$page['text']),
+        if (preg_match_all($pat, IsEnabled($pc['=preview'],strval(@$page['text'])),
           $match, PREG_SET_ORDER))
           foreach($match as $m) {
             $t = preg_replace("/\\{\\$:{$m[2]}\\}/", '', $m[3]);

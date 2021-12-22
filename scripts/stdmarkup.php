@@ -303,12 +303,14 @@ Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br clear='all' />");
 
 ###### Links ######
 function MarkupLinks($m){
+  global $LinkTargets;
   extract($GLOBALS["MarkupToHTML"]);
   switch ($markupid) {
     case '[[': 
       return Keep(MakeLink($pagename,$m[1],NULL,$m[2]),'L');
     case '[[!': 
       global $CategoryGroup, $LinkCategoryFmt;
+      @$LinkTargets["@{$m[1]}"]++;
       return Keep(MakeLink($pagename,"$CategoryGroup/{$m[1]}",NULL,'',
         $LinkCategoryFmt),'L');
     case '[[|': 
