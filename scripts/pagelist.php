@@ -462,7 +462,8 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
 
 function PageListMatchTargets($targets, $links) {
   $targets = preg_split('/[, ]+/', trim($targets), -1, PREG_SPLIT_NO_EMPTY);
-  if (@$links['pat'] && !MatchNames($targets, $links['pat'])) return false;
+  if (@$links['any'] && !MatchNames($targets, $links['any'])) return false;
+  if (@$links['none'] && MatchNames($targets, $links['none'])) return false;
   if (@$links['req']) foreach($links['req'] as $pat)
     if (!MatchNames($targets, $pat)) return false;
   return true;
@@ -476,13 +477,14 @@ function PageListLinkPatterns($pat) {
   $pat = preg_quote($pat, '/');
   $pat = str_replace(array('\\*', '\\?', '\\[', '\\]', '\\^', '\\-', '\\+', ','),
                      array('.*',  '.',   '[',   ']',   '^', '-', '+', ' '), $pat);
-  $patterns = $req = array();
+  $any = $none = false; $req = array();
+  $patterns = array('req'=>array());
   $args = ParseArgs($pat);
-  if (@$args['']) $patterns[] = '/^('.implode('|', $args['']).')$/';
-  if (@$args['-']) $patterns[] = '!^('.implode('|', $args['-']).')$!';
-  if (@$args['+']) foreach($args['+'] as $p) $req[] = "/^$p$/";
+  if (@$args['']) $patterns['any'] = '/^('.implode('|', $args['']).')$/';
+  if (@$args['-']) $patterns['none'] = '/^('.implode('|', $args['-']).')$/';
+  if (@$args['+']) foreach($args['+'] as $p) $patterns['req'][] = "/^$p$/";
   
-  return array('pat'=>$patterns, 'req'=>$req);
+  return $patterns;
 }
 
 function PageListVariables(&$list, &$opt, $pn, &$page) {
