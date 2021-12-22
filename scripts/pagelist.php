@@ -408,6 +408,7 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       if ($excl) 
         $opt['=exclp'][] = '$'.implode('|', array_map('preg_quote',$excl)).'$i';
 
+      if (@$opt['links']) $opt['link'] = $opt['links'];
       if (@$opt['link']) {
         if (preg_match('/[,*?!]/', $opt['link']))
           $opt['=linka'] = PageListLinkPatterns($opt['link']);
