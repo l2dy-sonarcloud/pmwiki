@@ -1937,7 +1937,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
     $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
   if($alt) $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
-  $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', $path); # PITS:01388
+  $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', strval($path)); # PITS:01388
   if (is_array($txt)) { # PITS:01392
     $suffix = $txt[1];
     $txt = $txt[0];

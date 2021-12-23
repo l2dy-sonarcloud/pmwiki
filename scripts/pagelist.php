@@ -427,21 +427,22 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
         StopWatch("PageListTermsTargets end count=".count($list));
       }
 
-      if (@$opt['=inclp'] || @$opt['=exclp'] || @$opt['=linkp']) 
+      if (@$opt['=inclp'] || @$opt['=exclp'] || @$opt['=linkp'] || @$opt['=linka']) 
         return PAGELIST_ITEM|PAGELIST_POST; 
       return 0;
 
     case PAGELIST_ITEM:
       if (!$page) { $page = ReadPage($pn, READPAGE_CURRENT); $opt['=readc']++; }
       if (!$page) return 0;
+      $targets = strval(@$page['targets']);
       if (@$opt['=linka']) {
-        if (! PageListMatchTargets(strval(@$page['targets']), $opt['=linka']))
+        if (! PageListMatchTargets($targets, $opt['=linka']))
           { $reindex[] = $pn; return 0; }
       }
-      if (@$opt['=linkp'] && !preg_match($opt['=linkp'], @$page['targets'])) 
+      if (@$opt['=linkp'] && !preg_match($opt['=linkp'], $targets)) 
         { $reindex[] = $pn; return 0; }
       if (@$opt['=inclp'] || @$opt['=exclp']) {
-        $text = $fold($pn."\n".@$page['targets']."\n".@$page['text']);
+        $text = $fold($pn."\n$targets\n".@$page['text']);
         foreach((array)@$opt['=exclp'] as $i) 
           if (preg_match($i, $text)) return 0;
         foreach((array)@$opt['=inclp'] as $i) 
@@ -462,8 +463,8 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
 
 function PageListMatchTargets($targets, $links) {
   $targets = preg_split('/[, ]+/', trim($targets), -1, PREG_SPLIT_NO_EMPTY);
-  if (@$links['any'] && !MatchNames($targets, $links['any'])) return false;
   if (@$links['none'] && MatchNames($targets, $links['none'])) return false;
+  if (@$links['any'] && !MatchNames($targets, $links['any'])) return false;
   if (@$links['req']) foreach($links['req'] as $pat)
     if (!MatchNames($targets, $pat)) return false;
   return true;
@@ -477,12 +478,12 @@ function PageListLinkPatterns($pat) {
   $pat = preg_quote($pat, '/');
   $pat = str_replace(array('\\*', '\\?', '\\[', '\\]', '\\^', '\\-', '\\+', ','),
                      array('.*',  '.',   '[',   ']',   '^', '-', '+', ' '), $pat);
-  $any = $none = false; $req = array();
+  $req = array();
   $patterns = array('req'=>array());
   $args = ParseArgs($pat);
-  if (@$args['']) $patterns['any'] = '/^('.implode('|', $args['']).')$/';
-  if (@$args['-']) $patterns['none'] = '/^('.implode('|', $args['-']).')$/';
-  if (@$args['+']) foreach($args['+'] as $p) $patterns['req'][] = "/^$p$/";
+  if (@$args['']) $patterns['any'] = '/^('.implode('|', $args['']).')$/i';
+  if (@$args['-']) $patterns['none'] = '/^('.implode('|', $args['-']).')$/i';
+  if (@$args['+']) foreach($args['+'] as $p) $patterns['req'][] = "/^$p$/i";
   
   return $patterns;
 }
