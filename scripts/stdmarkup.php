@@ -309,13 +309,14 @@ function MarkupLinks($m){
       return Keep(MakeLink($pagename,$m[1],NULL,$m[2]),'L');
     case '[[!': 
       global $LinkTargets, $CategoryGroup, $LinkCategoryFmt;
-      $cn = MakePageName($pagename, "$CategoryGroup/{$m[1]}");
+      $cn = MakePageName($pagename, "$CategoryGroup/{$m[2]}");
       if ($cn) {
         $cn = preg_replace("/^$CategoryGroup\\./", '!', $cn);
         @$LinkTargets[$cn]++;
       }
-      return Keep(MakeLink($pagename,"$CategoryGroup/{$m[1]}",NULL,'',
-        $LinkCategoryFmt),'L');
+      return "[[$CategoryGroup/{$m[1]}]]";
+//       return Keep(MakeLink($pagename,"$CategoryGroup/{$m[1]}",NULL,'',
+//         $LinkCategoryFmt),'L');
     case '[[|': 
       return Keep(MakeLink($pagename,$m[1],$m[2],$m[3]),'L');
     case '[[->': 
@@ -342,7 +343,7 @@ Markup('[[','links',"/(?>\\[\\[\\s*(.*?)\\]\\])($SuffixPattern)/", "MarkupLinks"
 ## [[!Category]]
 SDV($CategoryGroup,'Category');
 SDV($LinkCategoryFmt,"<a class='categorylink' href='\$LinkUrl'>\$LinkText</a>");
-Markup('[[!','<[[','/\\[\\[!(.*?)\\]\\]/', "MarkupLinks");
+Markup('[[!','<[[|','/\\[\\[!((.*?)((".*?")?\\|.*?)?)\\]\\]/', "MarkupLinks");
 # This is a temporary workaround for blank category pages.
 # It may be removed in a future release (Pm, 2006-01-24)
 if (preg_match("/^$CategoryGroup\\./", $pagename)) {
