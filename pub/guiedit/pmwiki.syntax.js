@@ -118,7 +118,7 @@
 
     // simple tables
     ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
-    ['tablerow',  '*tab', /^\|\|.*\|\|.*$/mg, /(\|\|)+!?/g],
+    ['tablerow',  '!tab', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)()/g],
     ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
     
     // wikitrails
