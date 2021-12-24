@@ -16,6 +16,13 @@
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
   var log = console.log;
+  function aE(el, ev, fn) {
+    if(typeof el == 'string') el = dqsa(el);
+    for(var i=0; i<el.length; i++) el[i].addEventListener(ev, fn);
+  }
+  function dqs(str)  { return document.querySelector(str); }
+  function dqsa(str) { return document.querySelectorAll(str); }
+  function tap(q, fn) { aE(q, 'click', fn); };
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
   function Restore(all, n) { return KPV[parseInt(n)]; }
   function keep0(text) {
@@ -176,12 +183,26 @@
   }
 
   function PmHiAll(){
-    var pm = document.querySelectorAll('table.markup td.markup1 > pre, '
+    var pm = dqsa('table.markup td.markup1 > pre, '
       + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     for(var j=0; j<pm.length; j++) {
       PmHiEl(pm[j]);
     }
+    if(pm.length) tap('.toggle-pmhlt', toggleStyles);
   }
+  
+  function toggleStyles(e) {
+    e.preventDefault();
+    var c1 = 'pmhlt', c2 = 'pmhlt-disabled';
+    var x = dqsa('.'+c1);
+    log(x);
+    if(x.length==0) {
+      x = dqsa('.'+c2);
+      c2 = c1;
+    }
+    for(var i=0; i<x.length; i++) x[i].className = c2;
+  }
+  
   function str2rx(str) {
     if(typeof str.flags == 'string') return str; // regexp
     if(typeof str != 'string') {
@@ -200,7 +221,7 @@
   
   var _script;
   function sortRX(){
-    _script = document.querySelector('script[src*="pmwiki.syntax.js"]');
+    _script = dqs('script[src*="pmwiki.syntax.js"]');
     var cm = (window.PmSyntaxCustomMarkup)? window.PmSyntaxCustomMarkup : [];
     var imaps =  [_script.dataset.imap];
     var custom = _script.dataset.custom;
@@ -249,7 +270,7 @@
 
   function initEditForm(){
     if(!_script || _script.dataset.mode != "2") return;
-    var text = document.querySelector('#wikiedit textarea#text');
+    var text = dqs('#wikiedit textarea#text');
     if(!text) return;
     
     var lastTextContent = false;

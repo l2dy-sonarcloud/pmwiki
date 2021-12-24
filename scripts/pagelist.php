@@ -408,6 +408,7 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       if ($excl) 
         $opt['=exclp'][] = '$'.implode('|', array_map('preg_quote',$excl)).'$i';
 
+      $opt['=linka'] = array();
       if (@$opt['links']) $opt['link'] = $opt['links'];
       if (@$opt['link']) {
         if (preg_match('/[,*?!]/', $opt['link']))
@@ -418,6 +419,13 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
           $indexterms[] = " $link ";
         }
       }
+      if (@$opt['category']) {
+        $c = preg_replace('/(^,*-?|,+-?)/', '$1!', $opt['category']);
+        xmp($c);
+        $opt['=linka'] = array_merge($opt['=linka'], PageListLinkPatterns($c));
+      }
+      
+      
       if (@$opt['=cached']) return 0;
       if ($indexterms||@$opt['=linka']) {
         StopWatch("PageListTermsTargets begin count=".count($list));
