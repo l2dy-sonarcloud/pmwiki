@@ -13,7 +13,7 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  var special = /\$:?|[#!*?&+|,$]+|\s-/g;
+  var special = /\$+:?(?!\))|[#!*?&+|,]+|\s-/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
   var log = console.log;
