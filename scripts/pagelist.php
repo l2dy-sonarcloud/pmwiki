@@ -421,7 +421,6 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       }
       if (@$opt['category']) {
         $c = preg_replace('/(^,*-?|,+-?)/', '$1!', $opt['category']);
-        xmp($c);
         $opt['=linka'] = array_merge($opt['=linka'], PageListLinkPatterns($c));
       }
       
