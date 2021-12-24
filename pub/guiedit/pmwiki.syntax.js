@@ -74,7 +74,7 @@
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
     ['skin',  '*meta', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi ], 
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
-    ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end) *:\)/gi],
+    ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig],
     ['meta3', '!meta', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g],
 

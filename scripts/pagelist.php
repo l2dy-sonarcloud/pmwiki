@@ -418,7 +418,6 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
           $indexterms[] = " $link ";
         }
       }
-
       if (@$opt['=cached']) return 0;
       if ($indexterms||@$opt['=linka']) {
         StopWatch("PageListTermsTargets begin count=".count($list));
@@ -426,7 +425,6 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
         $list = array_diff($list, $xlist);
         StopWatch("PageListTermsTargets end count=".count($list));
       }
-
       if (@$opt['=inclp'] || @$opt['=exclp'] || @$opt['=linkp'] || @$opt['=linka']) 
         return PAGELIST_ITEM|PAGELIST_POST; 
       return 0;
