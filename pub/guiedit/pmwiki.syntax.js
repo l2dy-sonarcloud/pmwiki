@@ -195,7 +195,6 @@
     e.preventDefault();
     var c1 = 'pmhlt', c2 = 'pmhlt-disabled';
     var x = dqsa('.'+c1);
-    log(x);
     if(x.length==0) {
       x = dqsa('.'+c2);
       c2 = c1;
