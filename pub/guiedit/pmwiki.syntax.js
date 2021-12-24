@@ -59,7 +59,7 @@
     .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
       if(! val.match(Kept)) val = span('value', val, 1);
       if(attr) attr = span('attr', attr, 1);
-      return attr + op + val;
+      return keep0(attr + op + val);
     })
     .replace(/[#!*?&+|,]+/g, function(a){ return Keep(a, 'attr tag'); });
     return attr;
@@ -87,8 +87,9 @@
     ['skin',  '*meta', /\(:no(left|right|title|action) *:\)/gi ], 
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc|(group)?(header|footer)) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
-    ['meta2', '=meta>*attr', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig, /[&|!#,]+/g],
-    ['meta3', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
+    ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
+    ['meta3', '=meta>*attr', /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig, /[&|!#,]+/g],
+    ['meta4', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
     ['_url'],
