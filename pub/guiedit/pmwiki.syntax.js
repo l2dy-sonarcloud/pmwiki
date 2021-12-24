@@ -86,8 +86,8 @@
     
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
-    ['skin',  '*meta', /\(:no(left|right|title|action) *:\)/gi ], 
-    ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc|(group)?(header|footer)) *:\)/gi],
+    ['skin',  '*meta', /\(:no(left|right|title|action|(group)?(header|footer)) *:\)/gi ], 
+    ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
     ['meta3', '=meta>*attr', /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig, special],
