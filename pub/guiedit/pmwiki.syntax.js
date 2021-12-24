@@ -73,6 +73,7 @@
     
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
+    ['pagevar2', 'string', /\{(\034\034\d+\034\034)\$[$:]?\w+\}/g],
     ['phpvar',  'var', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g],
     ['i18n', 'string', /\$\[.*?\]/g],
 
