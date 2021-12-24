@@ -70,6 +70,10 @@
     // markup expressions
     ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
  
+    // page text vars, can be empty or multiline
+    ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
+    ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
+    
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
     ['skin',  '*meta', /\(:no(left|right|title|action) *:\)/gi ], 
@@ -78,10 +82,6 @@
     ['meta2', '=meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig],
     ['meta3', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
 
-    // page text vars, can be empty or multiline
-    ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
-    ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
-    
     // urls can have percents so before wikistyle (populated by InterMap)
     ['_url'],
     
