@@ -13,6 +13,7 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
+  var special = /[#!*?&+|,]+/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
   var log = console.log;
@@ -61,7 +62,7 @@
       if(attr) attr = span('attr', attr, 1);
       return keep0(attr + op + val);
     })
-    .replace(/[#!*?&+|,]+/g, function(a){ return Keep(a, 'attr tag'); });
+    .replace(special, function(a){ return Keep(a, 'attr tag'); });
     return attr;
   }
   
@@ -88,7 +89,7 @@
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc|(group)?(header|footer)) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
-    ['meta3', '=meta>*attr', /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig, /[&|!#,]+/g],
+    ['meta3', '=meta>*attr', /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig, special],
     ['meta4', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
