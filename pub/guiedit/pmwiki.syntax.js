@@ -312,8 +312,11 @@
     function resizePre() {
       if(! chk_hlt.checked) return;
       var rect = text.getBoundingClientRect();
-      htext.style.width = rect.width + 'px';
-      htext.style.height = rect.height + 'px';
+      var w = Math.floor(rect.width) + 'px', h = Math.floor(rect.height) + 'px';
+      text.style.width = w;
+      text.style.height = h;
+      htext.style.width = w;
+      htext.style.height = h;
       textScrolled();
     }
 
