@@ -72,11 +72,11 @@
  
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
-    ['skin',  '*meta', /\(:no(left|right|(group)?(header|footer)|title|action) *:\)/gi ], 
-    ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
+    ['skin',  '*meta', /\(:no(left|right|title|action) *:\)/gi ], 
+    ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc|(group)?(header|footer)) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords|(?:else\d*)?if\d*))(.*?)(:\))/ig],
-    ['meta3', '!meta', /(\(:(?:template\s+(?:!\s*)?\w+|redirect))(.*?)(:\))/g],
+    ['meta3', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
 
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
