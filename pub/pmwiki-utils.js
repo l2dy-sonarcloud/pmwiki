@@ -16,9 +16,7 @@
   function dqs(str)  { return document.querySelector(str); }
   function dqsa(str) { return document.querySelectorAll(str); }
   function tap(q, fn) { aE(q, 'click', fn); };
-  function adata(el, x) { return el.getAttribute("data-"+x); }
-  function sdata(el, x, val) { el.setAttribute("data-"+x, val); }
-  function pf(x) {return parseFloat(x);}
+  function pf(x) {var y = parseFloat(x); return isNaN(y)? 0:y; }
 
   var __script__ = dqs('script[src*="pmwiki-utils.js"]');
   var wikitext = document.getElementById('wikitext');
@@ -93,7 +91,7 @@
     return y;
   }
   function inittoggle() {
-    var tnext = adata(__script__, 'toggle');
+    var tnext = __script__.dataset.toggle;
     if(! tnext) { return; }
     var x = dqsa(tnext);
     if(! x.length) return;
@@ -103,26 +101,26 @@
   }
   function togglenext(z) {
     var el = z.type == 'click' ? this : z;
-    var attr = adata(el, 'pmtoggle')=='closed' ? 'open' : 'closed';
-    sdata(el, 'pmtoggle', attr);
+    var attr = el.dataset.pmtoggle=='closed' ? 'open' : 'closed';
+    el.dataset.pmtoggle = attr;
   }
   function toggleall(){
-    var curr = adata(this, 'pmtoggleall');
+    var curr = this.dataset.pmtoggleall;
     if(!curr) curr = 'closed';
     var toggles = dqsa('*[data-pmtoggle="'+curr+'"]');
     var next = curr=='closed' ? 'open' : 'closed';
     for(var i=0; i<toggles.length; i++) {
-      sdata(toggles[i], 'pmtoggle', next);
+      toggles[i].dataset.pmtoggle = next;
     }
     var all = dqsa('.pmtoggleall');
     for(var i=0; i<all.length; i++) {
-      sdata(all[i], 'pmtoggleall', next);
+      all[i].dataset.pmtoggleall = next;
     }
   }
 
   function autotoc() {
     if(dqs('.noPmTOC')) { return; } // (:notoc:) in page
-    var dtoc = adata(__script__, 'pmtoc');
+    var dtoc = __script__.dataset.pmtoc;
     try {dtoc = JSON.parse(dtoc);} catch(e) {dtoc = false;}
     if(! dtoc) { return; } // error
 
@@ -275,7 +273,7 @@
   }
 
   function makesortable() {
-    if(! pf(adata(__script__, 'sortable'))) return;
+    if(! pf(__script__.dataset.sortable)) return;
     var tables = dqsa('table.sortable,table.sortable-footer');
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
@@ -357,8 +355,10 @@
             dir = up_class;
           }
           reclassify(element, dir);
-          var org_tbody = table.tBodies[0];
-          var rows = [].slice.call(org_tbody.cloneNode(true).rows, 0);
+          var tbody = table.tBodies[0];
+          var rows = [];
+          for(var r=0; r<tbody.rows.length; r++) rows.push(tbody.rows[r]);
+          
           var reverse = (dir == up_class);
           rows.sort(function(a, b) {
             a = getValue(a);
@@ -370,11 +370,9 @@
             }
             return isNaN(a - b) ? a.localeCompare(b) : a - b;
           });
-          var clone_tbody = org_tbody.cloneNode();
           for (i = 0; i < rows.length; i++) {
-            clone_tbody.appendChild(rows[i]);
+            tbody.appendChild(rows[i]);
           }
-          table.replaceChild(clone_tbody, org_tbody);
         }
       }
     });
@@ -395,7 +393,6 @@
         hljs.highlightElement(pre[j]);
       }
     }
-
   }
   
 
