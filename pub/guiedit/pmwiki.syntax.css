@@ -13,127 +13,127 @@
 */
 :root {
   /* base text color and background */
-  --pmhi-color: inherit;
-  --pmhi-bgcolor: inherit;
+  --pmsyntax-color: inherit;
+  --pmsyntax-bgcolor: inherit;
 
   /* [=Escaped text=], not processed by PmWiki */
-  --pmhi-escaped: #555;
-  --pmhi-escapedbg: rgba(0,0,0,.07);
+  --pmsyntax-escaped: #555;
+  --pmsyntax-escapedbg: rgba(0,0,0,.07);
 
   /* (:comment text:)*/
-  --pmhi-comment: #777;
+  --pmsyntax-comment: #777;
 
   /* core meta directives and wikistyles */
-  --pmhi-meta: #279;
-  --pmhi-metabg: #eff;
+  --pmsyntax-meta: #279;
+  --pmsyntax-metabg: #eff;
 
   /* other core and custom directives */
-  --pmhi-directive: black;
-  --pmhi-directivebg: #eee;
+  --pmsyntax-directive: black;
+  --pmsyntax-directivebg: #eee;
 
   /* markup expressions */
-  --pmhi-mx: #470;
-  --pmhi-mxbg: #efe;
+  --pmsyntax-mx: #470;
+  --pmsyntax-mxbg: #efe;
 
   /* !! Headings */
-  --pmhi-heading: #800;
-  --pmhi-headingbg: #ffe7e1;
+  --pmsyntax-heading: #800;
+  --pmsyntax-headingbg: #ffe7e1;
 
   /* list items, line breaks, indents */
-  --pmhi-bullet: #470;
-  --pmhi-bulletbg: #dfd;
+  --pmsyntax-bullet: #470;
+  --pmsyntax-bulletbg: #dfd;
 
   /* simple tables */
-  --pmhi-tab: #470;
-  --pmhi-tabbg: #dfd;
+  --pmsyntax-tab: #470;
+  --pmsyntax-tabbg: #dfd;
 
-  --pmhi-punct: #a00;
+  --pmsyntax-punct: #a00;
 
   /* i18n strings like $[Edit] or entities like &nbsp; */
-  --pmhi-string: #800;
+  --pmsyntax-string: #800;
 
   /* attributes and values in directives and wikistyles */
-  --pmhi-attr: #f70;
-  --pmhi-value: #a00;
+  --pmsyntax-attr: #f70;
+  --pmsyntax-value: #a00;
 
   /* page (text) variables, template variables, like {*$:Summary} */
-  --pmhi-var: #f40;
+  --pmsyntax-var: #f40;
 
   /* Link URLs, some InterMap links */
-  --pmhi-url: #37a;
+  --pmsyntax-url: #37a;
 
   /* the textarea of the edit form, and the highlighted block under it */
-  --pmhi-border:  1px inset #ccc;
-  --pmhi-radpad: 3px;
-  --pmhi-fontfamily: monospace;
-  --pmhi-fontsize: 14px;
-  --pmhi-lineheight: 1.3;
+  --pmsyntax-border:  1px inset #ccc;
+  --pmsyntax-radpad: 3px;
+  --pmsyntax-fontfamily: monospace;
+  --pmsyntax-fontsize: 14px;
+  --pmsyntax-lineheight: 1.3;
 
   /* the color of the blinking cursor in the textarea */
-  --pmhi-caretcolor: red;
+  --pmsyntax-caretcolor: red;
 }
 
 pre.pmhlt, .pmhlt pre, 
 code.pmhlt, .pmhlt code, #htext.pmhlt {
-  color: var(--pmhi-color);
-  background-color: var(--pmhi-bgcolor);
-  font-family: var(--pmhi-fontfamily);
-  font-size: var(--pmhi-fontsize);
+  color: var(--pmsyntax-color);
+  background-color: var(--pmsyntax-bgcolor);
+  font-family: var(--pmsyntax-fontfamily);
+  font-size: var(--pmsyntax-fontsize);
 }
 .pmhlt .pmtag, .pmhlt .pmpunct {
   font-weight: bold;
 }
 
 .pmhlt .pmcomment {
-  color: var(--pmhi-comment);
+  color: var(--pmsyntax-comment);
 }
 .pmhlt .pmmx {
-  color: var(--pmhi-mx);
-  background-color: var(--pmhi-mxbg);
+  color: var(--pmsyntax-mx);
+  background-color: var(--pmsyntax-mxbg);
 }
 .pmhlt .pmdirective {
-  color: var(--pmhi-directive);
-  background-color: var(--pmhi-directivebg);
+  color: var(--pmsyntax-directive);
+  background-color: var(--pmsyntax-directivebg);
 }
 .pmhlt .pmstring {
-  color: var(--pmhi-string);
+  color: var(--pmsyntax-string);
 }
 .pmhlt .pmvar {
-  color: var(--pmhi-var);
+  color: var(--pmsyntax-var);
 }
 .pmhlt .pmmeta {
-  color: var(--pmhi-meta);
-  background-color: var(--pmhi-metabg);
+  color: var(--pmsyntax-meta);
+  background-color: var(--pmsyntax-metabg);
 }
 .pmhlt .pmbullet {
-  color: var(--pmhi-bullet);
-  background-color: var(--pmhi-bulletbg);
+  color: var(--pmsyntax-bullet);
+  background-color: var(--pmsyntax-bulletbg);
 }
 .pmhlt .pmtab {
-  color: var(--pmhi-tab);
-  background-color: var(--pmhi-tabbg);
+  color: var(--pmsyntax-tab);
+  background-color: var(--pmsyntax-tabbg);
 }
 .pmhlt .pmpunct {
-  color: var(--pmhi-punct);
+  color: var(--pmsyntax-punct);
 }
 .pmhlt .pmurl{
-  color: var(--pmhi-url);
+  color: var(--pmsyntax-url);
 }
 .pmhlt .pmheading  {
-  background-color: var(--pmhi-headingbg);
+  background-color: var(--pmsyntax-headingbg);
 }
 .pmhlt .pmheading .pmtag,
 .pmhlt .pmheading.pmtag  {
-  color: var(--pmhi-heading);
+  color: var(--pmsyntax-heading);
 }
 .pmhlt .pmescaped {
-  background-color: var(--pmhi-escapedbg);
+  background-color: var(--pmsyntax-escapedbg);
 }
 .pmhlt .pmattr {
-  color: var(--pmhi-attr);
+  color: var(--pmsyntax-attr);
 }
 .pmhlt .pmvalue {
-  color: var(--pmhi-value);
+  color: var(--pmsyntax-value);
 }
 .pmhlt .pmnobg {
   background-color: transparent;
@@ -146,13 +146,13 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   margin: 0;
 }
 #wikiedit #text, #wikiedit #htext {
-  border: var(--pmhi-border);
-  border-radius: var(--pmhi-radpad);
-  padding: var(--pmhi-radpad);
+  border: var(--pmsyntax-border);
+  border-radius: var(--pmsyntax-radpad);
+  padding: var(--pmsyntax-radpad);
   box-sizing: border-box;
-  font-family: var(--pmhi-fontfamily);
-  font-size: var(--pmhi-fontsize);
-  line-height: var(--pmhi-lineheight);
+  font-family: var(--pmsyntax-fontfamily);
+  font-size: var(--pmsyntax-fontsize);
+  line-height: var(--pmsyntax-lineheight);
   background-color: transparent;
   width: 100%;
   max-width: 100%;
@@ -164,7 +164,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   position: absolute;
   top: 0px;
   left: 0px;
-  background-color: var(--pmhi-bgcolor);
+  background-color: var(--pmsyntax-bgcolor);
   white-space: pre-wrap;
   border-color: transparent;
   overflow: auto;
@@ -183,5 +183,5 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   z-index: 2;
   color: transparent;
   background-image: none;
-  caret-color: var(--pmhi-caretcolor);
+  caret-color: var(--pmsyntax-caretcolor);
 }

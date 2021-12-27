@@ -62,7 +62,11 @@ SDV($HTMLStylesFmt['diff'], "
     font-size:66%; margin:1.5em 0px; }
   .diffmarkup { font-family:monospace; } 
   .diffmarkup del { background:#ffff99; text-decoration: none; }
-  .diffmarkup ins { background:#99ff99; text-decoration: none; }");
+  .diffmarkup ins { background:#99ff99; text-decoration: none; }
+  .rcplus { cursor:pointer; opacity:.3; font-weight:bold; padding: 0 .3em; }
+  .rcplus:hover {color: white; background: blue; opacity: 1;}
+  .rcreload { opacity:0.2; font-size: .9rem; }
+  .rcnew {background-color: #ffa;}");
 
 function PrintDiff($pagename) {
   global $DiffHTMLFunction,$DiffShow,$DiffStartFmt,$TimeFmt,
@@ -152,6 +156,7 @@ function DiffHTML($pagename, $diff) {
 function cb_diffhtml($m) { return Keep(PHSC($m[0])); }
 
 function HandleDiff($pagename, $auth='read') {
+  if (@$_GET['fmt'] == 'rclist') return HandleDiffList($pagename, $auth);
   global $HandleDiffFmt, $PageStartFmt, $PageDiffFmt, $PageEndFmt;
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) { Abort("?cannot diff $pagename"); }
@@ -161,6 +166,34 @@ function HandleDiff($pagename, $auth='read') {
     &$PageEndFmt));
   PrintFmt($pagename,$HandleDiffFmt);
 }
+
+function HandleDiffList($pagename, $auth='read') {
+  global $Now;
+  $since = $Now - 72*3600;
+  $page = RetrieveAuthPage($pagename, $auth, false, $since);
+  if (!$page) {
+    print('');
+    exit;
+  }
+  $changes = array();
+  $list = preg_grep('/^(csum|author):(\\d+)$/', array_keys($page));
+  foreach($list as $v) {
+    list($key, $stamp) = explode(':', $v);
+    if($stamp == $page['time']) continue;
+    $changes[$stamp][$key] = $page[$v];
+  }
+  $by = XL('by');
+  $out = "";
+  foreach($changes as $k=>$a) {
+    $stamp = intval($k);
+    $author = $a['author'] ? $a['author'] : '?';
+    $csum = $a['csum'];
+    $out .= "$stamp:".PHSC("$by $author: $csum")."\n";
+  }
+  print(trim($out));
+  exit;
+}
+
 ## Functions for simple word-diff (written by Petko Yotov)
 function DiffRenderSource($in, $out, $which) {
   global $WordDiffFunction, $EnableDiffInline;

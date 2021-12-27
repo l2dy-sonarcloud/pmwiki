@@ -285,7 +285,10 @@
       var tc = text.value;
       if(tc===lastTextContent) return;
       
+      var clone = htext.cloneNode(false);
+      htext.parentNode.replaceChild(clone, htext);
       htext.innerHTML = PmHi(tc+'\n');
+      htext.addEventListener('scroll', preScrolled);
       lastTextContent = tc;
     }
     function textScrolled() {
@@ -326,7 +329,6 @@
       resizePre();
       
       htext.inert = true;
-      htext.addEventListener('scroll', preScrolled);
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);
       GUIEditInterval = setInterval(updatePre, 100); // for GUIEdit buttons
@@ -351,7 +353,7 @@
     function initCheckbox(){
       var form = text.closest('form');
       form.insertAdjacentHTML('afterbegin', '<span id="chk_hlt_wrap">'
-        +'<input type="checkbox" name="chk_hlt" id="chk_hlt"/><label for="chk_hlt"> '
+        +'<input type="checkbox" name="chk_hlt" id="chk_hlt" /><label for="chk_hlt"> '
         + _script.dataset.label +'</label></span>');
 
       initPre();

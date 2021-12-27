@@ -301,6 +301,10 @@ div.faqtoc div.faq p.question * { display:inline; }
 .diffmarkup { font-size:14px;  } 
 .diffmarkup del { background:#ff9; text-decoration: none; }
 .diffmarkup ins { background:#9f9; text-decoration: none; }
+.rcplus { cursor:pointer; opacity:.3; font-weight:bold; padding: 0 .3em; }
+.rcplus:hover {color: white; background: blue; opacity: 1;}
+.rcreload { opacity:0.2; font-size: .9rem; }
+.rcnew {background-color: #ffa;}
 
 /* urlapprove.php */
 .apprlink { font-size:smaller; }

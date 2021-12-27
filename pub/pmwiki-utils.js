@@ -17,9 +17,16 @@
   function dqsa(str) { return document.querySelectorAll(str); }
   function tap(q, fn) { aE(q, 'click', fn); };
   function pf(x) {var y = parseFloat(x); return isNaN(y)? 0:y; }
+  function zpad(n) {return (n<10)?"0"+n : n; }
+  function adjbb(el, html) { el.insertAdjacentHTML('beforebegin', html); }
+  function adjbe(el, html) { el.insertAdjacentHTML('beforeend', html); }
+  function adjab(el, html) { el.insertAdjacentHTML('afterbegin', html); }
+  function adjae(el, html) { el.insertAdjacentHTML('afterend', html); }
+  function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
 
   var __script__ = dqs('script[src*="pmwiki-utils.js"]');
   var wikitext = document.getElementById('wikitext');
+  var log = console.log;
 
   function PmXMail() {
     var els = document.querySelectorAll('span._pmXmail');
@@ -45,12 +52,7 @@
 
   function is_toc_heading(el) {
     if(el.offsetParent === null) {return false;}  // hidden
-    if(el.className.match(/\bnotoc\b/)) {return false;} // %notoc%
-    var p = el.parentNode;
-    while(p && p !== wikitext) { // >>notoc<<, (:markup:)
-      if(p.className.match(/\b(notoc|markup2)\b/)) {return false;}
-      if(p.parentNode) p = p.parentNode;
-    }
+    if(el.closest('.notoc,.markup2')) {return false;} 
     return true;
   }
   function posy(el) {
@@ -83,12 +85,6 @@
       }
     }
     return false;
-  }
-
-  function repeat(x, times) {
-    var y = '';
-    for(var i=0; i<times; i++) y += '' + x;
-    return y;
   }
   function inittoggle() {
     var tnext = __script__.dataset.toggle;
@@ -176,7 +172,7 @@
         hc[2] = 'toc-'+currnb.replace(/\.+$/g, '');
         hc[0].id = hc[2];
       }
-      if(dtoc.NumberedHeadings && currnb.length) hc[0].insertAdjacentHTML('afterbegin', currnb+' ');
+      if(dtoc.NumberedHeadings && currnb.length) adjab(hc[0], currnb+' ');
 
       if(! shouldmaketoc) { continue; }
       var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
@@ -186,9 +182,9 @@
         txt = txt.slice(0, -selength);
       }
       
-      html += repeat('&nbsp;', 3*actual_level)
+      html += '&nbsp;'.repeat(3*actual_level)
         + '<a href="#'+hc[2]+'">' + txt + '</a><br>\n';
-      if(dtoc.EnableBacklinks) hc[0].insertAdjacentHTML('beforeend', ' <a class="back-arrow" href="#_toc">&uarr;</a>');
+      if(dtoc.EnableBacklinks) adjbe(hc[0], ' <a class="back-arrow" href="#_toc">&uarr;</a>');
       
     }
 
@@ -203,10 +199,10 @@
     if(!tocdiv) {
       var wrap = "<div class='PmTOCdiv'></div>";
       if(dtoc.ParentElement && dqs(dtoc.ParentElement)) {
-        dqs(dtoc.ParentElement).insertAdjacentHTML('afterbegin', wrap);
+        adjab(dqs(dtoc.ParentElement), wrap);
       }
       else {
-        hcache[0][0].insertAdjacentHTML('beforebegin', wrap);
+        adjbb(hcache[0][0], wrap);
       }
       tocdiv = dqs('.PmTOCdiv');
 
@@ -321,59 +317,47 @@
     }
   }
   function libsortable(){
-    //adapted from Public Domain code by github.com/tofsjonas
+    // adapted from Public Domain code by github.com/tofsjonas
+    function getValue(obj) {
+      obj = obj.cells[column_index];
+      return obj.getAttribute('data-sort') || obj.innerText;
+    }
+    function reclassify(element, cname) {
+      element.classList.remove('dir-u', 'dir-d');
+      if(cname) element.classList.add(cname);
+    }
+    var column_index;
     document.addEventListener('click', function(e) {
-      var down_class = ' dir-d ';
-      var up_class = ' dir-u ';
-      var regex_dir = / dir-(u|d) /;
-      var regex_table = /\bsortable\b/;
       var element = e.target;
-
-      function getValue(obj) {
-        obj = obj.cells[column_index];
-        return obj.getAttribute('data-sort') || obj.innerText;
-      }
-
-      function reclassify(element, dir) {
-        element.className = element.className.replace(regex_dir, '') + dir;
-      }
-      if (element.nodeName == 'TH') {
-        var table = element.offsetParent;
-        if (regex_table.test(table.className)) {
-          var column_index;
-          var tr = element.parentNode;
-          var nodes = tr.cells;
-          for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i] === element) {
-              column_index = i;
-            } else {
-              reclassify(nodes[i], '');
-            }
-          }
-          var dir = down_class;
-          if (element.className.indexOf(down_class) !== -1) {
-            dir = up_class;
-          }
-          reclassify(element, dir);
-          var tbody = table.tBodies[0];
-          var rows = [];
-          for(var r=0; r<tbody.rows.length; r++) rows.push(tbody.rows[r]);
-          
-          var reverse = (dir == up_class);
-          rows.sort(function(a, b) {
-            a = getValue(a);
-            b = getValue(b);
-            if (reverse) {
-              var c = a;
-              a = b;
-              b = c;
-            }
-            return isNaN(a - b) ? a.localeCompare(b) : a - b;
-          });
-          for (i = 0; i < rows.length; i++) {
-            tbody.appendChild(rows[i]);
-          }
+      if (element.nodeName != 'TH') return;
+      var table = element.offsetParent;
+      if (!table.classList.contains('sortable')) return
+                              
+      var cells = element.parentNode.cells;
+      for (var i = 0; i < cells.length; i++) {
+        if (cells[i] === element) {
+          column_index = i;
+        } else {
+          reclassify(cells[i], '');
         }
+      }
+      var cname = 'dir-d', reverse = false;
+      if (element.classList.contains(cname)) {
+        cname = 'dir-u';
+        reverse = true;
+      }
+      reclassify(element, cname);
+      var tbody = table.tBodies[0];
+      var rows = [];
+      for(var r=0; r<tbody.rows.length; r++) rows.push(tbody.rows[r]);
+      
+      rows.sort(function(x, y) {
+        var a = getValue(reverse? y:x),
+            b = getValue(reverse? x:y);
+        return isNaN(a - b) ? a.localeCompare(b) : a - b;
+      });
+      for (i = 0; i < rows.length; i++) {
+        tbody.appendChild(rows[i]);
       }
     });
   }
@@ -395,6 +379,91 @@
     }
   }
   
+  var Now, ltmode, daymonth;
+  function fmtLocalTime(stamp) {
+    var d = new Date(stamp*1000);
+    var tooltip = PHSC(d.toLocaleString().replace(/(\d:\d\d):\d\d/, '$1'));
+    if(ltmode == 2)
+      return [tooltip, tooltip];
+    if(Now-d < 24*3600000) 
+      return [zpad(d.getHours()) + ':'+ zpad(d.getMinutes()), tooltip];
+    var D = zpad(d.getDate()), M = zpad(d.getMonth()+1);
+    var thedate = daymonth.replace(/%d/, D).replace(/%m/, M);
+    if(Now-d < 334*24*3600000) return [thedate, tooltip];
+    return [thedate + '/' + d.getFullYear(), tooltip];
+  }
+  
+  function localTimes() {
+    ltmode = pf(__script__.dataset.localtimes)
+    if(! ltmode) return;
+    var times = dqsa('span[class^="time-"]');
+    log(times, times.length);
+    if(!times.length) return;
+ 
+    Now = new Date();
+    daymonth =  new Date(2021, 11, 26, 17)
+      .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
+ 
+    
+    var latest = 0;
+    var a = self.location.href.match(/since=(\d+)/);
+    var previous = a? pf(a[1]) : false;
+    var h72 = Now.getTime()/1000-72*3600;
+    for(var i=0; i<times.length; i++) {
+      var a = times[i].className.match(/^time-([a-z0-9]+)-([a-z0-9]+)$/);
+      log(a);
+      if(!a) continue;
+      
+      var stamp = parseInt(a[1], 36);
+      var prevstamp = stamp - parseInt(a[2], 36);
+      if(!latest) latest = stamp;
+      var li = times[i].closest('li');
+      var link = li.querySelector('a');
+      var diff = link.href + '?action=diff#diff' + stamp;
+      var x = fmtLocalTime(stamp);
+      times[i].innerHTML = '<a href="'+diff+'">'+x[0]+'</a>&nbsp;&nbsp;';
+      times[i].setAttribute('title', x[1]);
+      li.insertBefore(times[i], link);
+      
+      if(previous && stamp>previous) li.classList.add('rcnew');
+
+      if(prevstamp >= h72) {
+        var h = diff.replace(/[#]diff\d+/, '&fmt=rclist');
+        adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
+      }
+    }
+    var pagetitle = dqs('#wikititle h1, h1.pagetitle');
+    if(pagetitle) {
+      var time = zpad(Now.getHours()) + ':'+ zpad(Now.getMinutes());
+      var upd = location.href.replace(/[?&]since=\d+$/, '');
+      upd += (upd.indexOf('?')>0? '&':'?') + 'since='+latest;
+      adjbe(pagetitle, ' <a href="' + upd +'" class="rcreload">'+time+'</a>');
+    }
+    aE('.rcnew', 'mouseup', function(e){
+      if(e.which == 2) this.classList.remove('rcnew');
+    });
+    tap('.rcplus', function(e){
+      let plus = this;
+      plus.style.display = 'none';
+      let basehref = plus.dataset.url.replace(/&fmt=rclist/, '#diff');
+      let fmt = '<p class="outdent"><a href="'+basehref+'%d" title="%T">%t</a> %s</p>\n';
+      fetch(plus.dataset.url)
+      .then(function(resp){return resp.text();})
+      .then(function(text){
+        var lines = text.split(/\n/g);
+        var out = '';
+        for(var i=0; i<lines.length; i++) {
+          a = lines[i].match(/^(\d+):(.*)$/);
+          if(!a) continue;
+          var time = fmtLocalTime(pf(a[1]));
+          out += fmt.replace(/%d/, a[1]).replace(/%T/, time[1])
+            .replace(/%t/, time[0]).replace(/%s/, a[2]);
+        }
+        if(out) adjae(plus, out);
+      })
+      .catch(log);
+    });
+  }
 
   function ready(){
     PmXMail();
@@ -402,6 +471,7 @@
     autotoc();
     makesortable();
     highlight_pre();
+    localTimes();
   }
   if( document.readyState !== 'loading' ) ready();
   else window.addEventListener('DOMContentLoaded', ready);

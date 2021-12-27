@@ -29,7 +29,7 @@ function PHPDiff($old, $new)
    $t1 = explode("\n", $old);
    $x = array_pop($t1); 
    if ($x > '') $t1[] = "$x\n\\ No newline at end of file";
-   $t2 = explode("\n", $new);
+   $t2 = explode("\n", strval($new));
    $x = array_pop($t2); 
    if ($x > '') $t2[] = "$x\n\\ No newline at end of file";
 

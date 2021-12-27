@@ -78,9 +78,9 @@ $SpaceWikiWords = 0;
 $RCDelimPattern = '  ';
 $RecentChangesFmt = array(
   '$SiteGroup.AllRecentChanges' => 
-    '* [[{$Group}.{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]',
+    '* [[{$Group}.{$Name}]]  . . . $CurrentLocalTime $[by] $AuthorLink: [=$ChangeSummary=]',
   '$Group.RecentChanges' =>
-    '* [[{$Group}/{$Name}]]  . . . $CurrentTime $[by] $AuthorLink: [=$ChangeSummary=]');
+    '* [[{$Group}/{$Name}]]  . . . $CurrentLocalTime $[by] $AuthorLink: [=$ChangeSummary=]');
 $UrlScheme = (@$_SERVER['HTTPS']=='on' || @$_SERVER['SERVER_PORT']==443)
              ? 'https' : 'http';
 $ScriptUrl = $UrlScheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
@@ -2365,9 +2365,17 @@ function PostPage($pagename, &$page, &$new) {
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
-    $EnableRCDiffBytes;
+    $EnableRCDiffBytes, $Now, $EnableLocalTimes;
   if (!$IsPagePosted && $Fmt==null) return;
   if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
+  if (IsEnabled($EnableLocalTimes, 0)) { # 2.3.0
+    $tdiff = $Now - $page['time'];
+    $ws = 'time-'.base_convert($Now, 10, 36).'-'.base_convert($tdiff, 10, 36);
+    $repl = "%$ws%\$CurrentTime%%";
+  }
+  else $repl = '$CurrentTime'; # pre-2.3.0 default
+  foreach($Fmt as $k=>$v)
+    $Fmt[$k] = str_replace('$CurrentLocalTime', $repl, $v);
   foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
@@ -2431,7 +2439,7 @@ function HandleEdit($pagename, $auth = 'edit') {
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
     
   if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
-    $bytes = strlen($new['text']) - strlen(@$page['text']);
+    $bytes = strlen($new['text']) - strlen(strval(@$page['text']));
     if ($bytes>=0) $bytes = "+$bytes";
     $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
   }
