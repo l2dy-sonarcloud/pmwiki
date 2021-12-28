@@ -339,7 +339,6 @@
     }
 
     function EnableHighlight() {
-//       chk_hlt_wrap.dataset.checked = chk_hlt.classList.contains('pmhlt');
       if(chk_hlt.classList.contains('pmhlt')) {
         localStorage.setItem('EnableHighlight', 1);
         updatePre();

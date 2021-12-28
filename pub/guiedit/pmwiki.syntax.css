@@ -17,7 +17,7 @@
   --pmsyntax-bgcolor: inherit;
 
   /* [=Escaped text=], not processed by PmWiki */
-  --pmsyntax-escaped: #555;
+  --pmsyntax-escaped: rgba(0,0,0,.7);
   --pmsyntax-escapedbg: rgba(0,0,0,.07);
 
   /* (:comment text:)*/
@@ -63,7 +63,7 @@
   --pmsyntax-url: #37a;
 
   /* the textarea of the edit form, and the highlighted block under it */
-  --pmsyntax-border:  1px inset #ccc;
+  --pmsyntax-border: 1px inset #ccc;
   --pmsyntax-radpad: 3px;
   --pmsyntax-fontfamily: monospace;
   --pmsyntax-fontsize: 14px;
@@ -119,14 +119,15 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 .pmhlt .pmurl{
   color: var(--pmsyntax-url);
 }
-.pmhlt .pmheading  {
+.pmhlt .pmheading {
   background-color: var(--pmsyntax-headingbg);
 }
-.pmhlt .pmheading .pmtag,
-.pmhlt .pmheading.pmtag  {
+.pmhlt .pmheading .pmtag:not(.pmcomment,.pmcomment>*,.pmescaped,.pmescaped>*,.pmdirective,.pmdirective>*,.pmmeta,.pmmeta>*,.pmmx,.pmmx>*),
+.pmhlt .pmheading.pmtag {
   color: var(--pmsyntax-heading);
 }
 .pmhlt .pmescaped {
+  color: var(--pmsyntax-escaped);
   background-color: var(--pmsyntax-escapedbg);
 }
 .pmhlt .pmattr {
