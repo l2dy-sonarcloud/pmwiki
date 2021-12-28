@@ -428,7 +428,7 @@
       }
     }
     
-    var difflinks = dqsa('a[href*="action=diff#diff"], a[href^="#diff"]');
+    var difflinks = dqsa('a[href*="action=upload#diff"], a[href*="action=diff#diff"], a[href^="#diff"]');
     if(!difflinks.length) return;
 
     for(var i=0; i<difflinks.length; i++) {
