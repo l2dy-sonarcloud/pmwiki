@@ -397,30 +397,27 @@
     ltmode = pf(__script__.dataset.localtimes)
     if(! ltmode) return;
     var times = dqsa('span[class^="time-"]');
-    if(!times.length) return;
- 
+    
     Now = new Date();
     daymonth =  new Date(2021, 11, 26, 17)
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
- 
     
     var latest = 0;
     var a = self.location.href.match(/since=(\d+)/);
     var previous = a? pf(a[1]) : false;
     var h72 = Now.getTime()/1000-72*3600;
+    
     for(var i=0; i<times.length; i++) {
       var a = times[i].className.match(/^time-([a-z0-9]+)-([a-z0-9]+)$/);
       if(!a) continue;
-      
+ 
       var stamp = parseInt(a[1], 36);
       var prevstamp = stamp - parseInt(a[2], 36);
       if(!latest) latest = stamp;
       var li = times[i].closest('li');
       var link = li.querySelector('a');
       var diff = link.href + '?action=diff#diff' + stamp;
-      var x = fmtLocalTime(stamp);
-      times[i].innerHTML = '<a href="'+diff+'">'+x[0]+'</a>&nbsp;&nbsp;';
-      times[i].setAttribute('title', x[1]);
+      times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>&nbsp;&nbsp;';
       li.insertBefore(times[i], link);
       
       if(previous && stamp>previous) li.classList.add('rcnew');
@@ -429,6 +426,18 @@
         var h = diff.replace(/[#]diff\d+/, '&fmt=rclist');
         adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
       }
+    }
+    
+    var difflinks = dqsa('a[href*="action=diff#diff"], a[href^="#diff"]');
+ 
+    for(var i=0; i<difflinks.length; i++) {
+      var link = difflinks[i];
+      var a = link.href.match(/action=diff[#]diff(\d+)$/);
+      if(!a) continue;
+      var x = fmtLocalTime(a[1]);
+      
+      link.innerHTML = x[0];
+      link.setAttribute('title', x[1]);
     }
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
     if(pagetitle) {
