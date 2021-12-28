@@ -145,7 +145,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   padding: 0;
   margin: 0;
 }
-#wikiedit textarea#text, #wikiedit #htext {
+#wikiedit #hwrap + textarea#text, #wikiedit #htext {
   border: var(--pmsyntax-border);
   border-radius: var(--pmsyntax-radpad);
   padding: var(--pmsyntax-radpad);
