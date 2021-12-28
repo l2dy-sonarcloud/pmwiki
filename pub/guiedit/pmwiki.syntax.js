@@ -281,7 +281,7 @@
     var resizeObserver;
     
     function updatePre() {
-      if(! chk_hlt.checked) return;
+      if(! chk_hlt.classList.contains('pmhlt')) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
       lastTextContent = tc;
@@ -293,7 +293,7 @@
       htext.addEventListener('scroll', preScrolled);
     }
     function textScrolled() {
-      if(! chk_hlt.checked) return;
+      if(! chk_hlt.classList.contains('pmhlt')) return;
       if(ignoreTextScrolled) return;
 
       if(ignorePreScrolled) clearTimeout(ignorePreScrolled-1);
@@ -303,7 +303,7 @@
     }
     var ignoreTextScrolled = false, ignorePreScrolled = false;
     function preScrolled() { // browser's in-page search
-      if(! chk_hlt.checked) return;
+      if(! chk_hlt.classList.contains('pmhlt')) return;
       if(ignorePreScrolled) return;
       if(ignoreTextScrolled) clearTimeout(ignoreTextScrolled-1);
       ignoreTextScrolled = 1 + setTimeout(nullITS, 100);
@@ -314,7 +314,7 @@
     function nullIPS(){ignorePreScrolled = false;}
 
     function resizePre() {
-      if(! chk_hlt.checked) return;
+      if(! chk_hlt.classList.contains('pmhlt')) return;
       var rect = text.getBoundingClientRect();
       var w = Math.floor(rect.width) + 'px', h = Math.floor(rect.height) + 'px';
       text.style.width = w;
@@ -339,8 +339,8 @@
     }
 
     function EnableHighlight() {
-      chk_hlt_wrap.dataset.checked = chk_hlt.checked;
-      if(chk_hlt.checked) {
+//       chk_hlt_wrap.dataset.checked = chk_hlt.classList.contains('pmhlt');
+      if(chk_hlt.classList.contains('pmhlt')) {
         localStorage.setItem('EnableHighlight', 1);
         updatePre();
         resizePre();
@@ -353,17 +353,22 @@
 
     function initCheckbox(){
       var form = text.closest('form');
-      form.insertAdjacentHTML('afterbegin', '<span id="chk_hlt_wrap">'
-        +'<input type="checkbox" name="chk_hlt" id="chk_hlt" /><label for="chk_hlt"> '
-        + _script.dataset.label +'</label></span>');
+      form.insertAdjacentHTML('afterbegin', '<code id="chk_hlt">'
+        + '<span class="pmpunct">[[</span><span class="pmurl">'
+        + _script.dataset.label 
+        + '</span><span class="pmpunct">]]</span>'
+        +'</code>');
 
       initPre();
       var enabled = localStorage.getItem('EnableHighlight');
       if(enabled) {
-        chk_hlt.checked = true;
+        chk_hlt.classList.add('pmhlt');
         EnableHighlight();
       }
-      chk_hlt.addEventListener('change', EnableHighlight);
+      tap([chk_hlt], function(e){
+        this.classList.toggle('pmhlt');
+        EnableHighlight();
+      })
     }
     initCheckbox();
   }

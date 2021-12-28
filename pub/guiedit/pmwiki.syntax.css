@@ -171,15 +171,17 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   user-select: none;
 }
 
-#wikiedit #chk_hlt_wrap[data-checked="true"] ~ * #htext {
+#wikiedit #chk_hlt.pmhlt ~ * #htext {
   display: block;
 }
-#chk_hlt_wrap {
+#chk_hlt {
   float: right;
+  font-size: 90%;
+  cursor: pointer;
+  user-select: none;
 }
-#chk_hlt_wrap > * { display: inline; }
-#wikiedit #chk_hlt_wrap[data-checked="true"] ~ * #text,
-#wikiedit #chk_hlt_wrap[data-checked="true"] ~ #text {
+#wikiedit #chk_hlt.pmhlt ~ * #text,
+#wikiedit #chk_hlt.pmhlt ~ #text {
   position: relative;
   z-index: 2;
   color: transparent;
