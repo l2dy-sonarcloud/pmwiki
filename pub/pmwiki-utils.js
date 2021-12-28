@@ -431,18 +431,19 @@
       }
     }
     
-    var difflinks = dqsa('a[href*="action=upload#diff"], a[href*="action=diff#diff"], a[href^="#diff"]');
-    if(!difflinks.length) return;
-
+    var difflinks = dqsa('a[href*="#diff"]'), diffcnt = 0;
     for(var i=0; i<difflinks.length; i++) {
       var link = difflinks[i];
+      if(link.hostname != location.hostname) continue;
       var a = link.href.match(/[#]diff(\d+)$/);
       if(!a) continue;
       var x = fmtLocalTime(a[1]);
       
       link.innerHTML = x[0];
       link.setAttribute('title', x[1]);
+      diffcnt++;
     }
+    if(!diffcnt) return;
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
     if(pagetitle) {
       var time = zpad(Now.getHours()) + ':'+ zpad(Now.getMinutes());
