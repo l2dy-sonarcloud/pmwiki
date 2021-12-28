@@ -2369,8 +2369,8 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   if (!$IsPagePosted && $Fmt==null) return;
   if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
   if (IsEnabled($EnableLocalTimes, 0)) { # 2.3.0
-    $tdiff = $Now - $page['time'];
-    $ws = 'time-'.base_convert($Now, 10, 36).'-'.base_convert($tdiff, 10, 36);
+    $ws = 'time-'.base_convert($Now, 10, 36);
+    if(@$page['time']) $ws .= '-'.base_convert($Now - intval(@$page['time']), 10, 36);
     $repl = "%$ws%\$CurrentTime%%";
   }
   else $repl = '$CurrentTime'; # pre-2.3.0 default

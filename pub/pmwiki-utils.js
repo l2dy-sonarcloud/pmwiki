@@ -408,21 +408,24 @@
     var h72 = Now.getTime()/1000-72*3600;
     
     for(var i=0; i<times.length; i++) {
-      var a = times[i].className.match(/^time-([a-z0-9]+)-([a-z0-9]+)$/);
+      var a = times[i].className.match(/^time-([a-z0-9]+)(?:-([a-z0-9]+))?$/);
       if(!a) continue;
  
       var stamp = parseInt(a[1], 36);
-      var prevstamp = stamp - parseInt(a[2], 36);
+      var prevstamp = a[2] ? stamp - parseInt(a[2], 36) : false;
       if(!latest) latest = stamp;
       var li = times[i].closest('li');
       var link = li.querySelector('a');
-      var diff = link.href + '?action=diff#diff' + stamp;
+      if(link.className.match(/createlinktext|wikilink|selflink/)) {
+        var diff = link.href + '?action=diff#diff' + stamp;
+      }
+      else diff = link.href + '#diff' + stamp; // recent uploads, other?
       times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>&nbsp;&nbsp;';
       li.insertBefore(times[i], link);
       
       if(previous && stamp>previous) li.classList.add('rcnew');
 
-      if(prevstamp >= h72) {
+      if(prevstamp && prevstamp >= h72) {
         var h = diff.replace(/[#]diff\d+/, '&fmt=rclist');
         adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
       }
