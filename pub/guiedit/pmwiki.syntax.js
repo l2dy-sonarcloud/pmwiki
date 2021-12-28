@@ -284,13 +284,13 @@
       if(! chk_hlt.checked) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
+      lastTextContent = tc;
       
       var clone = htext.cloneNode(false);
       htext.parentNode.replaceChild(clone, htext);
       htext.innerHTML = PmHi(tc+'\n');
       textScrolled();
       htext.addEventListener('scroll', preScrolled);
-      lastTextContent = tc;
     }
     function textScrolled() {
       if(! chk_hlt.checked) return;
