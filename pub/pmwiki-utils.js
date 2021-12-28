@@ -430,7 +430,7 @@
     
     var difflinks = dqsa('a[href*="action=diff#diff"], a[href^="#diff"]');
     if(!difflinks.length) return;
- 
+
     for(var i=0; i<difflinks.length; i++) {
       var link = difflinks[i];
       var a = link.href.match(/action=diff[#]diff(\d+)$/);

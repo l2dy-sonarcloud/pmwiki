@@ -177,6 +177,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 #chk_hlt_wrap {
   float: right;
 }
+#chk_hlt_wrap > * { display: inline; }
 #wikiedit #chk_hlt_wrap[data-checked="true"] ~ * #text,
 #wikiedit #chk_hlt_wrap[data-checked="true"] ~ #text {
   position: relative;
