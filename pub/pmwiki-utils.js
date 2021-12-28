@@ -397,7 +397,6 @@
     ltmode = pf(__script__.dataset.localtimes)
     if(! ltmode) return;
     var times = dqsa('span[class^="time-"]');
-    log(times, times.length);
     if(!times.length) return;
  
     Now = new Date();
@@ -411,7 +410,6 @@
     var h72 = Now.getTime()/1000-72*3600;
     for(var i=0; i<times.length; i++) {
       var a = times[i].className.match(/^time-([a-z0-9]+)-([a-z0-9]+)$/);
-      log(a);
       if(!a) continue;
       
       var stamp = parseInt(a[1], 36);
