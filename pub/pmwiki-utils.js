@@ -433,7 +433,7 @@
 
     for(var i=0; i<difflinks.length; i++) {
       var link = difflinks[i];
-      var a = link.href.match(/action=diff[#]diff(\d+)$/);
+      var a = link.href.match(/[#]diff(\d+)$/);
       if(!a) continue;
       var x = fmtLocalTime(a[1]);
       
