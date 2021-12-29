@@ -411,7 +411,7 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       $opt['=linka'] = array();
       if (@$opt['links']) $opt['link'] = $opt['links'];
       if (@$opt['link']) {
-        if (preg_match('/^\s*-|[,*?!]/', $opt['link']))
+        if (preg_match('/^\s*-|[,*?![\\]]/', $opt['link']))
           $opt['=linka'] = PageListLinkPatterns($opt['link']);
         else {
           $link = MakePageName($pn, $opt['link']);

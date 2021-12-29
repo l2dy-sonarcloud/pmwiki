@@ -356,7 +356,7 @@
         + '<span class="pmpunct">[[</span><span class="pmurl">'
         + _script.dataset.label 
         + '</span><span class="pmpunct">]]</span>'
-        +'</code>');
+        + '</code>');
 
       initPre();
       var enabled = localStorage.getItem('EnableHighlight');
