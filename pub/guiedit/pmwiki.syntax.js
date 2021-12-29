@@ -78,8 +78,9 @@
     ['i18n', 'string', /\$\[.*?\]/g],
 
     // markup expressions
-    ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
- 
+    ['mx0', '*mx', /\{\([-\w]+\)\}/g ], 
+    ['mx1', '!mx>*attr', /(\{\([-\w]+)(.*?)(\)\})/g, /[()]+/g], 
+
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
     ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
@@ -156,7 +157,6 @@
       var m = (typeof r == 'function') ? false : r.split(/[>]/g);
       if(m && m.length>1) { // parent>nested
         r = m[0];
-        
         text = text.replace(s, function(a, a1, a2, a3){
           var x = !!a2? a2 : a; // only interior
           for(var i=1; i<m.length; i++) {
