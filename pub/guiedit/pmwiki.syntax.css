@@ -59,6 +59,10 @@
 
   /* page (text) variables, template variables, like {*$:Summary} */
   --pmsyntax-var: #f40;
+  
+  /* keyword in forms, templates, conditionals */
+  --pmsyntax-keyword: #800;
+
 
   /* Link URLs, InterMap links */
   --pmsyntax-url: #37a;
@@ -81,10 +85,9 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-family: var(--pmsyntax-fontfamily);
   font-size: var(--pmsyntax-fontsize);
 }
-.pmhlt .pmtag, .pmhlt .pmpunct, .pmhlt .pmkeyword {
+.pmhlt .pmtag, .pmhlt .pmpunct {
   font-weight: bold;
 }
-
 
 .pmhlt .pmcomment {
   color: var(--pmsyntax-comment);
@@ -132,8 +135,11 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   color: var(--pmsyntax-escaped);
   background-color: var(--pmsyntax-escapedbg);
 }
-.pmhlt .pmattr, .pmhlt .pmkeyword {
+.pmhlt .pmattr {
   color: var(--pmsyntax-attr);
+}
+.pmhlt .pmkeyword {
+  color: var(--pmsyntax-keyword);
 }
 .pmhlt .pmvalue {
   color: var(--pmsyntax-value);
