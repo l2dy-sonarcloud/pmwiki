@@ -140,6 +140,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 }
 .pmhlt .pmkeyword {
   color: var(--pmsyntax-keyword);
+  font-style: italic;
 }
 .pmhlt .pmvalue {
   color: var(--pmsyntax-value);
