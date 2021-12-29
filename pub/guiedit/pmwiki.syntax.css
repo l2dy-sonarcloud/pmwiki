@@ -81,9 +81,10 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-family: var(--pmsyntax-fontfamily);
   font-size: var(--pmsyntax-fontsize);
 }
-.pmhlt .pmtag, .pmhlt .pmpunct {
+.pmhlt .pmtag, .pmhlt .pmpunct, .pmhlt .pmkeyword {
   font-weight: bold;
 }
+
 
 .pmhlt .pmcomment {
   color: var(--pmsyntax-comment);
@@ -131,7 +132,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   color: var(--pmsyntax-escaped);
   background-color: var(--pmsyntax-escapedbg);
 }
-.pmhlt .pmattr {
+.pmhlt .pmattr, .pmhlt .pmkeyword {
   color: var(--pmsyntax-attr);
 }
 .pmhlt .pmvalue {

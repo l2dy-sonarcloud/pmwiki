@@ -90,8 +90,11 @@
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
-    ['meta3', '=meta>*attr', /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig, special],
-    ['meta4', '!meta', /(\(:(?:template\s[ !]*\w+|redirect))(.*?)(:\))/g],
+    ['meta3', '=meta>keyword>*attr', 
+      /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
+      /\b(expr|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
+      special],
+    ['meta4', '!meta>keyword', /(\(:(?:template|redirect))(.*?)(:\))/g, /(!? *(each|first|last|defaults?|none))/],
 
     // urls can have percents so before wikistyle (populated by InterMap)
     ['_url'],
@@ -104,7 +107,9 @@
 
     // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
-    ['dir1', '!directive', /(\(: *(?:input\s+\w+|\w[-\w]*))(.*?)(:\))/g],
+    ['form', '!directive>keyword', /(\(: *input)(.*?)(:\))/g, 
+      /\b((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha)\b/i],
+    ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
     
     // inline
     ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
