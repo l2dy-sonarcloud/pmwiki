@@ -68,7 +68,7 @@
   
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_start'],
-    ['preserve', '=escaped', /\[([@=]).*?\1\]/gs, /^(\[[@=])(.*)([@=]\])$/s],
+    ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
     
     // variables
@@ -82,14 +82,14 @@
 
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
-    ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)].*?)(:\))/gs],
+    ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)][\s\S]*?)(:\))/g],
     
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
     ['skin',  '*meta', /\(:no(left|right|title|action|(group)?(header|footer)) *:\)/gi ], 
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
-    ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
+    ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/gi],
     ['meta3', '=meta>keyword>*attr>*keyword', 
       /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
       /\b(expr|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
@@ -109,7 +109,7 @@
     // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
     ['form', '!directive>keyword', /(\(: *input\s*)(\S.*?)(:\))/g, 
-      /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/i],
+      /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/],
     ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
     
     // inline
