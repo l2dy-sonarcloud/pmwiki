@@ -108,7 +108,7 @@
     // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
     ['form', '!directive>keyword', /(\(: *input)(.*?)(:\))/g, 
-      /\b((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha)\b/i],
+      /\b((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)\b/i],
     ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
     
     // inline
