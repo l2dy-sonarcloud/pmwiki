@@ -90,11 +90,12 @@
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/ig],
-    ['meta3', '=meta>keyword>*attr', 
+    ['meta3', '=meta>keyword>*attr>*keyword', 
       /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
       /\b(expr|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
-      special],
-    ['meta4', '!meta>keyword', /(\(:(?:template|redirect))(.*?)(:\))/g, /(!? *(each|first|last|defaults?|none))/],
+      special, /[[\]()]+/g ],
+    ['tmpl', '!meta>=keyword', /(\(:template\s+)(\S.*?)(:\))/g, /^([\s!]*)(each|first|last|defaults?|none)()/],
+    ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
     ['_url'],
@@ -107,18 +108,20 @@
 
     // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
-    ['form', '!directive>keyword', /(\(: *input)(.*?)(:\))/g, 
-      /\b((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)\b/i],
+    ['form', '!directive>keyword', /(\(: *input\s*)(\S.*?)(:\))/g, 
+      /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/i],
     ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
     
     // inline
     ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
+    
+    // list item, initial space, indent, linebreak
     ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg], 
     
     ['QA', '*heading', /^([QA]:|-{4,})/mg], //Q:/A:, horizontal rule
     ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV
     
-    // list item, initial space, indent, linebreak; inline punctuation; entity
+    // inline punctuation; entity
     ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g], 
     ['entity', 'string',  /[&]\#?\w+;/g],
 
@@ -153,12 +156,14 @@
       var m = (typeof r == 'function') ? false : r.split(/[>]/g);
       if(m && m.length>1) { // parent>nested
         r = m[0];
-        text = text.replace(s, function(a){
+        
+        text = text.replace(s, function(a, a1, a2, a3){
+          var x = !!a2? a2 : a; // only interior
           for(var i=1; i<m.length; i++) {
-            if(rule[i+1]) a = PmHi1(a, [m[i], rule[i+1]]);
+            if(rule[i+1]) x = PmHi1(x, [m[i], rule[i+1]]);
           }
-          return a;
-        })
+          return !!a2? a1 + x + a3 : x;
+        });
         // NOT return
       }
       else { // one classname, return match only_in_container
