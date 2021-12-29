@@ -78,8 +78,7 @@
     ['i18n', 'string', /\$\[.*?\]/g],
 
     // markup expressions
-    ['mx0', '*mx', /\{\([-\w]+\)\}/g ], 
-    ['mx1', '!mx>*attr', /(\{\([-\w]+)(.*?)(\)\})/g, /[()]+/g], 
+    ['mx', '!mx>*attr', /(\{\([-\w]+)(.*?)(\)\})/g, /[()]+/g], 
 
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
@@ -158,11 +157,12 @@
       if(m && m.length>1) { // parent>nested
         r = m[0];
         text = text.replace(s, function(a, a1, a2, a3){
-          var x = !!a2? a2 : a; // only interior
+          var is_a2 = typeof a2 == "string"? true:false;
+          var x = is_a2? a2 : a; // only interior
           for(var i=1; i<m.length; i++) {
             if(rule[i+1]) x = PmHi1(x, [m[i], rule[i+1]]);
           }
-          return !!a2? a1 + x + a3 : x;
+          return is_a2? a1 + x + a3 : x;
         });
         // NOT return
       }
