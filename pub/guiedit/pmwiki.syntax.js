@@ -211,12 +211,11 @@
   function toggleStyles(e) {
     e.preventDefault();
     var c1 = 'pmhlt', c2 = 'pmhlt-disabled';
-    var x = dqsa('.'+c1);
-    if(x.length==0) {
-      x = dqsa('.'+c2);
-      c2 = c1;
+    var x = dqsa('.'+c1+',.'+c2);
+    for(var i=0; i<x.length; i++) {
+      x[i].classList.toggle(c1);
+      x[i].classList.toggle(c2);
     }
-    for(var i=0; i<x.length; i++) x[i].className = c2;
   }
   
   function str2rx(str) {
