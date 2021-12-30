@@ -95,7 +95,7 @@
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/gi],
     ['meta3', '=meta>keyword>*attr>*keyword', 
       /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
-      /\b(expr|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
+      /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
       special, /[[\]()]+/g ],
     ['tmpl', '!meta>=keyword', /(\(:template\s+)(\S.*?)(:\))/g, /^([\s!]*)(each|first|last|defaults?|none)()/],
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],

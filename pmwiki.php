@@ -696,7 +696,7 @@ class PPRC { # PmWiki preg replace callbacks + pass local vars
 }
 
 # restores kept/protected strings
-function cb_expandkpv($m) { return $GLOBALS['KPV'][$m[1]]; }
+function cb_expandkpv($m) { return @$GLOBALS['KPV'][$m[1]]; }
 
 # make a string upper or lower case in various patterns
 function cb_toupper($m) { return strtoupper($m[1]); }
@@ -2417,11 +2417,17 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved, $FmtV, $ROSPatterns;
+  global $IsPageSaved, $FmtV, $ROSPatterns, $QualifyPages, $IncludedPages;
+  $text = ProcessROESPatterns($new['text'], $ROSPatterns);
+  $text = '(:groupheader:)'.$text.'(:groupfooter:)';
+  $QualifyPages = array();
+  $preview = MarkupToHTML($pagename,$text);
+  if (count($QualifyPages)) {
+    $IncludedPages = $QualifyPages;
+    unset($IncludedPages[$pagename]);
+  }
   if (@$_REQUEST['preview']) {
-    $text = ProcessROESPatterns($new['text'], $ROSPatterns);
-    $text = '(:groupheader:)'.$text.'(:groupfooter:)';
-    $FmtV['$PreviewText'] = MarkupToHTML($pagename,$text);
+    $FmtV['$PreviewText'] = $preview;
   }
 }
 
