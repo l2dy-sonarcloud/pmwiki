@@ -695,7 +695,7 @@ function FPLTemplate($pagename, &$matches, $opt) {
 
 ## Loads a template section
 function FPLTemplateLoad($pagename, $matches, $opt, &$tparts){
-  global $Cursor, $FPLTemplatePageFmt, $RASPageName, $PageListArgPattern;
+  global $Cursor, $FPLTemplatePageFmt, $RASPageName, $PageListArgPattern, $IncludedPages;
   SDV($FPLTemplatePageFmt, array('{$FullName}',
     '{$SiteGroup}.LocalTemplates', '{$SiteGroup}.PageListTemplates'));
 
@@ -703,7 +703,9 @@ function FPLTemplateLoad($pagename, $matches, $opt, &$tparts){
   if (!$template) $template = @$opt['fmt'];
   $ttext = RetrieveAuthSection($pagename, $template, $FPLTemplatePageFmt);
   $ttext = PVSE(Qualify($RASPageName, $ttext));
+  if ($ttext) @$IncludedPages[$RASPageName]++;
 
+  
   ##  save any escapes
   $ttext = MarkupEscape($ttext);
   ##  remove any anchor markups to avoid duplications

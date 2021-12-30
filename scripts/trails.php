@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2021 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -67,7 +67,7 @@ function CondOnTrail($pagename, $condparm) {
 
 function ReadTrail($pagename, $trailname) {
   global $RASPageName, $SuffixPattern, $GroupPattern, $WikiWordPattern,
-    $LinkWikiWords;
+    $LinkWikiWords, $IncludedPages;
   if (preg_match('/^\\[\\[(.+?)(-&gt;|\\|)(.+?)\\]\\]$/', $trailname, $m)) 
     $trailname = ($m[2] == '|') ? $m[1] : $m[3];
   $trailtext = RetrieveAuthSection($pagename, $trailname);
@@ -94,6 +94,7 @@ function ReadTrail($pagename, $trailname) {
     if ($depth>1) $t[$n]['parent']=@$d[$depth-1];
     $n++;
   }
+  if ($t) @$IncludedPages[$pagename]++;
   return $t;
 }
 

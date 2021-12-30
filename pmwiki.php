@@ -1087,7 +1087,8 @@ function SetProperty($pagename, $prop, $value, $sep=NULL, $keep=NULL) {
 ## $PageTextVarPatterns) into a page's $PCache entry, and returns
 ## the property associated with $var.
 function PageTextVar($pagename, $var) {
-  global $PCache, $PageTextVarPatterns, $MaxPageTextVars, $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
+  global $PCache, $PageTextVarPatterns, $MaxPageTextVars, $IncludedPages,
+    $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
   SDV($MaxPageTextVars, 500);
   static $status;
   if (@$status["$pagename:$var"]++ > $MaxPageTextVars) return '';
@@ -1123,6 +1124,7 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
+  if(@$PCache[$pagename]["=p_$var"]) @$IncludedPages[$pagename]++;
   return @$PCache[$pagename]["=p_$var"];
 }
 
@@ -1620,7 +1622,7 @@ function Keep($x, $pool=NULL) {
 function MarkupEscape($text) {
   global $EscapePattern;
   SDV($EscapePattern, '\\[([=@]).*?\\1\\]');
-  return preg_replace_callback("/$EscapePattern/s", "Keep", $text);
+  return preg_replace_callback("/$EscapePattern/s", "Keep", strval($text));
 }
 function MarkupRestore($text) {
   global $KeepToken, $KPV;
@@ -1632,9 +1634,8 @@ function MarkupRestore($text) {
 ##  Qualify() applies $QualifyPatterns to convert relative links
 ##  and references into absolute equivalents.
 function Qualify($pagename, $text) {
-  global $QualifyPatterns, $KeepToken, $KPV, $tmp_qualify, $QualifyPages;
+  global $QualifyPatterns, $KeepToken, $KPV, $tmp_qualify;
   if (!@$QualifyPatterns) return $text;
-  @$QualifyPages[$pagename]++;
   $text = MarkupEscape($text);
   $group = $tmp_qualify['group'] = PageVar($pagename, '$Group');
   $name  = $tmp_qualify['name']  = PageVar($pagename, '$Name');
@@ -1711,7 +1712,7 @@ function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') 
 }
 
 function IncludeText($pagename, $inclspec) {
-  global $MaxIncludes, $IncludeOpt, $InclCount, $PCache;
+  global $MaxIncludes, $IncludeOpt, $InclCount, $PCache, $IncludedPages;
   SDV($MaxIncludes,50);
   SDVA($IncludeOpt, array('self'=>1));
   if (@$InclCount[$pagename]++>=$MaxIncludes) return Keep($inclspec);
@@ -1744,6 +1745,7 @@ function IncludeText($pagename, $inclspec) {
               ? MakePageName($pagename, $args['basepage'])
               : @$iname;
   if ($basepage) $itext = Qualify(@$basepage, @$itext);
+  if ($itext) @$IncludedPages[$iname]++;
   return FmtTemplateVars(PVSE(@$itext), $args);
 }
 
@@ -2417,15 +2419,27 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved, $FmtV, $ROSPatterns, $QualifyPages, $IncludedPages;
+  global $IsPageSaved, $FmtV, $ROSPatterns, $IncludedPages;
   $text = ProcessROESPatterns($new['text'], $ROSPatterns);
   $text = '(:groupheader:)'.$text.'(:groupfooter:)';
-  $QualifyPages = array();
+  $IncludedPages = array();
   $preview = MarkupToHTML($pagename,$text);
-  if (count($QualifyPages)) {
-    $IncludedPages = $QualifyPages;
-    unset($IncludedPages[$pagename]);
+  $incp = array_diff(array_keys($IncludedPages), array($pagename));
+  $cnt = count($incp);
+  if ($cnt) {
+    $label = XL('Text included from other pages');
+    $edit = XL('Edit');
+    $out = "<br/><details class='inclpages' style='display: inline-block;'>"
+      . "<summary>($cnt) $label</summary><ul>\n";
+    foreach($incp as $pn) {
+      $url = PageVar($pn, '$PageUrl');
+      $out .= "<li> <a class='wikilink' href='$url'>$pn</a> 
+        (<a class='wikilink' href='$url?action=edit'>$edit</a>)</li>\n";
+    }
+    $out .= "</ul></details>";
+    $FmtV['$IncludedPages'] = $out;
   }
+  else $FmtV['$IncludedPages'] = '';
   if (@$_REQUEST['preview']) {
     $FmtV['$PreviewText'] = $preview;
   }

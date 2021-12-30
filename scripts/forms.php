@@ -374,17 +374,17 @@ SDVA($InputTags['e_form'], array(
 SDVA($InputTags['e_textarea'], array(
   ':html' => "<textarea \$InputFormArgs 
     onkeydown='if (event.keyCode==27) event.returnValue=false;' 
-    >\$EditText</textarea>",
+    >\$EditText</textarea>\$IncludedPages",
   'name' => 'text', 'id' => 'text', 'accesskey' => XL('ak_textedit'),
   'rows' => XL('e_rows'), 'cols' => XL('e_cols')));
 SDVA($InputTags['e_author'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
-  'placeholder' => XL('Author'),
+  'placeholder' => PHSC(XL('Author'), ENT_QUOTES),
   'name' => 'author', 'value' => $Author));
 SDVA($InputTags['e_changesummary'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
   'name' => 'csum', 'size' => '60', 'maxlength' => '100',
-  'placeholder' => XL('Summary'),
+  'placeholder' => PHSC(XL('Summary'), ENT_QUOTES),
   'value' => PHSC(stripmagic(@$_POST['csum']), ENT_QUOTES)));
 SDVA($InputTags['e_minorcheckbox'], array(
   ':html' => "<input type='checkbox' \$InputFormArgs />",
