@@ -175,16 +175,17 @@
       if(dtoc.NumberedHeadings && currnb.length) adjab(hc[0], currnb+' ');
 
       if(! shouldmaketoc) { continue; }
-      var txt = hc[0].textContent.replace(/^\s+|\s+$/g, '').replace(/</g, '&lt;');
+      var txt = hc[0].textContent.trim().replace(/</g, '&lt;');
       var sectionedit = hc[0].querySelector('.sectionedit');
       if(sectionedit) {
         var selength = sectionedit.textContent.length;
         txt = txt.slice(0, -selength);
       }
       
-      html += '&nbsp;'.repeat(3*actual_level)
-        + '<a href="#'+hc[2]+'">' + txt + '</a><br>\n';
-      if(dtoc.EnableBacklinks) adjbe(hc[0], ' <a class="back-arrow" href="#_toc">&uarr;</a>');
+      html += '<a style="margin-left: '+ actual_level
+        + 'em;" href="#'+hc[2]+'">' + txt + '</a>\n';
+      if(dtoc.EnableBacklinks) 
+        adjbe(hc[0], ' <a class="back-arrow" href="#_toc">&uarr;</a>');
       
     }
 

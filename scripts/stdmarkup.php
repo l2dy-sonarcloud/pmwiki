@@ -678,8 +678,8 @@ function FmtPmTOC($m) {
 }
 SDV($HTMLStylesFmt['PmTOC'], '.noPmTOC, .PmTOCdiv:empty {display:none;}
 .PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
-.PmTOCdiv a { text-decoration: none;}
-.back-arrow {font-size: .9em; text-decoration: none;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
 #PmTOCchk + label {cursor: pointer;}
 #PmTOCchk {display: none;}
 #PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}

@@ -1632,8 +1632,9 @@ function MarkupRestore($text) {
 ##  Qualify() applies $QualifyPatterns to convert relative links
 ##  and references into absolute equivalents.
 function Qualify($pagename, $text) {
-  global $QualifyPatterns, $KeepToken, $KPV, $tmp_qualify;
+  global $QualifyPatterns, $KeepToken, $KPV, $tmp_qualify, $QualifyPages;
   if (!@$QualifyPatterns) return $text;
+  @$QualifyPages[$pagename]++;
   $text = MarkupEscape($text);
   $group = $tmp_qualify['group'] = PageVar($pagename, '$Group');
   $name  = $tmp_qualify['name']  = PageVar($pagename, '$Name');
