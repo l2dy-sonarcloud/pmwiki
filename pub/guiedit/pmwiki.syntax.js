@@ -13,7 +13,7 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  var special = /\$+:?(?!\))|[#!*?&+|,]+|\.\.+|\s-/g;
+  var special = /\$+:?(?!\))|[#!*?&+|,()]+|\.\.+|\s-/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
   
   var log = console.log;
@@ -62,6 +62,9 @@
       if(attr) attr = span('attr', attr, 1);
       return keep0(attr + op + val);
     })
+    .replace(/(\()(\w+)/g, function(a, attr, expr){
+      return Keep(attr, 'attr tag')+Keep(expr, 'tag');
+    })
     .replace(special, function(a){ return Keep(a, 'attr tag'); });
     return attr;
   }
@@ -78,7 +81,7 @@
     ['i18n', 'string', /\$\[.*?\]/g],
 
     // markup expressions
-    ['mx', '!mx>*attr', /(\{\([-\w]+)(.*?)(\)\})/g, /[()]+/g], 
+    ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
 
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
