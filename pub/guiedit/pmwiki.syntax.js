@@ -5,8 +5,8 @@
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.  See pmwiki.php for full details.
 
-    This file provides Javascript functions for syntax highlighting of 
-    PmWiki markup, to be used in the PmWiki documentation, and optionally 
+    This file provides Javascript functions for syntax highlighting of
+    PmWiki markup, to be used in the PmWiki documentation, and optionally
     in the edit form.
 */
 
@@ -15,7 +15,7 @@
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
   var special = /\$+:?(?!\))|[#!*?&+|,()]+|\.\.+|\s-/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
-  
+
   var log = console.log;
   function aE(el, ev, fn) {
     if(typeof el == 'string') el = dqsa(el);
@@ -35,14 +35,14 @@
     text = span(cname, text);
     return keep0(text);
   }
-  
+
   function span(cname, text, escaped) {
     if(text==='') return '';
     if(!escaped) text = PHSC(text);
     return "<span class='pm"+cname.replace(/^\*/, 'tag ')
      .split(/[ _]+/g).join(' pm')+"'>" + text + "</span>";
   }
-  
+
   function Keep3(cname, tag1, plain, attrs, tag2) {
     var out = '';
     if(tag1) out += span('tag', tag1);
@@ -53,7 +53,7 @@
     else out = span(cname, out, true);
     return keep0(out);
   }
-  
+
   function hattr(attr) {
     attr = PHSC(attr)
     .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
@@ -68,41 +68,41 @@
     .replace(special, function(a){ return Keep(a, 'attr tag'); });
     return attr;
   }
-  
+
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_start'],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
-    
+
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
-    ['pagevar2', 'string', /\{(\034\034\d+\034\034)\$[$:]?\w+\}/g],
-    ['phpvar',  'var', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Function|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g],
+    ['nestvar', 'string', /\{(\034\034\d+\034\034)\$[$:]?\w+\}/g],
+    ['phpvar',  'var', /\$((Enable|Fmt|Upload)\w+|\w+(Fmt|Functions?|Patterns?|Dirs?|Url)|FarmD|pagename)\b/g],
     ['i18n', 'string', /\$\[.*?\]/g],
 
     // markup expressions
-    ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g], 
+    ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g],
 
     // page text vars, can be empty or multiline
     ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
     ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)][\s\S]*?)(:\))/g],
-    
+
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
-    ['skin',  '*meta', /\(:no(left|right|title|action|(group)?(header|footer)) *:\)/gi ], 
+    ['skin',  '*meta', /\(:no(left|right|title|action|(group)?(header|footer)) *:\)/gi ],
     ['meta0', '*meta', /\(:(no)?((link|space)wikiwords|linebreaks|toc) *:\)/gi],
     ['meta1', '*meta', /\(:(else\d*|if\d*|if\d*end|nl) *:\)/gi],
     ['meta2', '=meta', /(\(:(?:title|description|keywords))(.*?)(:\))/gi],
-    ['meta3', '=meta>keyword>*attr>*keyword', 
+    ['meta3', '=meta>keyword>*attr>*keyword',
       /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
-      /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g, 
+      /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g,
       special, /[[\]()]+/g ],
     ['tmpl', '!meta>=keyword', /(\(:template\s+)(\S.*?)(:\))/g, /^([\s!]*)(each|first|last|defaults?|none)()/],
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
     ['_url'],
-    
+
     // wikistyles
     ['ws0', '*meta', /%%|^>><</gm],
     ['ws1', '!meta', /(^>>\w[-\w]*)(.*?)(<<)/gm],
@@ -111,38 +111,38 @@
 
     // directives, forms
     ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
-    ['form', '!directive>keyword', /(\(: *input\s*)(\S.*?)(:\))/g, 
+    ['form', '!directive>keyword', /(\(: *input\s*)(\S.*?)(:\))/g,
       /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/],
     ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
-    
+
     // inline
     ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
-    
+
     // list item, initial space, indent, linebreak
-    ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg], 
-    
+    ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg],
+
     ['QA', '*heading', /^([QA]:|-{4,})/mg], //Q:/A:, horizontal rule
     ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV
-    
+
     // inline punctuation; entity
-    ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g], 
+    ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g],
     ['entity', 'string',  /[&]\#?\w+;/g],
 
     // simple tables
     ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
     ['tablerow',  '!tab', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)()/g],
     ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
-    
+
     // wikitrails
     ['trail1', '=url', /(<<?\|)(.*?)(\|>>?)/g],
     ['trail2', '=url', /(\^\|)(.*?)(\|\^)/g],
-    
+
     ['pipe', 'punct', /\|/g], // inline, after trails
-    
+
     // may contain inline markup
     ['deflist', '=bullet', /^([:]+)(.*?)([:])/mg],
     ['heading', '=heading', /^(!{1,6})(.*)($)/mg],
-    
+
     ['cleanup', PHSC, /[<>&]+/g],// raw HTML/XSS
     ['restore', Restore, restoreRX],
     ['_end']
@@ -152,7 +152,7 @@
     custom_hrx[ hrx[i][0] ] = [];
     custom_hrx[ '>'+hrx[i][0] ] = [];
   }
-  
+
   function PmHi1(text, rule){
     var r = rule[0], s = rule[1];
     if(!!rule[2]) {
@@ -207,7 +207,7 @@
     }
     if(pm.length) tap('.toggle-pmhlt', toggleStyles);
   }
-  
+
   function toggleStyles(e) {
     e.preventDefault();
     var c1 = 'pmhlt', c2 = 'pmhlt-disabled';
@@ -217,7 +217,7 @@
       x[i].classList.toggle(c2);
     }
   }
-  
+
   function str2rx(str) {
     if(typeof str.flags == 'string') return str; // regexp
     if(typeof str != 'string') {
@@ -226,14 +226,14 @@
     }
     var a = str.match(/^\/(.*)\/([gimsyu]*)$/);
     try {
-      if(a) return new RegExp(a[1], a[2]); 
-      return new RegExp(str, 'g');  
+      if(a) return new RegExp(a[1], a[2]);
+      return new RegExp(str, 'g');
     }
     catch(e) {
       log('Could not create RegExp.', str);
     }
   }
-  
+
   var _script;
   function sortRX(){
     _script = dqs('script[src*="pmwiki.syntax.js"]');
@@ -248,7 +248,7 @@
         log("Parsing custom rules failed.", _script.dataset.custom);
         var list = [];
       }
-      
+
       for(var i=0; i<list.length; i++) {
         var rule = list[i];
         if(typeof rule == 'string') rule = rule.split(/\s+/g);
@@ -287,17 +287,17 @@
     if(!_script || _script.dataset.mode != "2") return;
     var text = dqs('#wikiedit textarea#text');
     if(!text) return;
-    
+
     var lastTextContent = false;
     var GUIEditInterval = false;
     var resizeObserver;
-    
+
     function updatePre() {
       if(! chk_hlt.classList.contains('pmhlt')) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
       lastTextContent = tc;
-      
+
       var clone = htext.cloneNode(false);
       htext.parentNode.replaceChild(clone, htext);
       htext.innerHTML = PmHi(tc+'\n');
@@ -342,7 +342,7 @@
       text.insertAdjacentHTML('beforebegin', '<div id="hwrap"><div id="htext" class="pmhlt"></div></div>');
       updatePre();
       resizePre();
-      
+
       htext.inert = true;
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);
@@ -370,7 +370,7 @@
       var form = text.closest('form');
       form.insertAdjacentHTML('afterbegin', '<code id="chk_hlt">'
         + '<span class="pmpunct">[[</span><span class="pmurl">'
-        + _script.dataset.label 
+        + _script.dataset.label
         + '</span><span class="pmpunct">]]</span>'
         + '</code>');
 
