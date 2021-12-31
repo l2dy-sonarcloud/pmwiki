@@ -233,6 +233,9 @@ dd {
 ul, ol {
   margin: 0;
 }
+details > summary {
+  cursor: pointer;
+}
 
 select, textarea, input {
   font-size: 16px; /*disable zoom-in on some phones*/
