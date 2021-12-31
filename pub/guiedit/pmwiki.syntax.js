@@ -97,7 +97,8 @@
       /(\(:(?:(?:else\d*)?if\d*))(.*?)(:\))/ig,
       /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g,
       special, /[[\]()]+/g ],
-    ['tmpl', '!meta>=keyword', /(\(:template\s+)(\S.*?)(:\))/g, /^([\s!]*)(each|first|last|defaults?|none)()/],
+    ['tmpl', '!meta>=keyword', /(\(:template[^\S\r\n]+)(\S.*?)(:\))/g,
+      /^([[^\S\r\n]!]*)(each|first|last|defaults?|none)()/],
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
@@ -110,16 +111,16 @@
     ['ws3', '!meta', /(%\w[-\w]*)(.*?)(%)/g],
 
     // directives, forms
-    ['dir0', '*directive', /\(: *\w[-\w]* *:\)/g],
-    ['form', '!directive>keyword', /(\(: *input\s*)(\S.*?)(:\))/g,
+    ['dir0', '*directive', /\(:\w[-\w]* *:\)/g],
+    ['form', '!directive>keyword', /(\(:input[^\S\r\n]+)(\S.*?)(:\))/g,
       /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/],
-    ['dir1', '!directive', /(\(: *\w[-\w]*)(.*?)(:\))/g],
+    ['dir1', '!directive', /(\(:\w[-\w]*)(.*?)(:\))/g],
 
     // inline
-    ['link', 'punct', /(\[\[[\#!~]?|([#+]\s*)?\]\])/g], // link
+    ['link', 'punct', /(\[\[[\#!~]?|([#+][^\S\r\n]*)?\]\])/g], // link
 
     // list item, initial space, indent, linebreak
-    ['bullet', '*bullet', /^(\s*([*#]+)\s*|-+[<>]\s*|[ \t]+)|\\+$/mg],
+    ['bullet', '*bullet', /^([^\S\r\n]*([*#]+)[^\S\r\n]*|-+[<>][^\S\r\n]*|[^\S\r\n]+)|\\+$/mg],
 
     ['QA', '*heading', /^([QA]:|-{4,})/mg], //Q:/A:, horizontal rule
     ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV

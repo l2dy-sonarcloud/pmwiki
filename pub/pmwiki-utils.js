@@ -421,8 +421,7 @@
         var diff = link.href + '?action=diff#diff' + stamp;
       }
       else diff = link.href + '#diff' + stamp; // recent uploads, other?
-      times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>&nbsp;&nbsp;';
-      li.insertBefore(times[i], link);
+      times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>';
       
       if(previous && stamp>previous) li.classList.add('rcnew');
 
@@ -442,6 +441,10 @@
       
       link.innerHTML = x[0];
       link.setAttribute('title', x[1]);
+      
+      var par = link.closest('li');
+      par.insertBefore(link, par.firstChild);
+      adjae(link, "&nbsp;&nbsp;");
       diffcnt++;
     }
     if(!diffcnt) return;
