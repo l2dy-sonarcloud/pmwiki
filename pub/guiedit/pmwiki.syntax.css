@@ -11,7 +11,7 @@
     The CSS variables can be redefined in skins and in local customization in 
     order to adapt to other color themes.
 */
-:root {
+#wikiedit #hwrap + textarea#text, #wikiedit #htext, .pmhlt {
   /* base text color and background */
   --pmsyntax-color: inherit;
   --pmsyntax-bgcolor: inherit;
