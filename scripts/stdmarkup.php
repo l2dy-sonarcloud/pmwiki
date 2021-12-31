@@ -54,7 +54,12 @@ Markup('{$var}', '>$[phrase]',
   '/\\{(\\*|!?[-\\w.\\/\\x80-\\xff]*)(\\$:?\\w[-\\w]*)\\}/',
   "MarkupPageVar");
 function MarkupPageVar($m){
+  global $IncludedPages, $Cursor;
   extract($GLOBALS["MarkupToHTML"]);
+  if($m[1] && strpos($m[2], '$:')===0) {
+    $pn = isset($Cursor[$m[1]]) ? $Cursor[$m[1]] : MakePageName($pagename, $m[1]);
+    @$IncludedPages[$pn]++;
+  }
   return PRR(PVSE(PageVar($pagename, $m[2], $m[1])));
 }
 

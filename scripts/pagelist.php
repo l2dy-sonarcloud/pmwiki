@@ -115,6 +115,12 @@ class cb_pl_expandvars extends PPRC {
     $pn = $this->vars;
     return PVSE(PageVar($pn, $m[2], $m[1]));
   }
+  function pl_expandvars_inlp($m) {
+    global $IncludedPages, $Cursor;
+    if (strpos($m[2], '$:')===0) @$IncludedPages[$Cursor[$m[1]]]++;
+    $pn = $this->vars;
+    return PVSE(PageVar($pn, $m[2], $m[1]));
+  }
 }
 
 SDV($SaveAttrPatterns['/\\(:(searchresults|pagelist)(\\s+.*?)?:\\)/i'], ' ');
@@ -835,7 +841,7 @@ function FPLExpandItemVars($item, $matches, $idx, $psvars) {
   $item = str_replace(array_keys($psvars), array_values($psvars), $item);
   $cb = new cb_pl_expandvars($pn);
   $item = preg_replace_callback('/\\{(=|&[lg]t;)(\\$:?\\w[-\\w]*)\\}/',
-              array($cb, 'pl_expandvars'), $item);
+              array($cb, 'pl_expandvars_inlp'), $item);
   if (! IsEnabled($EnableUndefinedTemplateVars, 0))
     $item = preg_replace("/\\{\\$\\$\\w+\\}/", '', $item);
   return $item;

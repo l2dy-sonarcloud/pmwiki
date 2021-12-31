@@ -199,3 +199,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   background-image: none;
   caret-color: var(--pmsyntax-caretcolor);
 }
+
+#wikiedit #hwrap + textarea#text.dragging {
+  color: var(--pmsyntax-color);
+}

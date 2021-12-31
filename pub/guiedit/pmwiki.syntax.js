@@ -324,6 +324,8 @@
     }
     function nullITS(){ignoreTextScrolled = false;}
     function nullIPS(){ignorePreScrolled = false;}
+    function dragstart(e) { this.classList.add('dragging'); }
+    function dragend(e) { this.classList.remove('dragging'); }
 
     function resizePre() {
       if(! chk_hlt.classList.contains('pmhlt')) return;
@@ -344,6 +346,8 @@
       htext.inert = true;
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);
+      text.addEventListener('dragstart', dragstart);
+      text.addEventListener('dragend', dragend);
       GUIEditInterval = setInterval(updatePre, 100); // for GUIEdit buttons
 
       resizeObserver = new ResizeObserver(resizePre)

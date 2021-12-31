@@ -1087,7 +1087,7 @@ function SetProperty($pagename, $prop, $value, $sep=NULL, $keep=NULL) {
 ## $PageTextVarPatterns) into a page's $PCache entry, and returns
 ## the property associated with $var.
 function PageTextVar($pagename, $var) {
-  global $PCache, $PageTextVarPatterns, $MaxPageTextVars, $IncludedPages,
+  global $PCache, $PageTextVarPatterns, $MaxPageTextVars,
     $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
   SDV($MaxPageTextVars, 500);
   static $status;
@@ -1124,7 +1124,6 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
-  if(@$PCache[$pagename]["=p_$var"]) @$IncludedPages[$pagename]++;
   return @$PCache[$pagename]["=p_$var"];
 }
 
@@ -2419,18 +2418,20 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 }
 
 function PreviewPage($pagename,&$page,&$new) {
-  global $IsPageSaved, $FmtV, $ROSPatterns, $IncludedPages;
+  global $IsPageSaved, $FmtV, $ROSPatterns, $PCache, 
+    $IncludedPages, $EnableIncludedPages;
   $text = ProcessROESPatterns($new['text'], $ROSPatterns);
   $text = '(:groupheader:)'.$text.'(:groupfooter:)';
   $IncludedPages = array();
   $preview = MarkupToHTML($pagename,$text);
   $incp = array_diff(array_keys($IncludedPages), array($pagename));
   $cnt = count($incp);
-  if ($cnt) {
-    $label = XL('Text included from other pages');
+  if (IsEnabled($EnableIncludedPages,0) && $cnt) {
+    $label = XL('Text or data included from other pages');
     $edit = XL('Edit');
     $out = "<br/><details class='inclpages' style='display: inline-block;'>"
       . "<summary>($cnt) $label</summary><ul>\n";
+    sort($incp);
     foreach($incp as $pn) {
       $url = PageVar($pn, '$PageUrl');
       $out .= "<li> <a class='wikilink' href='$url'>$pn</a> 
