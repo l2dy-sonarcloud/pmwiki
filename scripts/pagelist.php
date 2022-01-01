@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -112,12 +112,6 @@ function MarkupPageList($m) {
 # called from PageListIf and FPLExpandItemVars
 class cb_pl_expandvars extends PPRC { 
   function pl_expandvars($m) {
-    $pn = $this->vars;
-    return PVSE(PageVar($pn, $m[2], $m[1]));
-  }
-  function pl_expandvars_inlp($m) {
-    global $IncludedPages, $Cursor;
-    if (strpos($m[2], '$:')===0) @$IncludedPages[$Cursor[$m[1]]]++;
     $pn = $this->vars;
     return PVSE(PageVar($pn, $m[2], $m[1]));
   }
@@ -841,7 +835,7 @@ function FPLExpandItemVars($item, $matches, $idx, $psvars) {
   $item = str_replace(array_keys($psvars), array_values($psvars), $item);
   $cb = new cb_pl_expandvars($pn);
   $item = preg_replace_callback('/\\{(=|&[lg]t;)(\\$:?\\w[-\\w]*)\\}/',
-              array($cb, 'pl_expandvars_inlp'), $item);
+              array($cb, 'pl_expandvars'), $item);
   if (! IsEnabled($EnableUndefinedTemplateVars, 0))
     $item = preg_replace("/\\{\\$\\$\\w+\\}/", '', $item);
   return $item;

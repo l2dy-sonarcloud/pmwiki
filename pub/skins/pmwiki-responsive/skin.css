@@ -1,6 +1,6 @@
 /***********************************************************************
 **  skin.css
-**  Copyright 2016-2020 Petko Yotov www.pmwiki.org/petko
+**  Copyright 2016-2022 Petko Yotov www.pmwiki.org/petko
 **  
 **  Partially based on pmwiki.css:
 **  Copyright 2004-2006 Patrick R. Michaud pmichaud@pobox.com
@@ -235,6 +235,9 @@ ul, ol {
 }
 details > summary {
   cursor: pointer;
+}
+details > summary:hover {
+  color: navy;
 }
 
 select, textarea, input {
