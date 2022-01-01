@@ -348,7 +348,7 @@ Markup('[[','links',"/(?>\\[\\[\\s*(.*?)\\]\\])($SuffixPattern)/", "MarkupLinks"
 ## [[!Category]]
 SDV($CategoryGroup,'Category');
 SDV($LinkCategoryFmt,"<a class='categorylink' href='\$LinkUrl'>\$LinkText</a>");
-Markup('[[!','<[[|','/\\[\\[!((.*?)((".*?")?(\\|.*?)?)?)\\]\\]/', "MarkupLinks");
+Markup('[[!','<[[|#','/\\[\\[!((.*?)((".*?")?(\\|.*?)?)?)\\]\\]/', "MarkupLinks");
 # This is a temporary workaround for blank category pages.
 # It may be removed in a future release (Pm, 2006-01-24)
 if (preg_match("/^$CategoryGroup\\./", $pagename)) {
