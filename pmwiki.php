@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2021 Patrick R. Michaud
+    Copyright 2001-2022 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -587,7 +587,9 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
     if (@$locale) 
       setlocale(LC_TIME, preg_split('/[, ]+/', $locale, -1, PREG_SPLIT_NO_EMPTY));
     if (@$tz) @date_default_timezone_set($tz);
-    $fmt = str_replace(array('%F', '%s'), array('%Y-%m-%d', $stamp), $fmt);
+    $fmt = str_replace(array('%F', '%s', '%o'), 
+      array('%Y-%m-%d', $stamp, date('S', $stamp)), 
+      $fmt);
     $ret = strftime($fmt, $stamp);
     if ($tz) date_default_timezone_set($cached['dtz']);
     if (@$locale) setlocale(LC_TIME, $cached['dloc']);
@@ -595,9 +597,9 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
   }
   
   $timestamp = date_create("@$stamp");
-  if($tz) {
+  if ($tz) {
     $tzo = @timezone_open($tz);
-    if(!@$tzo) unset($tz);
+    if (!@$tzo) unset($tz);
   }
   if (!@$tz) { # need to set it otherwise resets to GMT
     $tz = $cached['dtz'];
@@ -611,7 +613,7 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
     'formats' =>  $cached['formats'],
     'iformats' =>  $cached['iformats'],
   );
-  if($locale) $vars['locale'] = substr($locale, 0, 5);
+  if ($locale) $vars['locale'] = substr($locale, 0, 5);
   
   $cb = new PPRC($vars);
   $fmt = preg_replace_callback('/(?<!%)(%[a-zA-Z])/', array($cb, 'ftime'), $fmt);
@@ -620,18 +622,24 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
 function cb_PSFT($fmt, $vars) {
   extract($vars); # $timestamp, $tz, $locale, $formats, $iformats
   
-  if(isset($formats[$fmt])) {
+  if (isset($formats[$fmt])) {
     $fmt = $timestamp->format($formats[$fmt]);
-    if($fmt[0]==' ' && strlen($fmt)>2) $fmt = substr($fmt, 1);
+    if ($fmt[0]==' ' && strlen($fmt)>2) $fmt = substr($fmt, 1);
     return $fmt;
   }
-  if($fmt=='%j') return sprintf('%03d',$timestamp->format('z')+1);
-  if($fmt=='%C') return floor($timestamp->format('Y')/100);
-  if($fmt=='%g') return sprintf('%02d', $timestamp->format('o') % 100);
-  if($fmt=='%U') return cb_PSFT_UW($timestamp, $tz, 'Sunday');
-  if($fmt=='%W') return cb_PSFT_UW($timestamp, $tz, 'Monday');
+  if ($fmt=='%o') { # ordinal, PITS:01418
+    if (!@$locale) $locale = 'C';
+    $f = numfmt_create($locale, NumberFormatter::ORDINAL);
+    $j = $f->format($timestamp->format('j'));
+    return preg_replace('/\\d+/', '', $j);
+  }
+  if ($fmt=='%j') return sprintf('%03d',$timestamp->format('z')+1);
+  if ($fmt=='%C') return floor($timestamp->format('Y')/100);
+  if ($fmt=='%g') return sprintf('%02d', $timestamp->format('o') % 100);
+  if ($fmt=='%U') return cb_PSFT_UW($timestamp, $tz, 'Sunday');
+  if ($fmt=='%W') return cb_PSFT_UW($timestamp, $tz, 'Monday');
 
-  if(isset($iformats[$fmt])) {
+  if (isset($iformats[$fmt])) {
     $ifmt = $iformats[$fmt];
     return datefmt_create(@$locale, $ifmt[0], $ifmt[1], $tz, null, @$ifmt[2])->format($timestamp);
   }
@@ -665,7 +673,7 @@ function PPRE($pat, $rep, $x) {
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
-  if(!$x) return '';
+  if (!$x) return '';
   foreach((array)$array as $pat => $rep) {
     # skip broken patterns rather than crash the PHP installation
     $oldpat = preg_match('!^/.+/[^/]*e[^/]*$!', $pat);
@@ -1605,7 +1613,7 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
 
 function Keep($x, $pool=NULL) {
   if (is_array($x)) $x = $x[0]; # used in many callbacks
-  if($x=='') return '';
+  if ($x=='') return '';
   # Keep preserves a string from being processed by wiki markups
   global $BlockPattern, $KeepToken, $KPV, $KPCount;
   $x = preg_replace_callback("/$KeepToken(\\d.*?)$KeepToken/", 'cb_expandkpv', $x);
@@ -1938,7 +1946,7 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
     $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
-  if($alt) $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
+  if ($alt) $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', strval($path)); # PITS:01388
   if (is_array($txt)) { # PITS:01392
     $suffix = $txt[1];
@@ -2372,7 +2380,7 @@ function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
   if (IsEnabled($EnableLocalTimes, 0)) { # 2.3.0
     $ws = 'time-'.base_convert($Now, 10, 36);
-    if(@$page['time']) $ws .= '-'.base_convert($Now - intval(@$page['time']), 10, 36);
+    if (@$page['time']) $ws .= '-'.base_convert($Now - intval(@$page['time']), 10, 36);
     $repl = "%$ws%\$CurrentTime%%";
   }
   else $repl = '$CurrentTime'; # pre-2.3.0 default
