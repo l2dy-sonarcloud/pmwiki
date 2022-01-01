@@ -67,7 +67,7 @@ function CondOnTrail($pagename, $condparm) {
 
 function ReadTrail($pagename, $trailname) {
   global $RASPageName, $SuffixPattern, $GroupPattern, $WikiWordPattern,
-    $LinkWikiWords, $IncludedPages;
+    $LinkWikiWords;
   if (preg_match('/^\\[\\[(.+?)(-&gt;|\\|)(.+?)\\]\\]$/', $trailname, $m)) 
     $trailname = ($m[2] == '|') ? $m[1] : $m[3];
   $trailtext = RetrieveAuthSection($pagename, $trailname);
@@ -94,7 +94,6 @@ function ReadTrail($pagename, $trailname) {
     if ($depth>1) $t[$n]['parent']=@$d[$depth-1];
     $n++;
   }
-  if ($t) @$IncludedPages[$trailname]++;
   return $t;
 }
 

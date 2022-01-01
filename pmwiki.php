@@ -630,8 +630,8 @@ function cb_PSFT($fmt, $vars) {
   if ($fmt=='%o') { # ordinal, PITS:01418
     if (!@$locale) $locale = 'C';
     $f = numfmt_create($locale, NumberFormatter::ORDINAL);
-    $j = $f->format($timestamp->format('j'));
-    return preg_replace('/\\d+/', '', $j);
+    $o = $f->format($timestamp->format('j'));
+    return preg_replace('/\\d+/', '', $o);
   }
   if ($fmt=='%j') return sprintf('%03d',$timestamp->format('z')+1);
   if ($fmt=='%C') return floor($timestamp->format('Y')/100);
