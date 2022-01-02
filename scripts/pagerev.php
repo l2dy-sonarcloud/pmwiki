@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2019 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -26,7 +26,7 @@ SDV($PageDiffFmt,"<h2 class='wikiaction'>$[{\$FullName} History]</h2>
   <p>$DiffMinorFmt - $DiffSourceFmt</p>
   ");
 SDV($DiffStartFmt,"
-      <div class='diffbox'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
+      <div class='diffbox \$DiffDelay'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
         \$[by] <span class='diffauthor' title='\$DiffHost'>\$DiffAuthor</span> - \$DiffChangeSum</div>");
 SDV($DiffDelFmt['a'],"
         <div class='difftype'>\$[Deleted line \$DiffLines:]</div>
@@ -78,11 +78,19 @@ function PrintDiff($pagename) {
   $LinkFunctions['http:'] = 'LinkSuppress';
   $LinkFunctions['https:'] = 'LinkSuppress';
   SDV($DiffHTMLFunction, 'DiffHTML');
+  $prevstamp = false;
   foreach($page as $k=>$v) {
     if (!preg_match("/^diff:(\d+):(\d+):?([^:]*)/",$k,$match)) continue;
     $diffclass = $match[3];
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
-    $diffgmt = $FmtV['$DiffGMT'] = $match[1];
+    $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
+    $delay = $prevstamp? $prevstamp - $diffgmt: 0;
+    $prevstamp = $diffgmt;
+    if ($delay < 86400) $cname = ''; # under 1 day
+    elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
+    elseif ($delay < 2592000) $cname = 'diffweek'; # 8-30d
+    else $cname = 'diffmonth'; # +30d
+    $FmtV['$DiffDelay'] = $cname;
     $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
