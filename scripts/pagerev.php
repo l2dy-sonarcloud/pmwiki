@@ -69,7 +69,7 @@ SDV($HTMLStylesFmt['diff'], "
   .rcnew {background-color: #ffa;}");
 
 function PrintDiff($pagename) {
-  global $DiffHTMLFunction,$DiffShow,$DiffStartFmt,$TimeFmt,
+  global $Now, $DiffHTMLFunction,$DiffShow,$DiffStartFmt,$TimeFmt,
     $DiffEndFmt,$DiffRestoreFmt,$FmtV, $LinkFunctions;
   $page = ReadPage($pagename);
   if (!$page) return;
@@ -78,13 +78,13 @@ function PrintDiff($pagename) {
   $LinkFunctions['http:'] = 'LinkSuppress';
   $LinkFunctions['https:'] = 'LinkSuppress';
   SDV($DiffHTMLFunction, 'DiffHTML');
-  $prevstamp = false;
+  $prevstamp = $Now;
   foreach($page as $k=>$v) {
     if (!preg_match("/^diff:(\d+):(\d+):?([^:]*)/",$k,$match)) continue;
     $diffclass = $match[3];
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
-    $delay = $prevstamp? $prevstamp - $diffgmt: 0;
+    $delay = $prevstamp - $diffgmt;
     $prevstamp = $diffgmt;
     if ($delay < 86400) $cname = ''; # under 1 day
     elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
