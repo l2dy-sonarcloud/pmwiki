@@ -26,7 +26,7 @@ SDV($PageDiffFmt,"<h2 class='wikiaction'>$[{\$FullName} History]</h2>
   <p>$DiffMinorFmt - $DiffSourceFmt</p>
   ");
 SDV($DiffStartFmt,"
-      <div class='diffbox \$DiffDelay'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
+      <div class='diffbox \$DiffDelay' data-delay='\$DiffDataDelay'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
         \$[by] <span class='diffauthor' title='\$DiffHost'>\$DiffAuthor</span> - \$DiffChangeSum</div>");
 SDV($DiffDelFmt['a'],"
         <div class='difftype'>\$[Deleted line \$DiffLines:]</div>
@@ -85,12 +85,14 @@ function PrintDiff($pagename) {
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
     $delay = $prevstamp - $diffgmt;
+    $compact = DiffTimeCompact($diffgmt, $prevstamp, 0);
     $prevstamp = $diffgmt;
     if ($delay < 86400) $cname = ''; # under 1 day
     elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
     elseif ($delay < 2592000) $cname = 'diffweek'; # 8-30d
     else $cname = 'diffmonth'; # +30d
     $FmtV['$DiffDelay'] = $cname;
+    $FmtV['$DiffDataDelay'] = $compact;
     $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);
     $diffauthor = @$page["author:$diffgmt"]; 
     if (!$diffauthor) @$diffauthor=$page["host:$diffgmt"];
