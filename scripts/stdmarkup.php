@@ -356,6 +356,7 @@ function LinkCategory($m) {
   $lpcsf = $LinkPageCreateSpaceFmt;
   $LinkPageExistsFmt = $LinkPageCreateFmt = $LinkPageCreateSpaceFmt = $LinkCategoryFmt;
   $link = MarkupToHTML($pagename, "[[$CategoryGroup/{$m[1]}]]");
+  $link = preg_replace('!</?p>!', '', $link);
   $LinkPageExistsFmt = $lpef;
   $LinkPageCreateFmt = $lpcf;
   $LinkPageCreateSpaceFmt = $lpcsf;
