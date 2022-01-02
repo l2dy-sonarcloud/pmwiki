@@ -190,6 +190,8 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-size: 90%;
   cursor: pointer;
   user-select: none;
+  position: relative;
+  z-index: 3;
 }
 #wikiedit #chk_hlt.pmhlt ~ * #text,
 #wikiedit #chk_hlt.pmhlt ~ #text {
