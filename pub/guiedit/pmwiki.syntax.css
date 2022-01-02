@@ -11,7 +11,7 @@
     The CSS variables can be redefined in skins and in local customization in 
     order to adapt to other color themes.
 */
-#wikiedit #hwrap + textarea#text, #wikiedit #htext, .pmhlt {
+#wikiedit #hwrap textarea#text, #wikiedit #htext, .pmhlt {
   /* base text color and background */
   --pmsyntax-color: inherit;
   --pmsyntax-bgcolor: inherit;
@@ -156,7 +156,7 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   padding: 0;
   margin: 0;
 }
-#wikiedit #hwrap + textarea#text, #wikiedit #htext {
+#wikiedit #hwrap textarea#text, #wikiedit #htext {
   border: var(--pmsyntax-border);
   border-radius: var(--pmsyntax-radpad);
   padding: var(--pmsyntax-radpad);
@@ -200,6 +200,6 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   caret-color: var(--pmsyntax-caretcolor);
 }
 
-#wikiedit #hwrap + textarea#text.dragging {
+#wikiedit #hwrap textarea#text.dragging {
   color: var(--pmsyntax-color);
 }

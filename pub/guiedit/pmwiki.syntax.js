@@ -343,6 +343,7 @@
 
     function initPre() {
       text.insertAdjacentHTML('beforebegin', '<div id="hwrap"><div id="htext" class="pmhlt"></div></div>');
+      hwrap.appendChild(text);
       updatePre();
       resizePre();
 
