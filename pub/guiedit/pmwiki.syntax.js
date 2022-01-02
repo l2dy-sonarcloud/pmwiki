@@ -117,7 +117,7 @@
     ['dir1', '!directive', /(\(:\w[-\w]*)(.*?)(:\))/g],
 
     // inline
-    ['link0', '=escaped', /\[\[[^|]*?\([^|\n]*\)[^|\n]*?(\||\]\])/g, /(\()(.*?)(\))/g], // hidden
+    ['link0', '=escaped', /\[\[.*?(\||\]\])/g, /(\()(.*?)(\))/g], // hidden
     ['link', 'punct', /(\[\[[\#!~]?|([#+][^\S\r\n]*)?\]\])/g], // link
 
     // list item, initial space, indent, linebreak
