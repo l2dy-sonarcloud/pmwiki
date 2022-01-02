@@ -312,16 +312,6 @@ function MarkupLinks($m){
   switch ($markupid) {
     case '[[': 
       return Keep(MakeLink($pagename,$m[1],NULL,$m[2]),'L');
-    case '[[!': 
-      global $LinkTargets, $CategoryGroup, $LinkCategoryFmt;
-      $cn = MakePageName($pagename, "$CategoryGroup/{$m[2]}");
-      if ($cn) {
-        $cn = preg_replace("/^$CategoryGroup\\./", '!', $cn);
-        @$LinkTargets[$cn]++;
-      }
-      return "[[$CategoryGroup/{$m[1]}]]";
-//       return Keep(MakeLink($pagename,"$CategoryGroup/{$m[1]}",NULL,'',
-//         $LinkCategoryFmt),'L');
     case '[[|': 
       return Keep(MakeLink($pagename,$m[1],$m[2],$m[3]),'L');
     case '[[->': 
@@ -342,13 +332,35 @@ function MarkupLinks($m){
   }
 }
 
+
 ## [[free links]]
 Markup('[[','links',"/(?>\\[\\[\\s*(.*?)\\]\\])($SuffixPattern)/", "MarkupLinks");
 
 ## [[!Category]]
 SDV($CategoryGroup,'Category');
 SDV($LinkCategoryFmt,"<a class='categorylink' href='\$LinkUrl'>\$LinkText</a>");
-Markup('[[!','<[[|#','/\\[\\[!((.*?)((".*?")?(\\|.*?)?)?)\\]\\]/', "MarkupLinks");
+Markup('[[!','<[[|#','/\\[\\[!((.*?)((".*?")?(\\|.*?)?)?)\\]\\]/', "LinkCategory");
+##  We want [[!Category]] links to behave like other links (alt. text, ref#, suffix...), 
+##  but still use $LinkCategoryFmt (PITS:01095)
+function LinkCategory($m) {
+  extract($GLOBALS["MarkupToHTML"]);
+  global $LinkTargets, $CategoryGroup, $LinkCategoryFmt, 
+    $LinkPageExistsFmt, $LinkPageCreateFmt, $LinkPageCreateSpaceFmt;
+  $cn = MakePageName($pagename, "$CategoryGroup/{$m[2]}");
+  if ($cn) {
+    $cn = preg_replace("/^$CategoryGroup\\./", '!', $cn);
+    @$LinkTargets[$cn]++;
+  }
+  $lpef = $LinkPageExistsFmt;
+  $lpcf = $LinkPageCreateFmt;
+  $lpcsf = $LinkPageCreateSpaceFmt;
+  $LinkPageExistsFmt = $LinkPageCreateFmt = $LinkPageCreateSpaceFmt = $LinkCategoryFmt;
+  $link = MarkupToHTML($pagename, "[[$CategoryGroup/{$m[1]}]]");
+  $LinkPageExistsFmt = $lpef;
+  $LinkPageCreateFmt = $lpcf;
+  $LinkPageCreateSpaceFmt = $lpcsf;
+  return Keep($link);
+}
 # This is a temporary workaround for blank category pages.
 # It may be removed in a future release (Pm, 2006-01-24)
 if (preg_match("/^$CategoryGroup\\./", $pagename)) {
