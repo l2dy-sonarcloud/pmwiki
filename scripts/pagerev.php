@@ -85,7 +85,7 @@ function PrintDiff($pagename) {
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
     $delay = $prevstamp - $diffgmt;
-    $compact = DiffTimeCompact($diffgmt, $prevstamp, 0);
+    $compact = DiffTimeCompact($diffgmt, $prevstamp, 1);
     $prevstamp = $diffgmt;
     if ($delay < 86400) $cname = ''; # under 1 day
     elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
