@@ -102,6 +102,7 @@
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
+    ['link0', '=escaped', /\[\[.*?(\||\]\])/g, /(\()(.*?)(\))/g], // hidden
     ['_url'],
 
     // wikistyles
@@ -117,7 +118,6 @@
     ['dir1', '!directive', /(\(:\w[-\w]*)(.*?)(:\))/g],
 
     // inline
-    ['link0', '=escaped', /\[\[.*?(\||\]\])/g, /(\()(.*?)(\))/g], // hidden
     ['link', 'punct', /(\[\[[\#!~]?|([#+][^\S\r\n]*)?\]\])/g], // link
 
     // list item, initial space, indent, linebreak
