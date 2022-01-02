@@ -85,13 +85,13 @@ function PrintDiff($pagename) {
     if ($diffclass=='hidden' && !@$EnableDiffHidden) continue;
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
-    $delay = $prevstamp - $diffgmt;
+    $delaydays = ($prevstamp - $diffgmt) / 86400;
     $compact = DiffTimeCompact($diffgmt, $prevstamp, 1);
     $prevstamp = $diffgmt;
-    if ($delay < 86400) $cname = ''; # under 1 day
-    elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
-    elseif ($delay < 2592000) $cname = 'diffweek'; # 8-30d
-    else $cname = 'diffmonth'; # +30d
+    if ($delaydays < 1) $cname = '';
+    elseif ($delaydays < 8) $cname = 'diffday';
+    elseif ($delaydays < 31) $cname = 'diffweek';
+    else $cname = 'diffmonth';
     $FmtV['$DiffClass'] = trim("$cname $diffclass");
     $FmtV['$DiffDataDelay'] = $compact;
     $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);
