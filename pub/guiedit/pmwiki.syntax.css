@@ -155,6 +155,8 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   border: none;
   padding: 0;
   margin: 0;
+  width: 100%;
+  display: inline-block; /*skins*/
 }
 #wikiedit #hwrap textarea#text, #wikiedit #htext {
   border: var(--pmsyntax-border);
