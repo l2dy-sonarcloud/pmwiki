@@ -102,8 +102,8 @@
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
-    ['link0', '=escaped', /\[\[.*?\S(?= *(?:\||\]\]))/g, /(\()(.*?)(\))/g],// hidden 
     ['ttip', '=escaped', /(\[\[)(.*?\S)(?= *(?:\||\]\]))/g,  /(")(.*)(")$/ ], // tooltop
+    ['link0', '=escaped', /\[\[.*?\S(?= *(?:\||\]\]))/g, /(\()(.*?)(\))/g],// hidden 
     ['_url'],
 
     // wikistyles
