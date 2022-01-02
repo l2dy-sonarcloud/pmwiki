@@ -26,7 +26,7 @@ SDV($PageDiffFmt,"<h2 class='wikiaction'>$[{\$FullName} History]</h2>
   <p>$DiffMinorFmt - $DiffSourceFmt</p>
   ");
 SDV($DiffStartFmt,"
-      <div class='diffbox \$DiffDelay' data-delay='\$DiffDataDelay'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
+      <div class='diffbox \$DiffClass' data-delay='\$DiffDataDelay'><div class='difftime'><a name='diff\$DiffGMT' id='diff\$DiffGMT' href='#diff\$DiffGMT'>\$DiffTime</a>
         \$[by] <span class='diffauthor' title='\$DiffHost'>\$DiffAuthor</span> - \$DiffChangeSum</div>");
 SDV($DiffDelFmt['a'],"
         <div class='difftype'>\$[Deleted line \$DiffLines:]</div>
@@ -70,7 +70,7 @@ SDV($HTMLStylesFmt['diff'], "
 
 function PrintDiff($pagename) {
   global $Now, $DiffHTMLFunction,$DiffShow,$DiffStartFmt,$TimeFmt,
-    $DiffEndFmt,$DiffRestoreFmt,$FmtV, $LinkFunctions;
+    $DiffEndFmt,$DiffRestoreFmt,$FmtV, $EnableDiffHidden, $LinkFunctions;
   $page = ReadPage($pagename);
   if (!$page) return;
   krsort($page); reset($page);
@@ -82,6 +82,7 @@ function PrintDiff($pagename) {
   foreach($page as $k=>$v) {
     if (!preg_match("/^diff:(\d+):(\d+):?([^:]*)/",$k,$match)) continue;
     $diffclass = $match[3];
+    if ($diffclass=='hidden' && !@$EnableDiffHidden) continue;
     if ($diffclass=='minor' && $DiffShow['minor']!='y') continue;
     $diffgmt = $FmtV['$DiffGMT'] = intval($match[1]);
     $delay = $prevstamp - $diffgmt;
@@ -91,7 +92,7 @@ function PrintDiff($pagename) {
     elseif ($delay < 604800) $cname = 'diffday'; # 1-7d
     elseif ($delay < 2592000) $cname = 'diffweek'; # 8-30d
     else $cname = 'diffmonth'; # +30d
-    $FmtV['$DiffDelay'] = $cname;
+    $FmtV['$DiffClass'] = trim("$cname $diffclass");
     $FmtV['$DiffDataDelay'] = $compact;
     $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);
     $diffauthor = @$page["author:$diffgmt"]; 
