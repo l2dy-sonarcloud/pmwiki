@@ -437,15 +437,16 @@
       if(link.hostname != location.hostname) continue;
       var a = link.href.match(/[#]diff(\d+)$/);
       if(!a) continue;
+      diffcnt++;
       var x = fmtLocalTime(a[1]);
       
       link.innerHTML = x[0];
       link.setAttribute('title', x[1]);
       
       var par = link.closest('li');
+      if(!par) continue;
       par.insertBefore(link, par.firstChild);
       adjae(link, "&nbsp;&nbsp;");
-      diffcnt++;
     }
     if(!diffcnt) return;
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
