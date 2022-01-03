@@ -91,7 +91,8 @@ function PrintDiff($pagename) {
     if ($delaydays < 1) $cname = '';
     elseif ($delaydays < 8) $cname = 'diffday';
     elseif ($delaydays < 31) $cname = 'diffweek';
-    else $cname = 'diffmonth';
+    elseif ($delaydays < 366) $cname = 'diffmonth';
+    else $cname = 'diffyear';
     $FmtV['$DiffClass'] = trim("$cname $diffclass");
     $FmtV['$DiffDataDelay'] = $compact;
     $FmtV['$DiffTime'] = PSFT($TimeFmt,$diffgmt);

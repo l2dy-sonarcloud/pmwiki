@@ -2345,32 +2345,33 @@ function PostPage($pagename, &$page, &$new) {
   SDV($DiffKeepNum,20);
   SDV($DeleteKeyPattern,"^\\s*delete\\s*$");
   $IsPagePosted = false;
-  if ($EnablePost) {
-    $new['charset'] = $Charset; # kept for now, may be needed if custom PageStore
-    $new['author'] = @$Author;
-    $new["author:$Now"] = @$Author;
-    $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
-    $diffclass = preg_replace('/\\W/','',strval(@$_POST['diffclass']));
-    if ($page['time']>0 && function_exists(@$DiffFunction)) 
-      $new["diff:$Now:{$page['time']}:$diffclass"] =
-        $DiffFunction($new['text'],@$page['text']);
-    $keepgmt = $Now-$DiffKeepDays * 86400;
-    $keepnum = array(); 
-    $keys = array_keys($new);
-    foreach($keys as $k)
-      if (preg_match("/^\\w+:(\\d+)/",$k,$match)) {
-        $keepnum[$match[1]] = 1;
-        if (count($keepnum)>$DiffKeepNum && $match[1]<$keepgmt) 
-          unset($new[$k]);
-      }
-    if (preg_match("/$DeleteKeyPattern/",$new['text'])){
-      if (@$new['passwdattr']>'' && !CondAuth($pagename, 'attr'))
-        Abort('$[The page has an "attr" attribute and cannot be deleted.]');
-      else  $WikiDir->delete($pagename);
-    }
-    else WritePage($pagename,$new);
+  if (!$EnablePost) return;
+  if (preg_match("/$DeleteKeyPattern/",$new['text'])) {
+    if (@$new['passwdattr']>'' && !CondAuth($pagename, 'attr'))
+      Abort('$[The page has an "attr" attribute and cannot be deleted.]');
+    else  $WikiDir->delete($pagename);
     $IsPagePosted = true;
+    return;
   }
+  $new['charset'] = $Charset; # kept for now, may be needed if custom PageStore
+  $new['author'] = @$Author;
+  $new["author:$Now"] = @$Author;
+  $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
+  $diffclass = preg_replace('/\\W/','',strval(@$_POST['diffclass']));
+  if ($page['time']>0 && function_exists(@$DiffFunction)) 
+    $new["diff:$Now:{$page['time']}:$diffclass"] =
+      $DiffFunction($new['text'],@$page['text']);
+  $keepgmt = $Now-$DiffKeepDays * 86400;
+  $keepnum = array(); 
+  $keys = array_keys($new);
+  foreach($keys as $k)
+    if (preg_match("/^\\w+:(\\d+)/",$k,$match)) {
+      $keepnum[$match[1]] = 1;
+      if (count($keepnum)>$DiffKeepNum && $match[1]<$keepgmt) 
+        unset($new[$k]);
+    }
+  WritePage($pagename,$new);
+  $IsPagePosted = true;
 }
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
