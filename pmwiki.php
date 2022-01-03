@@ -1613,7 +1613,6 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
 
 function Keep($x, $pool=NULL) {
   if (is_array($x)) $x = $x[0]; # used in many callbacks
-  if ($x=='') return '';
   # Keep preserves a string from being processed by wiki markups
   global $BlockPattern, $KeepToken, $KPV, $KPCount;
   $x = preg_replace_callback("/$KeepToken(\\d.*?)$KeepToken/", 'cb_expandkpv', $x);
