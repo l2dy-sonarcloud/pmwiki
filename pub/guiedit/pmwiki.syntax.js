@@ -254,7 +254,7 @@
 
       for(var i=0; i<list.length; i++) {
         var rule = list[i];
-        if(typeof rule == 'string') rule = rule.split(/\s+/g);
+        if(typeof rule == 'string') rule = rule.trim().split(/\s{2,}/g);
         if(rule[0]=='InterMap') {
           imaps.push(rule[1]);
           continue;
