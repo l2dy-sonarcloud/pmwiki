@@ -50,6 +50,13 @@ include_once("scripts/xlpage-utf-8.php");
 ##  to enable these buttons, set $EnableGUIButtons to 1.
 # $EnableGUIButtons = 1;
 
+##  You can enable syntax highlighting for the documentation and/or
+##  for the edit form. 
+# $EnablePmSyntax = 1; # or 2, see documentation
+
+##  For a basic table of contents, see page PmWiki/TableOfContents
+# $PmTOC['Enable'] = 1;
+
 ##  To enable markup syntax from the Creole common wiki markup language
 ##  (http://www.wikicreole.org/), include it here:
 # include_once("scripts/creole.php");
