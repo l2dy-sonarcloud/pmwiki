@@ -180,26 +180,24 @@ function HandleDiff($pagename, $auth='read') {
 }
 
 function HandleDiffList($pagename, $auth='read') {
-  global $Now;
+  global $EnableDiffHidden, $Now, $Charset;
   $since = $Now - 72*3600;
+  header("Content-Type: text/plain; charset=$Charset");
   $page = RetrieveAuthPage($pagename, $auth, false, $since);
   if (!$page) {
-    print('');
+    print("$Now:[No permissions to diff page]");
     exit;
-  }
-  $changes = array();
-  $list = preg_grep('/^(csum|author):(\\d+)$/', array_keys($page));
-  foreach($list as $v) {
-    list($key, $stamp) = explode(':', $v);
-    if($stamp == $page['time']) continue;
-    $changes[$stamp][$key] = $page[$v];
   }
   $by = XL('by');
   $out = "";
-  foreach($changes as $k=>$a) {
-    $stamp = intval($k);
-    $author = $a['author'] ? $a['author'] : '?';
-    $csum = $a['csum'];
+  $changes = array();
+  $hide = IsEnabled($EnableDiffHidden, 0)? '' : '(?!hidden)';
+  $list = preg_grep("/^diff:(\\d+):\\d+:$hide\\w*$/", array_keys($page));
+  foreach($list as $v) {
+    list($key, $stamp) = explode(':', $v);
+    if ($stamp == $page['time']) continue;
+    $author = @$page["author:$stamp"] ? $page["author:$stamp"] : '?';
+    $csum = strval(@$page["csum:$stamp"]);
     $out .= "$stamp:".PHSC("$by $author: $csum")."\n";
   }
   print(trim($out));
