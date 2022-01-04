@@ -190,7 +190,6 @@ function HandleDiffList($pagename, $auth='read') {
   }
   $by = XL('by');
   $out = "";
-  $changes = array();
   $hide = IsEnabled($EnableDiffHidden, 0)? '' : '(?!hidden)';
   $list = preg_grep("/^diff:(\\d+):\\d+:$hide\\w*$/", array_keys($page));
   foreach($list as $v) {
