@@ -44,8 +44,8 @@
   --pmsyntax-bulletbg: #dfd;
 
   /* simple tables */
-  --pmsyntax-tab: #470;
-  --pmsyntax-tabbg: #dfd;
+  --pmsyntax-table: #470;
+  --pmsyntax-tablebg: #dfd;
 
   /* inline punctuation like '''bold''' */
   --pmsyntax-punct: #a00;
@@ -115,9 +115,9 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   color: var(--pmsyntax-bullet);
   background-color: var(--pmsyntax-bulletbg);
 }
-.pmhlt .pmtab {
-  color: var(--pmsyntax-tab);
-  background-color: var(--pmsyntax-tabbg);
+.pmhlt .pmtable {
+  color: var(--pmsyntax-table);
+  background-color: var(--pmsyntax-tablebg);
 }
 .pmhlt .pmpunct {
   color: var(--pmsyntax-punct);

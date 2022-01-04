@@ -132,9 +132,9 @@
     ['entity', 'string',  /[&]\#?\w+;/g],
 
     // simple tables
-    ['tablecapt', '=tab', /^(\|\|!)(.+)(!\|\|)$/mg],
-    ['tablerow',  '!tab', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)()/g],
-    ['tableattr', '!tab', /^(\|\|)(.*)($)/mg],
+    ['tablecapt', '=table', /^(\|\|!)(.+)(!\|\|)$/mg],
+    ['tablerow',  '!table', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)()/g],
+    ['tableattr', '!table', /^(\|\|)(.*)($)/mg],
 
     // wikitrails
     ['trail1', '=url', /(<<?\|)(.*?)(\|>>?)/g],
