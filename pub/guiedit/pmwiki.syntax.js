@@ -113,10 +113,10 @@
     ['ws3', '!meta', /(%\w[-\w]*)(.*?)(%)/g],
 
     // directives, forms
-    ['dir0', '*directive', /\(:\w[-\w]* *:\)/g],
     ['form', '!directive>keyword', /(\(:input[^\S\r\n]+)(\S.*?)(:\))/g,
       /^((pm)?form|text(area)?|radio|checkbox|select|email|tel|number|default|submit|reset|hidden|password|search|url|date|datalist|file|image|reset|button|e_\w+|captcha|end)/],
-    ['dir1', '!directive', /(\(:\w[-\w]*)(.*?)(:\))/g],
+    ['dir0', '*directive', /\(:\w[-\w]* *:\)/g], // simple
+    ['dir1', '!directive', /(\(:\w[-\w]*)(.*?)(:\))/g], // with attributes
 
     // inline
     ['link', 'punct', /(\[\[[\#!~]?|([#+][^\S\r\n]*)?\]\])/g], // link
