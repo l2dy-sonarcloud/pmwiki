@@ -377,7 +377,7 @@
     
     for(var i=0; i<x.length; i++) {
       if(x[i].className.match(/(^| )(pm|pmwiki)( |$)/)) { continue;} // core highlighter
-      var pre = Array.prototype.slice.call(x[i].querySelectorAll('pre,code'));
+      var pre = Array.from(x[i].querySelectorAll('pre,code'));
       var n = x[i].nextElementSibling;
       if (n && n.tagName == 'PRE') pre.push(n);
       for(var j=0; j<pre.length; j++) {
