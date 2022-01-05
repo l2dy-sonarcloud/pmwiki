@@ -50,6 +50,10 @@ include_once("scripts/xlpage-utf-8.php");
 ##  to enable these buttons, set $EnableGUIButtons to 1.
 # $EnableGUIButtons = 1;
 
+##  This enables a message if editors have modified a page but try to
+##  move away from the edit form before saving the text.
+$EnableNotSavedWarning = 1; # 1: warn editors; 0: disable warning
+
 ##  You can enable syntax highlighting for the documentation and/or
 ##  for the edit form. 
 # $EnablePmSyntax = 1; # or 2, see documentation
