@@ -13,7 +13,7 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  var special = /\$+:?(?!\))|[#!*?&+|,()]+|\.\.+|\s-/g;
+  var special = /\$+:?(?!\))|[#!*?&+|,()[\]{}\/\^<>=]+|\.\.+|\s-/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
 
   var log = console.log;
@@ -55,7 +55,7 @@
   }
 
   function hattr(attr) {
-    attr = PHSC(attr)
+    attr = attr
     .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
     .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
       if(! val.match(Kept)) val = span('value', val, 1);
@@ -63,10 +63,10 @@
       return keep0(attr + op + val);
     })
     .replace(/(\()(\w+)/g, function(a, attr, expr){
-      return Keep(attr, 'attr tag')+Keep(expr, 'tag');
+      return Keep(attr, '*attr')+Keep(expr, 'tag');
     })
-    .replace(special, function(a){ return Keep(a, 'attr tag'); });
-    return attr;
+    .replace(special, function(a){ return Keep(a, '*attr'); });
+    return PHSC(attr);
   }
 
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
