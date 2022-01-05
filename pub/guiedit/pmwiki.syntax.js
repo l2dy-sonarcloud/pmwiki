@@ -46,11 +46,12 @@
 
   function Keep5(parts, cname) {
     var mode = cname.charAt(0);
+    var attr = parts[4] || mode == '!' ? true:false;
     var out = '';
     if(parts[0]) out += span('tag', parts[0]);
-    if(parts[1]) out += (mode=='=') ? PHSC(parts[1]) : hattr(parts[1]);
+    if(parts[1]) out += attr ? hattr(parts[1]) : PHSC(parts[1]);
     if(parts[2]) out += span('tag', parts[2]);
-    if(parts[3]) out += hattr(parts[3]);
+    if(parts[3]) out += mode == '!' ? hattr(parts[3]) : PHSC(parts[3]);
     if(parts[4]) out += span('tag', parts[4]);
     if(!out) return '';
     else out = span(cname.slice(1), out, true);
