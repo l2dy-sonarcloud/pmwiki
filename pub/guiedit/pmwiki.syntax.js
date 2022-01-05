@@ -89,8 +89,8 @@
     ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g],
 
     // page text vars, can be empty or multiline
-    ['ptv0', '*meta', /\(:\w[-\w]*: *:\)/g],
-    ['ptv1', '=meta', /(\(:\w[\w-]*:)([^\)][\s\S]*?)(:\))/g],
+    ['ptv0', '=meta>punct', /(\(:\w[-\w]*)(:)( *:\))/g, /:/],
+    ['ptv1', '=meta>punct', /(\(:\w[\w-]*)(:[^\)][\s\S]*?)(:\))/g, /:/],
 
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
@@ -103,7 +103,7 @@
       /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g,
       special, /[[\]()]+/g ],
     ['tmpl', '!meta>=keyword', /(\(:template[^\S\r\n]+)(\S.*?)(:\))/g,
-      /^([ !]*)(each|first|last|defaults?|none)()/],
+      /^([ !]*)(each|first|last|defaults?|none)/],
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
@@ -138,7 +138,7 @@
 
     // simple tables
     ['tablecapt', '=table', /^(\|\|!)(.+)(!\|\|)$/mg],
-    ['tablerow',  '!table', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)()/g],
+    ['tablerow',  '!table', /^\|\|.*\|\|.*$/mg, /((?:\|\|)+)(!?)/g],
     ['tableattr', '!table', /^(\|\|)(.*)($)/mg],
 
     // wikitrails
@@ -167,15 +167,24 @@
       var m = (typeof r == 'function') ? false : r.split(/[>]/g);
       if(m && m.length>1) { // parent>nested
         r = m[0];
-        text = text.replace(s, function(a, a1, a2, a3){
-          var is_a2 = typeof a2 == "string"? true:false;
-          var x = is_a2? a2 : a; // only interior
-          for(var i=1; i<m.length; i++) {
-            if(rule[i+1]) x = PmHi1(x, [m[i], rule[i+1]]);
+        return text.replace(s, function(a){
+          var b = Array.from(arguments).slice(1, -2);
+          var x, y, z;
+          if(b[4]) {
+            x = b[0] + b[1] + b[2];
+            y = b[3];
+            z = b[4];
           }
-          return is_a2? a1 + x + a3 : x;
+          else {
+            x = b[0];
+            y = b[1];
+            z = b[2];
+          }
+          for(var i=1; i<m.length; i++) {
+            if(rule[i+1]) y = PmHi1(y, [m[i], rule[i+1]]);
+          }
+          return Keep5([x,y,z], r);
         });
-        // NOT return
       }
       else { // one classname, return match only_in_container
         return text.replace(s, function(a){
