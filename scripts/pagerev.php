@@ -65,7 +65,7 @@ SDV($HTMLStylesFmt['diff'], "
   .diffmarkup ins { background:#99ff99; text-decoration: none; }
   .rcplus { cursor:pointer; opacity:.3; font-weight:bold; padding: 0 .3em; }
   .rcplus:hover {color: white; background: blue; opacity: 1;}
-  .rcreload { opacity:0.2; font-size: .9rem; }
+  .rcreload { opacity:0.2; font-size: .9rem; cursor: pointer; }
   .rcnew {background-color: #ffa;}");
 
 function PrintDiff($pagename) {

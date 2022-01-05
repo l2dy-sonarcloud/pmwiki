@@ -22,6 +22,12 @@
   function adjbe(el, html) { el.insertAdjacentHTML('beforeend', html); }
   function adjab(el, html) { el.insertAdjacentHTML('afterbegin', html); }
   function adjae(el, html) { el.insertAdjacentHTML('afterend', html); }
+  function getLS(key, parse) { 
+    var x = window.localStorage.getItem(key)|| null;
+    return parse ? JSON.parse(x) : x;}
+  function setLS(key, value) { 
+    if (typeof value == 'object') value = JSON.stringify(value);
+    window.localStorage.setItem(key, value);}
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
 
   var __script__ = dqs('script[src*="pmwiki-utils.js"]');
@@ -214,9 +220,9 @@
 
     tocdiv.innerHTML = html;
 
-    if(window.localStorage.getItem('closeTOC')) { dqs('#PmTOCchk').checked = true; }
+    if(getLS('closeTOC')) { dqs('#PmTOCchk').checked = true; }
     aE('#PmTOCchk', 'change', function(e){
-      window.localStorage.setItem('closeTOC', this.checked ? "close" : '');
+      setLS('closeTOC', this.checked ? "close" : '');
     });
 
     var hh = location.hash;
@@ -364,6 +370,7 @@
   }
 
   function highlight_pre() {
+    if(!__script__.dataset.highlight) return;
     if (typeof hljs == 'undefined') return;
     
     var x = dqsa('.highlight,.hlt');
@@ -380,7 +387,7 @@
     }
   }
   
-  var Now, ltmode, daymonth;
+  var Now, ltmode, daymonth, pagename;
   function fmtLocalTime(stamp) {
     var d = new Date(stamp*1000);
     var tooltip = PHSC(d.toLocaleString().replace(/(\d:\d\d):\d\d/, '$1'));
@@ -395,17 +402,26 @@
   }
   
   function localTimes() {
-    ltmode = pf(__script__.dataset.localtimes)
+    ltmode = pf(__script__.dataset.localtimes);
     if(! ltmode) return;
+    Now = new Date();
+    pagename = __script__.dataset.fullname;
+    var seenstamp = getLS('seenstamp', true);
+    if(!seenstamp) seenstamp = {};
+    var previous = seenstamp[pagename];
+    var authform = dqs('form[name="authform"]');
+    if(! location.href.match(/action=/) && ! authform) {
+      seenstamp[pagename] = Math.floor(Now.getTime()/1000)
+      setLS('seenstamp', seenstamp);
+    }
+    
     var times = dqsa('span[class^="time-"]');
     
-    Now = new Date();
     daymonth =  new Date(2021, 11, 26, 17)
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
     
     var latest = 0;
     var a = self.location.href.match(/since=(\d+)/);
-    var previous = a? pf(a[1]) : false;
     var h72 = Now.getTime()/1000-72*3600;
     
     for(var i=0; i<times.length; i++) {
@@ -452,9 +468,8 @@
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
     if(pagetitle) {
       var time = zpad(Now.getHours()) + ':'+ zpad(Now.getMinutes());
-      var upd = location.href.replace(/[?&]since=\d+$/, '');
-      upd += (upd.indexOf('?')>0? '&':'?') + 'since='+latest;
-      adjbe(pagetitle, ' <a href="' + upd +'" class="rcreload">'+time+'</a>');
+      adjbe(pagetitle, ' <span class="rcreload" title="Click to reload">'+time+'</span>');
+      tap('.rcreload', function(){location.reload();});
     }
     aE('.rcnew', 'mouseup', function(e){
       if(e.which == 2) this.classList.remove('rcnew');
@@ -462,7 +477,8 @@
     tap('.rcplus', function(e){
       let plus = this;
       plus.style.display = 'none';
-      let basehref = plus.dataset.url.replace(/&fmt=rclist/, '#diff');
+      let basehref = plus.dataset.url.replace(/&fmt=rclist/, '#diff')
+        .replace(/[&]/g, '&amp;');
       let fmt = '<p class="outdent"><a href="'+basehref+'%d" title="%T">%t</a> %s</p>\n';
       fetch(plus.dataset.url)
       .then(function(resp){return resp.text();})

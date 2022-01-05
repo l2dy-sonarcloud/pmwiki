@@ -106,7 +106,7 @@ if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableS
         data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
         data-pmtoc='".PHSC(json_encode(@$PmTOC), ENT_QUOTES)."'
         data-toggle='".PHSC(@$ToggleNextSelector, ENT_QUOTES)."'
-        data-localtimes='".@$EnableLocalTimes."'
+        data-localtimes='".@$EnableLocalTimes."' data-fullname='{\$FullName}'
         data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
   }
 }
