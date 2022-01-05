@@ -70,7 +70,7 @@
   }
 
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
-    ['_start'],
+    ['_begin'],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
 
@@ -192,7 +192,7 @@
     KPV = [];
     for(var i=0; i<sorted_hrx.length; i++) {
       var rule = sorted_hrx[i];
-      if(rule.length<2)  continue; // _start, _end
+      if(rule.length<2)  continue; // _begin, _end
       text = PmHi1(text, rule);
     }
     return text;
