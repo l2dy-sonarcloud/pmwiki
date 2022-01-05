@@ -1,5 +1,5 @@
 /*  PmSyntax: Syntax highlighting for PmWiki markup
-    Copyright 2021 Petko Yotov https://www.pmwiki.org/support
+    Copyright 2021-2022 Petko Yotov https://www.pmwiki.org/support
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -88,8 +88,8 @@
     ['mx', '!mx', /(\{\([-\w]+)(.*?)(\)\})/g],
 
     // page text vars, can be empty or multiline
-    ['ptv0', '*meta', /\(: *\w[-\w]* *: *:\)/g],
-    ['ptv1', '=meta', /(\(: *\w[\w-]* *:)([^\)][\s\S]*?)(:\))/g],
+    ['ptv0', '*meta', /\(:\w[-\w]*: *:\)/g],
+    ['ptv1', '=meta', /(\(:\w[\w-]*:)([^\)][\s\S]*?)(:\))/g],
 
     // core meta directives
     ['comment', '=comment', /(\(:comment)(.*?)(:\))/gi],
