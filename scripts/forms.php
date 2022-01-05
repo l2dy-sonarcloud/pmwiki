@@ -415,7 +415,7 @@ SDVA($InputTags['e_resetbutton'], array(
 if(IsEnabled($EnablePostAuthorRequired))
   $InputTags['e_author']['required'] = 'required';
 
-if(IsEnabled($EnableNotSavedWarning)) {
+if(IsEnabled($EnableNotSavedWarning, 1)) {
   $is_preview = @$_REQUEST['preview'] ? 'class="preview"' : '';
   $InputTags['e_form'][':html'] .=
     "<input type='hidden' id='EnableNotSavedWarning'
