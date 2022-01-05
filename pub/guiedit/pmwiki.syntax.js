@@ -13,7 +13,7 @@
 (function(){
   var KeepToken = "\034\034", KPV = [];
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
-  var special = /\$+:?(?!\))|[#!*?&+|,()[\]{}\/\^<>=]+|\.\.+|\s-/g;
+  var special = /\$+:?(?!\))|[#!*?&+|,()[\]{}\/\^<>=]+|\.\.+|--+|\s-+/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
 
   var log = console.log;
@@ -32,6 +32,7 @@
     return KeepToken+(KPV.length-1)+KeepToken;
   }
   function Keep(text, cname) {
+    if(!text) return '';
     text = span(cname, text);
     return keep0(text);
   }
@@ -43,23 +44,26 @@
      .split(/[ _]+/g).join(' pm')+"'>" + text + "</span>";
   }
 
-  function Keep3(cname, tag1, plain, attrs, tag2) {
+  function Keep5(parts, cname) {
+    var mode = cname.charAt(0);
     var out = '';
-    if(tag1) out += span('tag', tag1);
-    if(plain) out += PHSC(plain);
-    if(attrs) out += hattr(attrs);
-    if(tag2) out += span('tag', tag2);
+    if(parts[0]) out += span('tag', parts[0]);
+    if(parts[1]) out += (mode=='=') ? PHSC(parts[1]) : hattr(parts[1]);
+    if(parts[2]) out += span('tag', parts[2]);
+    if(parts[3]) out += hattr(parts[3]);
+    if(parts[4]) out += span('tag', parts[4]);
     if(!out) return '';
-    else out = span(cname, out, true);
+    else out = span(cname.slice(1), out, true);
     return keep0(out);
   }
 
   function hattr(attr) {
-    attr = attr
+    if(! attr) return '';
+    attr = attr.toString()
     .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
     .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
-      if(! val.match(Kept)) val = span('value', val, 1);
-      if(attr) attr = span('attr', attr, 1);
+      if(! val.match(Kept)) val = span('value', val);
+      if(attr) attr = span('attr', attr);
       return keep0(attr + op + val);
     })
     .replace(/(\()(\w+)/g, function(a, attr, expr){
@@ -179,12 +183,10 @@
       }
     }
     if(typeof r == 'function') text = text.replace(s, r);
-    else text = text.replace(s, function(a, a1, a2, a3){
-      if(r.charAt(0)==='!') // tag with attributes
-        return Keep3(r.substr(1), a1, '', a2, a3||'');
-      if(r.charAt(0)==='=') // tag with plain text
-        return Keep3(r.substr(1), a1, a2, '', a3||'');
-      return Keep(a, r);
+    else text = text.replace(s, function(a, a1, a2, a3, a4, a5){
+      var b = Array.from(arguments).slice(1, -2);
+      if(r.match(/^[=!]/)) return Keep5(b, r);
+      else return Keep(a, r);
     });
     return text;
   }
