@@ -183,7 +183,7 @@
       }
     }
     if(typeof r == 'function') text = text.replace(s, r);
-    else text = text.replace(s, function(a, a1, a2, a3, a4, a5){
+    else text = text.replace(s, function(a){
       var b = Array.from(arguments).slice(1, -2);
       if(r.match(/^[=!]/)) return Keep5(b, r);
       else return Keep(a, r);
