@@ -409,11 +409,6 @@
     var seenstamp = getLS('seenstamp', true);
     if(!seenstamp) seenstamp = {};
     var previous = seenstamp[pagename];
-    var authform = dqs('form[name="authform"]');
-    if(! location.href.match(/action=/) && ! authform) {
-      seenstamp[pagename] = Math.floor(Now.getTime()/1000)
-      setLS('seenstamp', seenstamp);
-    }
     
     var times = dqsa('span[class^="time-"]');
     
@@ -495,6 +490,9 @@
       })
       .catch(log);
     });
+    if(dqs('form[name="authform"]') || location.href.match(/action=/)) return;
+    seenstamp[pagename] = Math.floor(Now.getTime()/1000);
+    setLS('seenstamp', seenstamp);
   }
 
   function ready(){
