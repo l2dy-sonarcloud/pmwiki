@@ -390,7 +390,7 @@
   var Now, ltmode, daymonth, pagename;
   function fmtLocalTime(stamp) {
     var d = new Date(stamp*1000);
-    var tooltip = PHSC(d.toLocaleString().replace(/(\d:\d\d):\d\d/, '$1'));
+    var tooltip = PHSC(d.toLocaleString());
     if(ltmode == 2)
       return [tooltip, tooltip];
     if(Now-d < 24*3600000) 
@@ -421,7 +421,6 @@
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
     
     var latest = 0;
-    var a = self.location.href.match(/since=(\d+)/);
     var h72 = Now.getTime()/1000-72*3600;
     
     for(var i=0; i<times.length; i++) {
