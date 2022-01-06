@@ -169,7 +169,6 @@
         r = m[0];
         return text.replace(s, function(a){
           var b = Array.from(arguments).slice(1, -2);
-          if(a.indexOf('mermaid')>=0) log(b);
           var j = b[4]? 3:1;
           
           for(var i=1; i<m.length; i++) {
