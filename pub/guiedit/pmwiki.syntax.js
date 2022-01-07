@@ -75,22 +75,22 @@
   }
   
   function external(lang, code) {
-    if (typeof hljs == 'undefined' 
+    if (! externalLangs
       || lang == 'plaintext'
-      || hljs.listLanguages().indexOf(lang) <0
-    ) return keep0(code);
+      || ! lang.match(externalLangs)
+    ) return keep0(PHSC(code));
     try {
       var x = hljs.highlight(code, {language:lang, ignoreIllegals:true});
       return keep0('<code class="hljs language-'+lang+'">'+x.value+'</code>');
     }
     catch(e) {
-      return keep0(code);
+      return keep0(PHSC(code));
     }
   }
 
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_begin'],
-    ['external', 'external', /%hlt +(\w+).*?% *\[@([\s\S]*?)@\]/g],
+    ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
 
@@ -181,7 +181,7 @@
     if(r == 'external') {
       return text.replace(s, function(a, lang, code){
         if(!code.match(/\S/)) return a;
-        return a.replace(code, external(lang.toLowerCase(), code))
+        return a.replace(code, external(lang, code))
       });
     }
     if(!!rule[2]) {
@@ -416,8 +416,21 @@
     initCheckbox();
   }
 
+  var externalLangs = false;
+  function initExtLangs() {
+    if(typeof hljs == 'undefined') return;
+    var langs = hljs.listLanguages();
+    var aliases = langs.slice(0);
+    for(var i=0; i<langs.length; i++) {
+      var l = hljs.getLanguage(langs[i]);
+      if(l.aliases) aliases = aliases.concat(l.aliases);
+    }
+    externalLangs = new RegExp('^('+aliases.join('|').replace(/[+]/g, '\\+')+')$', 'i');
+  }
+  
   document.addEventListener('DOMContentLoaded', function(){
     sortRX();
+    initExtLangs();
     PmHiAll();
     initEditForm();
   });
