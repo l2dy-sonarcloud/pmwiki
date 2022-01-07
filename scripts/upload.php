@@ -155,7 +155,7 @@ function MakeUploadName($pagename,$x) {
 }
 
 ##  This helper function returns the public URL for an attached file
-function DownloadUrl($pagename, $path, $upload_url_if_file_missing=true) {
+function DownloadUrl($pagename, $path, $upload_url_if_file_missing=false) {
   global $FmtV, $UploadFileFmt,
     $UploadUrlFmt, $UploadPrefixFmt, $EnableDirectDownload;
   if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
