@@ -150,6 +150,11 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   background-color: transparent;
 }
 
+.pmhlt code.hljs {
+  padding: 0;
+  display: inline;
+}
+
 #wikiedit #hwrap {
   position: relative;
   border: none;

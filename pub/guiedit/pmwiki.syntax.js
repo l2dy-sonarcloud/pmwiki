@@ -73,9 +73,24 @@
     .replace(special, function(a){ return Keep(a, '*attr'); });
     return PHSC(attr);
   }
+  
+  function external(lang, code) {
+    if (typeof hljs == 'undefined' 
+      || lang == 'plaintext'
+      || hljs.listLanguages().indexOf(lang) <0
+    ) return keep0(code);
+    try {
+      var x = hljs.highlight(code, {language:lang, ignoreIllegals:true});
+      return keep0('<code class="hljs language-'+lang+'">'+x.value+'</code>');
+    }
+    catch(e) {
+      return keep0(code);
+    }
+  }
 
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_begin'],
+    ['external', 'external', /%hlt +(\w+).*?% *\[@([\s\S]*?)@\]/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
 
@@ -163,6 +178,12 @@
 
   function PmHi1(text, rule){
     var r = rule[0], s = rule[1];
+    if(r == 'external') {
+      return text.replace(s, function(a, lang, code){
+        if(!code.match(/\S/)) return a;
+        return a.replace(code, external(lang.toLowerCase(), code))
+      });
+    }
     if(!!rule[2]) {
       var m = (typeof r == 'function') ? false : r.split(/[>]/g);
       if(m && m.length>1) { // parent>nested
