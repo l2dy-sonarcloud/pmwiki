@@ -154,8 +154,9 @@ function MakeUploadName($pagename,$x) {
    return PPRA($MakeUploadNamePatterns, $x);
 }
 
-function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
-  global $FmtV, $UploadFileFmt, $LinkUploadCreateFmt,
+##  This helper function returns the public URL for an attached file
+function DownloadUrl($pagename, $path, $upload_url_if_file_missing=true) {
+  global $FmtV, $UploadFileFmt,
     $UploadUrlFmt, $UploadPrefixFmt, $EnableDirectDownload;
   if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
     $pagename = MakePageName($pagename, $match[1]);
@@ -166,13 +167,21 @@ function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
   $FmtV['$LinkUpload'] =
     FmtPageName("\$PageUrl?action=upload&amp;upname=$encname", $pagename);
-  $FmtV['$LinkText'] = $txt;
-  if (!file_exists($filepath)) 
-    return FmtPageName($LinkUploadCreateFmt, $pagename);
+  if (!file_exists($filepath)) {
+    return $upload_url_if_file_missing? $FmtV['$LinkUpload'] : false;
+  }
   $path = PUE(FmtPageName(IsEnabled($EnableDirectDownload, 1) 
-                            ? "$UploadUrlFmt$UploadPrefixFmt/$encname"
-                            : "{\$PageUrl}?action=download&amp;upname=$encname",
-                          $pagename));
+      ? "$UploadUrlFmt$UploadPrefixFmt/$encname"
+      : "{\$PageUrl}?action=download&amp;upname=$encname",
+    $pagename));
+  return $path;
+}
+
+function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
+  global $FmtV, $LinkUploadCreateFmt;
+  $FmtV['$LinkText'] = $txt;
+  $path = DownloadUrl($pagename, $path, false);
+  if(!$path) return FmtPageName($LinkUploadCreateFmt, $pagename);
   return LinkIMap($pagename, $imap, $path, $alt, $txt, $fmt);
 }
 
