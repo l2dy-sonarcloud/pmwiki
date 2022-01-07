@@ -229,10 +229,11 @@
   function PmHiAll(){
     var pm = dqsa('table.markup td.markup1 > pre, '
       + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
+    if(! pm.length) return;
     for(var j=0; j<pm.length; j++) {
       PmHiEl(pm[j]);
     }
-    if(pm.length) tap('.toggle-pmhlt', toggleStyles);
+    tap('.toggle-pmhlt', toggleStyles);
   }
 
   function toggleStyles(e) {
