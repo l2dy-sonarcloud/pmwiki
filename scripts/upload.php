@@ -155,7 +155,7 @@ function MakeUploadName($pagename,$x) {
 }
 
 ##  This helper function returns the public URL for an attached file
-function DownloadUrl($pagename, $path, $upload_url_if_file_missing=false) {
+function DownloadUrl($pagename, $path) {
   global $FmtV, $UploadFileFmt,
     $UploadUrlFmt, $UploadPrefixFmt, $EnableDirectDownload;
   if (preg_match('!^(.*)/([^/]+)$!', $path, $match)) {
@@ -180,7 +180,7 @@ function DownloadUrl($pagename, $path, $upload_url_if_file_missing=false) {
 function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
   global $FmtV, $LinkUploadCreateFmt;
   $FmtV['$LinkText'] = $txt;
-  $path = DownloadUrl($pagename, $path, false);
+  $path = DownloadUrl($pagename, $path);
   if(!$path) return FmtPageName($LinkUploadCreateFmt, $pagename);
   return LinkIMap($pagename, $imap, $path, $alt, $txt, $fmt);
 }
