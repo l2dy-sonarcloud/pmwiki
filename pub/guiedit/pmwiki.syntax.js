@@ -92,7 +92,7 @@
     ['_begin'],
     ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
-    ['joinline', '*bullet', /([^\\])(\\\n)/g, /\\\n/],
+    ['joinline', '*bullet', /(^|[^\\])(\\\n)/g, /\\\n/],
 
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
