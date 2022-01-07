@@ -181,7 +181,7 @@
     if(r == 'external') {
       return text.replace(s, function(a, lang, code){
         if(!code.match(/\S/)) return a;
-        return a.replace(code, external(lang, code))
+        return a.replace(code, external(lang.toLowerCase(), code))
       });
     }
     if(!!rule[2]) {
