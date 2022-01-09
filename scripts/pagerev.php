@@ -188,6 +188,7 @@ function HandleDiffList($pagename, $auth='read') {
     print("$Now:[No permissions to diff page]");
     exit;
   }
+  krsort($page); reset($page);
   $by = XL('by');
   $out = "";
   $hide = IsEnabled($EnableDiffHidden, 0)? '' : '(?!hidden)';
@@ -198,7 +199,7 @@ function HandleDiffList($pagename, $auth='read') {
     $author = @$page["author:$stamp"] ? $page["author:$stamp"] : '?';
     $csum = strval(@$page["csum:$stamp"]);
     $out .= "$stamp:".PHSC("$by $author: $csum")."\n";
-    if ($stamp>$since) break; # at least one after the 72 hours
+    if ($stamp<$since) break; # at least one after the 72 hours
   }
   print(trim($out));
   exit;
