@@ -569,8 +569,8 @@ function MarkupHeadings($m) {
 Markup('^----','>^->','/^----+/','<:block,1><hr />');
 
 ## @2022-01-08T10:07:08Z -> <time datetime=""></time>
-Markup('<time>', '<@@', '/@\\d{4}-(0[1-9]|[12]\\d|3[01])-(0[1-9]|[12]\\d|3[01])'
-  .'T([01]\\d|2[03]):([0-5]\\d)(:([0-5]\\d))?Z?/i', 'FmtDateTimeZ');
+Markup('<time>', '<@@', '/@\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12]\\d|3[01])'
+  .'T([01]\\d|2[0-3]):([0-5]\\d)(:([0-5]\\d))?Z?/i', 'FmtDateTimeZ');
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples
