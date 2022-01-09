@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -337,31 +337,10 @@ function MarkupLinks($m){
 Markup('[[','links',"/(?>\\[\\[\\s*(.*?)\\]\\])($SuffixPattern)/", "MarkupLinks");
 
 ## [[!Category]]
+## Now processed in LinkPage() with other link formats
 SDV($CategoryGroup,'Category');
 SDV($LinkCategoryFmt,"<a class='categorylink' href='\$LinkUrl'>\$LinkText</a>");
-Markup('[[!','<[[|#','/\\[\\[!((.*?)((".*?")?(\\|.*?)?)?)\\]\\]/', "LinkCategory");
-##  We want [[!Category]] links to behave like other links (alt. text, ref#, suffix...), 
-##  but still use $LinkCategoryFmt (PITS:01095)
-function LinkCategory($m) {
-  extract($GLOBALS["MarkupToHTML"]);
-  global $LinkTargets, $CategoryGroup, $LinkCategoryFmt, 
-    $LinkPageExistsFmt, $LinkPageCreateFmt, $LinkPageCreateSpaceFmt;
-  $cn = MakePageName($pagename, "$CategoryGroup/{$m[2]}");
-  if ($cn) {
-    $cn = preg_replace("/^$CategoryGroup\\./", '!', $cn);
-    @$LinkTargets[$cn]++;
-  }
-  $lpef = $LinkPageExistsFmt;
-  $lpcf = $LinkPageCreateFmt;
-  $lpcsf = $LinkPageCreateSpaceFmt;
-  $LinkPageExistsFmt = $LinkPageCreateFmt = $LinkPageCreateSpaceFmt = $LinkCategoryFmt;
-  $link = MarkupToHTML($pagename, "[[$CategoryGroup/{$m[1]}]]");
-  $link = trim(preg_replace('!</?p>!', '', $link));
-  $LinkPageExistsFmt = $lpef;
-  $LinkPageCreateFmt = $lpcf;
-  $LinkPageCreateSpaceFmt = $lpcsf;
-  return Keep($link);
-}
+
 # This is a temporary workaround for blank category pages.
 # It may be removed in a future release (Pm, 2006-01-24)
 if (preg_match("/^$CategoryGroup\\./", $pagename)) {
@@ -578,7 +557,6 @@ function Cells($name,$attr) {
   return $out;
 }
 
-
 ## headings
 Markup('^!', 'block', '/^(!{1,6})\\s?(.*)$/', "MarkupHeadings");
 function MarkupHeadings($m) {
@@ -588,6 +566,10 @@ function MarkupHeadings($m) {
 
 ## horiz rule
 Markup('^----','>^->','/^----+/','<:block,1><hr />');
+
+## @2022-01-08T10:07:08Z -> <time datetime=""></time>
+Markup('<time>', 'inline', '/@\\d{4}-(0[1-9]|[12]\\d|3[01])-(0[1-9]|[12]\\d|3[01])'
+  .'T([01]\\d|2[03]):([0-5]\\d)(:([0-5]\\d))?Z?/i', 'FmtDateTimeZ');
 
 #### special stuff ####
 ## (:markup:) for displaying markup examples

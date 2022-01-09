@@ -410,7 +410,7 @@
     if(!seenstamp) seenstamp = {};
     var previous = seenstamp[pagename];
     
-    var times = dqsa('span[class^="time-"]');
+    var times = dqsa('time[datetime]');
     
     daymonth =  new Date(2021, 11, 26, 17)
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
@@ -419,11 +419,11 @@
     var h72 = Now.getTime()/1000-72*3600;
     
     for(var i=0; i<times.length; i++) {
-      var a = times[i].className.match(/^time-([a-z0-9]+)(?:-([a-z0-9]+))?$/);
-      if(!a) continue;
+      var itemdate = new Date(times[i].datetime);
+      
  
-      var stamp = parseInt(a[1], 36);
-      var prevstamp = a[2] ? stamp - parseInt(a[2], 36) : false;
+      var stamp = Math.floor(itemdate.getTime()/1000);
+      
       if(!latest) latest = stamp;
       var li = times[i].closest('li');
       var link = li.querySelector('a');
@@ -435,7 +435,7 @@
       
       if(previous && stamp>previous) li.classList.add('rcnew');
 
-      if(prevstamp && prevstamp >= h72) {
+      if(stamp >= h72) {
         var h = diff.replace(/[#]diff\d+/, '&fmt=rclist');
         adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
       }

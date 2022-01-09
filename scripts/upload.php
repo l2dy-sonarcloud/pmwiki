@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2021 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -106,6 +106,7 @@ SDV($PageUploadFmt,array("
         </td></tr></table></form></div>",
   'wiki:$[{$SiteGroup}/UploadQuickReference]'));
 XLSDV('en',array(
+  'ULby' => 'uploaded by',
   'ULsuccess' => 'successfully uploaded',
   'ULinvalidtoken' => 'Token invalid or missing.',
   'ULauthorrequired' => 'An author name is required.',
@@ -282,9 +283,9 @@ function HandleDownload($pagename, $auth = 'read') {
 }
 
 function HandlePostUpload($pagename, $auth = 'upload') {
-  global $UploadVerifyFunction, $UploadFileFmt, $LastModFile, 
-    $EnableUploadVersions, $Now, $RecentUploadsFmt, $FmtV,
-    $NotifyItemUploadFmt, $NotifyItemFmt, $IsUploadPosted,
+  global $UploadVerifyFunction, $UploadFileFmt, $LastModFile, $Now, 
+    $EnableUploadVersions, $EnableRecentUploads, $RecentUploadsFmt,
+    $FmtV, $NotifyItemUploadFmt, $NotifyItemFmt, $IsUploadPosted,
     $UploadRedirectFunction, $UploadPermAdd, $UploadPermSet,
     $EnableReadOnly;
     
@@ -312,6 +313,13 @@ function HandlePostUpload($pagename, $auth = 'upload') {
     $result = "upresult=success";
     $FmtV['$upname'] = $upname;
     $FmtV['$upsize'] = $uploadfile['size'];
+    if (IsEnabled($EnableRecentUploads, 0)) {
+      SDV($RecentUploadsFmt, array( # not SDVA
+        '$SiteGroup.AllRecentChanges' => 
+          '* [[(Attach:){$FullName}/$upname]]  . . . $CurrentLocalTime'
+          . ' $[ULby] $AuthorLink ($upsize $[bytes])'
+      ));
+    }
     if (IsEnabled($RecentUploadsFmt, 0)) {
       PostRecentChanges($pagename, '', '', $RecentUploadsFmt);
     }

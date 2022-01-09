@@ -363,6 +363,7 @@ if (IsEnabled($EnableLocalConfig,1)) {
 }
 
 SDV($CurrentTime, PSFT($TimeFmt, $Now));
+SDV($CurrentLocalTime, PSFT("@$TimeISOZFmt", $Now, null, 'GMT'));
 SDV($CurrentTimeISO, PSFT($TimeISOFmt, $Now));
 
 if (IsEnabled($EnableStdConfig,1))
@@ -823,6 +824,16 @@ function DRange($when) {
   $t0 = strtotime($when);
   $t1 = strtotime("+1 day", $t0);
   return array($t0, $t1);
+}
+
+## FmtDateTimeZ converts a GMT datetime like @2022-01-08T10:07:08Z 
+## into a <time> element formatted according to $TimeFmt
+function FmtDateTimeZ($m) {
+  global $TimeFmt, $TimeISOZFmt;
+  $time = strtotime(substr($m[0], 1)); # "@"
+  $iso = PSFT($TimeISOZFmt, $time, null, 'GMT');
+  $text = PSFT($TimeFmt, $time);
+  return "<time datetime='$iso'>$text</time>";
 }
 
 ## DiffTimeCompact subtracts 2 timestamps and outputs a compact
@@ -1944,7 +1955,8 @@ function cb_obfuscate_mail($x, $wrap=1) {
 function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   global $QueryFragPattern, $LinkPageExistsFmt, $LinkPageSelfFmt,
     $LinkPageCreateSpaceFmt, $LinkPageCreateFmt, $LinkTargets,
-    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS;
+    $EnableLinkPageRelative, $EnableLinkPlusTitlespaced, $AddLinkCSS,
+    $CategoryGroup, $LinkCategoryFmt;
   if ($alt) $alt = str_replace(array('"',"'"),array('&#34;','&#39;'),$alt);
   $path = preg_replace('/(#[-.:\\w]*)#.*$/', '$1', strval($path)); # PITS:01388
   if (is_array($txt)) { # PITS:01392
@@ -1957,12 +1969,22 @@ function LinkPage($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
     if ($alt) $alt = " title='$alt'";
     return ($path) ? "<a href='#$path'$alt>".str_replace("$", "&#036;", $txt)."</a>" : '';
   }
+  if (preg_match('/^\\s*!/', $path)) {
+    $is_cat = true;
+    $path = preg_replace('/^\\s*!/', "$CategoryGroup/", $path);
+    $txt = preg_replace('/^\\s*!/', '', $txt);
+  }
   if (!preg_match("/^\\s*([^#?]+)($QueryFragPattern)?$/",$path,$match))
     return '';
   $tgtname = MakePageName($pagename, $match[1]); 
   if (!$tgtname) return '';
   $qf = @$match[2]? $match[2] : '';
   @$LinkTargets[$tgtname]++;
+  if (@$is_cat) {
+    $fmt = $LinkCategoryFmt;
+    $c = preg_replace('/^.*\\./', '!', $tgtname);
+    @$LinkTargets[$c]++;
+  }
   if (!$fmt) {
     if (!PageExists($tgtname) && !preg_match('/[&?]action=/', $qf))
       $fmt = preg_match('/\\s/', $txt) 
@@ -2375,17 +2397,9 @@ function PostPage($pagename, &$page, &$new) {
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
-    $EnableRCDiffBytes, $Now, $EnableLocalTimes;
+    $EnableRCDiffBytes, $Now, $CurrentLocalTime;
   if (!$IsPagePosted && $Fmt==null) return;
   if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
-  if (IsEnabled($EnableLocalTimes, 0)) { # 2.3.0
-    $ws = 'time-'.base_convert($Now, 10, 36);
-    if (@$page['time']) $ws .= '-'.base_convert($Now - intval(@$page['time']), 10, 36);
-    $repl = "%$ws%\$CurrentTime%%";
-  }
-  else $repl = '$CurrentTime'; # pre-2.3.0 default
-  foreach($Fmt as $k=>$v)
-    $Fmt[$k] = str_replace('$CurrentLocalTime', $repl, $v);
   foreach($Fmt as $rcfmt=>$pgfmt) {
     $rcname = FmtPageName($rcfmt,$pagename);  if (!$rcname) continue;
     $pgtext = FmtPageName($pgfmt,$pagename);  if (!$pgtext) continue;
