@@ -148,6 +148,7 @@
     ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV
 
     // inline punctuation; entity
+    ['time',  '=mx>string>var',   /(@)([\d-]{10}T\d\d:\d\d(?::\d\d)?)(Z)/g, /^[\d-]+/, /[\d:]+$/],
     ['punct',  'punct',   /('[\^_+-]|[\^_+-]'|\{[+-]+|[+-]+\}|\[[+-]+|[+-]+\]|@@|'''''|'''|''|->|~~~~?)/g],
     ['entity', 'string',  /[&]\#?\w+;/g],
 
