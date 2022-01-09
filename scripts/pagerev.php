@@ -189,7 +189,6 @@ function HandleDiffList($pagename, $auth='read') {
     exit;
   }
   krsort($page); reset($page);
-  $by = XL('by');
   $out = "";
   $hide = IsEnabled($EnableDiffHidden, 0)? '' : '(?!hidden)';
   $list = preg_grep("/^diff:(\\d+):\\d+:$hide\\w*$/", array_keys($page));
@@ -198,7 +197,7 @@ function HandleDiffList($pagename, $auth='read') {
     if ($stamp == $page['time']) continue;
     $author = @$page["author:$stamp"] ? $page["author:$stamp"] : '?';
     $csum = strval(@$page["csum:$stamp"]);
-    $out .= "$stamp:".PHSC("$by $author: $csum")."\n";
+    $out .= "$stamp:".PHSC("$author: $csum")."\n";
     if ($stamp<$since) break; # at least one after the 72 hours
   }
   print(trim($out));
