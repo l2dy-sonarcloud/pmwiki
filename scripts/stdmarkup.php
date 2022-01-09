@@ -337,7 +337,8 @@ function MarkupLinks($m){
 Markup('[[','links',"/(?>\\[\\[\\s*(.*?)\\]\\])($SuffixPattern)/", "MarkupLinks");
 
 ## [[!Category]]
-## Now processed in LinkPage() with other link formats
+## Markup '[[!' now processed and indexed in LinkPage() 
+## with other link formats (PITS:01095, PITS:00447)
 SDV($CategoryGroup,'Category');
 SDV($LinkCategoryFmt,"<a class='categorylink' href='\$LinkUrl'>\$LinkText</a>");
 

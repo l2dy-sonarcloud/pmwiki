@@ -155,7 +155,7 @@ $FmtPV = array(
   '$PasswdRead'   => 'PasswdVar($pn, "read")',
   '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
   '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
-  '$EnabledIMap'  => 'implode("|", array_keys($GLOBALS["IMap"]))',
+  '$EnabledIMap'  => 'implode("|", array_keys($GLOBALS["IMap"]))', # PmSyntax
   );
 $SaveProperties = array('title', 'description', 'keywords');
 $PageTextVarPatterns = array(
@@ -653,6 +653,8 @@ function cb_PSFT_UW($timestamp, $tz, $day) { # helper for %U %W
   $days = $timestamp->format('z') - $stamp1->format('z');
   return sprintf('%02d', floor($days/7)+1);
 }
+
+# Only called by old addon|skin|recipe needing update, see pmwiki.org/Troubleshooting
 function PCCF($code, $template = 'default', $args = '$m') {
   global $CallbackFnTemplates, $CallbackFunctions, $PCCFOverrideFunction;
   if ($PCCFOverrideFunction && is_callable($PCCFOverrideFunction))
@@ -2397,7 +2399,7 @@ function PostPage($pagename, &$page, &$new) {
 
 function PostRecentChanges($pagename,$page,$new,$Fmt=null) {
   global $IsPagePosted, $RecentChangesFmt, $RCDelimPattern, $RCLinesMax,
-    $EnableRCDiffBytes, $Now, $CurrentLocalTime;
+    $EnableRCDiffBytes, $Now, $EnableLocalTimes;
   if (!$IsPagePosted && $Fmt==null) return;
   if (is_null($Fmt)) $Fmt = $RecentChangesFmt;
   foreach($Fmt as $rcfmt=>$pgfmt) {

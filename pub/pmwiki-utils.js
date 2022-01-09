@@ -1,6 +1,6 @@
 /*
   JavaScript utilities for PmWiki
-  (c) 2009-2021 Petko Yotov www.pmwiki.org/petko
+  (c) 2009-2022 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
   licensed GNU GPLv2 or any more recent version released by the FSF.
 
@@ -411,34 +411,35 @@
     var previous = seenstamp[pagename];
     
     var times = dqsa('time[datetime]');
-    
+
     daymonth =  new Date(2021, 11, 26, 17)
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
     
-    var latest = 0;
     var h72 = Now.getTime()/1000-72*3600;
     
     for(var i=0; i<times.length; i++) {
-      var itemdate = new Date(times[i].datetime);
-      
- 
+      var itemdate = new Date(times[i].dateTime);      
       var stamp = Math.floor(itemdate.getTime()/1000);
       
-      if(!latest) latest = stamp;
       var li = times[i].closest('li');
+      if (!li || !li.innerHTML.match(/<\/a>  \. \. \. /)) {
+        var x = fmtLocalTime(stamp);
+        times[i].innerHTML = x[0];
+        times[i].title = x[1];
+        continue;
+      }
       var link = li.querySelector('a');
       if(link.className.match(/createlinktext|wikilink|selflink/)) {
         var diff = link.href + '?action=diff#diff' + stamp;
+        if(stamp >= h72) {
+          var h = link.href + '?action=diff&fmt=rclist';
+          adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
+        }
       }
-      else diff = link.href + '#diff' + stamp; // recent uploads, other?
+      // recent uploads, other? we want to know when the link becomes "visited"
+      else diff = link.href + '#diff' + stamp; 
       times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>';
-      
       if(previous && stamp>previous) li.classList.add('rcnew');
-
-      if(stamp >= h72) {
-        var h = diff.replace(/[#]diff\d+/, '&fmt=rclist');
-        adjbe(li, ' <b class="rcplus" data-url="'+h+'">+</b>');
-      }
     }
     
     var difflinks = dqsa('a[href*="#diff"]'), diffcnt = 0;
