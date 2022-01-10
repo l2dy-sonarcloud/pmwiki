@@ -167,7 +167,7 @@ function EditAutoText(){
     else {
       var m = currline.match(/^((?: *\*+| *\#+|-+[<>]|:+|\|\|| ) *)/);
       if(!m) return true;
-      if(currline==m[1]) {
+      if(currline==m[1] && after.charAt(0) == '\n') {
         before = before.slice(0,-1);
         insert = "\n";
         caret = caret - currline.length - 1;
