@@ -167,7 +167,14 @@ function EditAutoText(){
     else {
       var m = currline.match(/^((?: *\*+| *\#+|-+[<>]|:+|\|\|| ) *)/);
       if(!m) return true;
-      var insert = "\n"+m[1];
+      if(currline==m[1]) {
+        before = before.slice(0,-1);
+        insert = "\n";
+        caret = caret - currline.length - 1;
+      }
+      else {
+        insert = "\n"+m[1];
+      }
     }
     e.preventDefault();
 
