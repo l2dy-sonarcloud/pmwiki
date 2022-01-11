@@ -404,6 +404,11 @@
   function localTimes() {
     ltmode = pf(__script__.dataset.localtimes);
     if(! ltmode) return;
+    if(ltmode>=100) {
+      var days = ltmode % 100;
+      ltmode = Math.round((ltmode - days)/100);
+    }
+    else days = 3;
     Now = new Date();
     pagename = __script__.dataset.fullname;
     var seenstamp = getLS('seenstamp', true);
@@ -415,7 +420,7 @@
     daymonth =  new Date(2021, 11, 26, 17)
       .toLocaleDateString().match(/26.*12/)? '%d/%m': '%m/%d';
     
-    var h72 = Now.getTime()/1000-72*3600;
+    var h72 = Now.getTime()/1000-days*24*3600;
     
     for(var i=0; i<times.length; i++) {
       var itemdate = new Date(times[i].dateTime);      
