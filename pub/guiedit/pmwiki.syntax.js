@@ -179,10 +179,13 @@
 
   function PmHi1(text, rule){
     var r = rule[0], s = rule[1];
-    if(r == 'external') {
-      return text.replace(s, function(a, lang, code){
+    if(typeof r == 'string' && r.indexOf('external')===0) {
+      var b = r.match(/[>]([-\w+]+)/);
+      return text.replace(s, function(a, a1, a2){
+        var lang = b? b[1] : a1;
+        var code = b? a1 : a2;
         if(!code.match(/\S/)) return a;
-        return a.replace(code, external(lang.toLowerCase(), code))
+        return a.replace(code, external(lang.toLowerCase(), code));
       });
     }
     if(!!rule[2]) {
