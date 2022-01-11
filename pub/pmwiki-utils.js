@@ -392,7 +392,7 @@
     var d = new Date(stamp*1000);
     var tooltip = PHSC(d.toLocaleString());
     if(ltmode == 2)
-      return [tooltip, tooltip];
+      return [tooltip];
     if(Now-d < 24*3600000) 
       return [zpad(d.getHours()) + ':'+ zpad(d.getMinutes()), tooltip];
     var D = zpad(d.getDate()), M = zpad(d.getMonth()+1);
@@ -425,7 +425,7 @@
       if (!li || !li.innerHTML.match(/<\/a>  \. \. \. /)) {
         var x = fmtLocalTime(stamp);
         times[i].innerHTML = x[0];
-        times[i].title = x[1];
+        times[i].title = x[1] ? x[1]: itemdate.textContent;
         continue;
       }
       var link = li.querySelector('a');
@@ -452,7 +452,7 @@
       var x = fmtLocalTime(a[1]);
       
       link.innerHTML = x[0];
-      link.setAttribute('title', x[1]);
+      link.setAttribute('title', x[1] ? x[1]: link.textContent);
       
       var par = link.closest('li');
       if(!par) continue;
