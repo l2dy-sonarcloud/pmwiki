@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2021 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -223,7 +223,7 @@ function InputDefault($pagename, $type, $args) {
   $args = ParseArgs($args);
   $args[''] = (array)@$args[''];
   $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
-  $name = preg_replace('/^\\$:/', 'ptv_', $name);
+  $name = $name ? preg_replace('/^\\$:/', 'ptv_', $name) : '';
   $value = (isset($args['value'])) ? $args['value'] : $args[''];
   if (!isset($InputValues[$name])) $InputValues[$name] = $value;
   if (@$args['request']) {
@@ -374,15 +374,17 @@ SDVA($InputTags['e_form'], array(
 SDVA($InputTags['e_textarea'], array(
   ':html' => "<textarea \$InputFormArgs 
     onkeydown='if (event.keyCode==27) event.returnValue=false;' 
-    >\$EditText</textarea>",
+    >\$EditText</textarea>\$IncludedPages",
   'name' => 'text', 'id' => 'text', 'accesskey' => XL('ak_textedit'),
   'rows' => XL('e_rows'), 'cols' => XL('e_cols')));
 SDVA($InputTags['e_author'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
+  'placeholder' => PHSC(XL('Author'), ENT_QUOTES),
   'name' => 'author', 'value' => $Author));
 SDVA($InputTags['e_changesummary'], array(
   ':html' => "<input type='text' \$InputFormArgs />",
   'name' => 'csum', 'size' => '60', 'maxlength' => '100',
+  'placeholder' => PHSC(XL('Summary'), ENT_QUOTES),
   'value' => PHSC(stripmagic(@$_POST['csum']), ENT_QUOTES)));
 SDVA($InputTags['e_minorcheckbox'], array(
   ':html' => "<input type='checkbox' \$InputFormArgs />",
@@ -413,7 +415,7 @@ SDVA($InputTags['e_resetbutton'], array(
 if(IsEnabled($EnablePostAuthorRequired))
   $InputTags['e_author']['required'] = 'required';
 
-if(IsEnabled($EnableNotSavedWarning)) {
+if(IsEnabled($EnableNotSavedWarning, 1)) {
   $is_preview = @$_REQUEST['preview'] ? 'class="preview"' : '';
   $InputTags['e_form'][':html'] .=
     "<input type='hidden' id='EnableNotSavedWarning'

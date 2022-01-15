@@ -76,6 +76,7 @@ function utf8toupper($x) {
 }
 
 function utf8fold($x) {
+  if(is_null($x) || $x === '') return '';
   global $StringFolding;
   static $source, $target;
   if (!@$source) {

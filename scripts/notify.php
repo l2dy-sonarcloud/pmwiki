@@ -125,8 +125,8 @@ function NotifyUpdate($pagename, $dir='') {
   ##   if this is for a newly posted page, get its information
   if ($IsPagePosted || $IsUploadPosted) {
     $page = ReadPage($pagename, READPAGE_CURRENT);
-    $FmtV['$PostTime'] = strftime($NotifyTimeFmt, $Now);
-    $item = urlencode(FmtPageName($NotifyItemFmt, $pagename));
+    $FmtV['$PostTime'] = PSFT($NotifyTimeFmt, $Now);
+    $item = $tzitem = urlencode(FmtPageName($NotifyItemFmt, $pagename));
     if ($firstpost < 1) $firstpost = $Now;
   }
 
@@ -151,7 +151,11 @@ function NotifyUpdate($pagename, $dir='') {
         if ($trail[$i]['pagename'] == $pagename) break;
       if ($i >= count($trail)) continue;
     }
-    foreach($mailto as $m) { $notify[$m][] = $item; }
+    if ($opt['tz']) {
+      $FmtV['$PostTime'] = PSFT($NotifyTimeFmt, $Now, @$opt['locale'], $opt['tz']);
+      $tzitem = urlencode(FmtPageName($NotifyItemFmt, $pagename));
+    }
+    foreach($mailto as $m) { $notify[$m][] = $tzitem; }
   }
 
   $nnow = time();

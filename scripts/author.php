@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -28,7 +28,7 @@ if (!isset($Author)) {
   } elseif (@$_COOKIE[$AuthorCookie]) {
     $x = stripmagic(@$_COOKIE[$AuthorCookie]);
   } else $x = @$AuthId;
-  $Author = PHSC(preg_replace("/[^$AuthorNameChars]/", '', $x), 
+  $Author = PHSC(preg_replace("/[^$AuthorNameChars]/", '', strval($x)), 
                 ENT_COMPAT);
 }
 if (!isset($AuthorPage)) $AuthorPage = 
@@ -36,8 +36,9 @@ if (!isset($AuthorPage)) $AuthorPage =
 SDV($AuthorLink,($Author) ? "[[~$Author]]" : '?');
 
 if (IsEnabled($EnableAuthorSignature,1)) {
+  $time = IsEnabled($EnableLocalTimes, 0)? $CurrentLocalTime : $CurrentTime;
   SDVA($ROSPatterns, array(
-    '/(?<!~)~~~~(?!~)/' => "[[~$Author]] $CurrentTime",
+    '/(?<!~)~~~~(?!~)/' => "[[~$Author]] $time",
     '/(?<!~)~~~(?!~)/' => "[[~$Author]]",
   ));
 }
