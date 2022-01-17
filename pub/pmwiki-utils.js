@@ -404,11 +404,11 @@
   function localTimes() {
     ltmode = pf(__script__.dataset.localtimes);
     if(! ltmode) return;
-    if(ltmode>=100) {
-      var days = ltmode % 100;
-      ltmode = Math.round((ltmode - days)/100);
+    if(ltmode>=11) {
+      var days = Math.floor(ltmode/10);
+      ltmode = ltmode%10;
     }
-    else days = 3;
+    else var days = 3;
     Now = new Date();
     pagename = __script__.dataset.fullname;
     var seenstamp = getLS('seenstamp', true);
