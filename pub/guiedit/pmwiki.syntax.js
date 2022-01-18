@@ -92,7 +92,7 @@
     ['_begin'],
     ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
-    ['joinline', '*bullet', /(^|[^\\])(\\\n)/g, /\\\n/],
+    ['joinline', '*bullet', /\\+\n/g],
 
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
@@ -142,7 +142,7 @@
     ['link', 'punct', /(\[\[[\#!~]?|([#+][^\S\r\n]*)?\]\])/g], // link
 
     // list item, initial space, indent, linebreak
-    ['bullet', '*bullet', /^([^\S\r\n]*([*#]+)[^\S\r\n]*|-+[<>][^\S\r\n]*|[^\S\r\n]+)|\\+$/mg],
+    ['bullet', '*bullet', /^([^\S\r\n]*([*#]+)[^\S\r\n]*|-+[<>][^\S\r\n]*|[^\S\r\n]+)/mg],
 
     ['QA', '*heading', /^([QA]:|-{4,})/mg], //Q:/A:, horizontal rule
     ['prop', 'meta',   /^[A-Z][-_a-zA-Z0-9]*:/mgi], // property, or start of line PTV
