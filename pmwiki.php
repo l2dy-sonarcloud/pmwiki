@@ -2444,14 +2444,14 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved, $FmtV, $ROSPatterns, $PCache, 
-    $IncludedPages, $EnableIncludedPagesList;
+    $IncludedPages, $EnableListIncludedPages;
   $text = ProcessROESPatterns($new['text'], $ROSPatterns);
   $text = '(:groupheader:)'.$text.'(:groupfooter:)';
   $IncludedPages = array();
   $preview = MarkupToHTML($pagename,$text);
   $incp = array_diff(array_keys($IncludedPages), array($pagename));
   $cnt = count($incp);
-  if (IsEnabled($EnableIncludedPagesList,0) && $cnt) {
+  if (IsEnabled($EnableListIncludedPages,0) && $cnt) {
     $label = XL('Text or data included from other pages');
     $edit = XL('Edit');
     $out = "<br/><details class='inclpages' style='display: inline-block;'>"
