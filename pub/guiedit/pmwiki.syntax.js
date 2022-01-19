@@ -11,7 +11,7 @@
 */
 
 (function(){
-  var KeepToken = "\034\034", KPV = [];
+  var KeepToken = "\034\034";
   var restoreRX = new RegExp(KeepToken+'(\\d+)'+KeepToken, 'g');
   var special = /[#!*?&+|,()[\]{}\/\^<>=]+|\.\.+|--+|\s-+/g;
   var Kept = new RegExp('^' + KeepToken+'(\\d+)'+KeepToken + '$', '');
@@ -25,69 +25,12 @@
   function dqsa(str) { return document.querySelectorAll(str); }
   function tap(q, fn) { aE(q, 'click', fn); };
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
-  function Restore(all, n) { return KPV[parseInt(n)]; }
-  function keep0(text) {
-    if(text === '') return '';
-    KPV.push(text.replace(restoreRX, Restore));
-    return KeepToken+(KPV.length-1)+KeepToken;
-  }
-  function Keep(text, cname) {
-    if(!text) return '';
-    text = span(cname, text);
-    return keep0(text);
-  }
-
   function span(cname, text, escaped) {
     if(text==='') return '';
     if(!escaped) text = PHSC(text);
     return "<span class='pm"+cname.replace(/^\*/, 'tag ')
      .split(/[ _]+/g).join(' pm')+"'>" + text + "</span>";
   }
-
-  function Keep5(parts, cname) {
-    var mode = cname.charAt(0);
-    var attr = parts[4] || mode == '!' ? true:false;
-    var out = '';
-    if(parts[0]) out += span('tag', parts[0]);
-    if(parts[1]) out += attr ? hattr(parts[1]) : PHSC(parts[1]);
-    if(parts[2]) out += span('tag', parts[2]);
-    if(parts[3]) out += mode == '!' ? hattr(parts[3]) : PHSC(parts[3]);
-    if(parts[4]) out += span('tag', parts[4]);
-    if(!out) return '';
-    else out = span(cname.slice(1), out, true);
-    return keep0(out);
-  }
-
-  function hattr(attr) {
-    if(! attr) return '';
-    attr = attr.toString()
-    .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
-    .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
-      if(! val.match(Kept)) val = span('value', val);
-      if(attr) attr = span('attr', attr);
-      return keep0(attr + op + val);
-    })
-    .replace(/(\()(\w+)/g, function(a, attr, expr){
-      return Keep(attr, '*attr')+Keep(expr, 'tag');
-    })
-    .replace(special, function(a){ return Keep(a, '*attr'); });
-    return PHSC(attr);
-  }
-  
-  function external(lang, code) {
-    if (! externalLangs
-      || lang == 'plaintext'
-      || ! lang.match(externalLangs)
-    ) return keep0(PHSC(code));
-    try {
-      var x = hljs.highlight(code, {language:lang, ignoreIllegals:true});
-      return keep0('<code class="hljs language-'+lang+'">'+x.value+'</code>');
-    }
-    catch(e) {
-      return keep0(PHSC(code));
-    }
-  }
-
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_begin'],
     ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
@@ -168,7 +111,7 @@
     ['heading', '=heading', /^(!{1,6})(.*)($)/mg],
 
     ['cleanup', PHSC, /[<>&]+/g],// raw HTML/XSS
-    ['restore', Restore, restoreRX],
+//     ['restore', Restore, restoreRX],
     ['_end']
   ];
   var custom_hrx = {}, sorted_hrx = [];
@@ -176,55 +119,110 @@
     custom_hrx[ hrx[i][0] ] = [];
     custom_hrx[ '>'+hrx[i][0] ] = [];
   }
-
-  function PmHi1(text, rule){
-    var r = rule[0], s = rule[1];
-    if(typeof r == 'string' && r.indexOf('external')===0) {
-      var b = r.match(/[>]([-\w+]+)/);
-      return text.replace(s, function(a, a1, a2){
-        var lang = b? b[1] : a1;
-        var code = b? a1 : a2;
-        if(!code.match(/\S/)) return a;
-        return a.replace(code, external(lang.toLowerCase(), code));
-      });
-    }
-    if(!!rule[2]) {
-      var m = (typeof r == 'function') ? false : r.split(/[>]/g);
-      if(m && m.length>1) { // parent>nested
-        r = m[0];
-        return text.replace(s, function(a){
-          var b = Array.from(arguments).slice(1, -2);
-          var j = b[4]? 3:1;
-          
-          for(var i=1; i<m.length; i++) {
-            if(rule[i+1]) b[j] = PmHi1(b[j], [m[i], rule[i+1]]);
-          }
-          return Keep5(b, r);
-        });
-      }
-      else { // one classname, return match only_in_container
-        return text.replace(s, function(a){
-          return PmHi1(a, [r, rule[2]]);
-        });
-      }
-    }
-    if(typeof r == 'function') text = text.replace(s, r);
-    else text = text.replace(s, function(a){
-      var b = Array.from(arguments).slice(1, -2);
-      if(r.match(/^[=!]/)) return Keep5(b, r);
-      else return Keep(a, r);
-    });
-    return text;
-  }
+  
   function PmHi(text){
-    KPV = [];
+    var KPV = [];
+    function Restore(all, n) { return KPV[parseInt(n)]; }
+    function keep0(text) {
+      if(text === '') return '';
+      KPV.push(text.replace(restoreRX, Restore));
+      return KeepToken+(KPV.length-1)+KeepToken;
+    }
+    function Keep(text, cname) {
+      if(!text) return '';
+      text = span(cname, text);
+      return keep0(text);
+    }
+    function Keep5(parts, cname) {
+      var mode = cname.charAt(0);
+      var attr = parts[4] || mode == '!' ? true:false;
+      var out = '';
+      if(parts[0]) out += span('tag', parts[0]);
+      if(parts[1]) out += attr ? hattr(parts[1]) : PHSC(parts[1]);
+      if(parts[2]) out += span('tag', parts[2]);
+      if(parts[3]) out += mode == '!' ? hattr(parts[3]) : PHSC(parts[3]);
+      if(parts[4]) out += span('tag', parts[4]);
+      if(!out) return '';
+      else out = span(cname.slice(1), out, true);
+      return keep0(out);
+    }
+    function hattr(attr) {
+      if(! attr) return '';
+      attr = attr.toString()
+      .replace(/(['"])(.*?)\1/g, function(a){ return Keep(a, 'value'); })
+      .replace(/((?:\$:?)?[-\w]+|^)([:=])(\S+)/g, function(a, attr, op, val){
+        if(! val.match(Kept)) val = span('value', val);
+        if(attr) attr = span('attr', attr);
+        return keep0(attr + op + val);
+      })
+      .replace(/(\()(\w+)/g, function(a, attr, expr){
+        return Keep(attr, '*attr')+Keep(expr, 'tag');
+      })
+      .replace(special, function(a){ return Keep(a, '*attr'); });
+      return PHSC(attr);
+    }
+    function external(lang, code) {
+      if (! externalLangs
+        || lang == 'plaintext'
+        || ! lang.match(externalLangs)
+      ) return keep0(PHSC(code));
+      try {
+        var x = hljs.highlight(code, {language:lang, ignoreIllegals:true});
+        return keep0('<code class="hljs language-'+lang+'">'+x.value+'</code>');
+      }
+      catch(e) {
+        return keep0(PHSC(code));
+      }
+    }
+
+    function PmHi1(text, rule){
+      var r = rule[0], s = rule[1];
+      if(typeof r == 'string' && r.indexOf('external')===0) {
+        var b = r.match(/[>]([-\w+]+)/);
+        return text.replace(s, function(a, a1, a2){
+          var lang = b? b[1] : a1;
+          var code = b? a1 : a2;
+          if(!code.match(/\S/)) return a;
+          return a.replace(code, external(lang.toLowerCase(), code));
+        });
+      }
+      if(!!rule[2]) {
+        var m = (typeof r == 'function') ? false : r.split(/[>]/g);
+        if(m && m.length>1) { // parent>nested
+          r = m[0];
+          return text.replace(s, function(a){
+            var b = Array.from(arguments).slice(1, -2);
+            var j = b[4]? 3:1;
+            
+            for(var i=1; i<m.length; i++) {
+              if(rule[i+1]) b[j] = PmHi1(b[j], [m[i], rule[i+1]]);
+            }
+            return Keep5(b, r);
+          });
+        }
+        else { // one classname, return match only_in_container
+          return text.replace(s, function(a){
+            return PmHi1(a, [r, rule[2]]);
+          });
+        }
+      }
+      if(typeof r == 'function') text = text.replace(s, r);
+      else text = text.replace(s, function(a){
+        var b = Array.from(arguments).slice(1, -2);
+        if(r.match(/^[=!]/)) return Keep5(b, r);
+        else return Keep(a, r);
+      });
+      return text;
+    }
+  
     for(var i=0; i<sorted_hrx.length; i++) {
       var rule = sorted_hrx[i];
       if(rule.length<2)  continue; // _begin, _end
       text = PmHi1(text, rule);
     }
-    return text;
+    return text.replace(restoreRX, Restore);
   }
+  
   function PmHiEl(el){
     el.innerHTML = PmHi(el.textContent);
     el.classList.add('pmhlt');
@@ -234,9 +232,7 @@
     var pm = dqsa('table.markup td.markup1 > pre, '
       + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     if(! pm.length) return;
-    for(var j=0; j<pm.length; j++) {
-      PmHiEl(pm[j]);
-    }
+    pm.forEach(PmHiEl);
     tap('.toggle-pmhlt', toggleStyles);
   }
 
