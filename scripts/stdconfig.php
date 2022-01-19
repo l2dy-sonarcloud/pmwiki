@@ -101,13 +101,13 @@ if (IsEnabled($PmTOC['Enable'],0) || IsEnabled($PmEmbed,0) || IsEnabled($EnableS
   $utils = "$FarmD/pub/pmwiki-utils.js";
   if(file_exists($utils)) {
     $mtime = filemtime($utils);
-    $HTMLFooterFmt['pmwiki-utils'] =
+    $HTMLHeaderFmt['pmwiki-utils'] =
       "<script type='text/javascript' src='\$FarmPubDirUrl/pmwiki-utils.js?st=$mtime'
         data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
         data-pmtoc='".PHSC(json_encode(@$PmTOC), ENT_QUOTES)."'
         data-toggle='".PHSC(@$ToggleNextSelector, ENT_QUOTES)."'
         data-localtimes='".@$EnableLocalTimes."' data-fullname='{\$FullName}'
-        data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."' async></script>";
+        data-pmembed='".PHSC(json_encode(@$PmEmbed), ENT_QUOTES)."'></script>";
   }
 }
 
