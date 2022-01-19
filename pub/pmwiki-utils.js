@@ -30,8 +30,7 @@
     window.localStorage.setItem(key, value);}
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
 
-  var __script__ = dqs('script[src*="pmwiki-utils.js"]');
-  var wikitext = document.getElementById('wikitext');
+  var __script__, wikitext;
   var log = console.log;
 
   function PmXMail() {
@@ -502,12 +501,10 @@
   }
 
   function ready(){
-    PmXMail();
-    inittoggle();
-    autotoc();
-    makesortable();
-    highlight_pre();
-    localTimes();
+    __script__ = dqs('script[src*="pmwiki-utils.js"]');
+    wikitext = document.getElementById('wikitext');
+    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, makesortable];
+    fn.forEach(function(a){a();});
   }
   if( document.readyState !== 'loading' ) ready();
   else window.addEventListener('DOMContentLoaded', ready);
