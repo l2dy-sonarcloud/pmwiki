@@ -111,7 +111,7 @@
     ['heading', '=heading', /^(!{1,6})(.*)($)/mg],
 
     ['cleanup', PHSC, /[<>&]+/g],// raw HTML/XSS
-//     ['restore', Restore, restoreRX],
+    ['restore', '.restore', restoreRX],
     ['_end']
   ];
   var custom_hrx = {}, sorted_hrx = [];
@@ -177,6 +177,7 @@
 
     function PmHi1(text, rule){
       var r = rule[0], s = rule[1];
+      if(r == '.restore') return text.replace(s, Restore);
       if(typeof r == 'string' && r.indexOf('external')===0) {
         var b = r.match(/[>]([-\w+]+)/);
         return text.replace(s, function(a, a1, a2){
@@ -220,7 +221,7 @@
       if(rule.length<2)  continue; // _begin, _end
       text = PmHi1(text, rule);
     }
-    return text.replace(restoreRX, Restore);
+    return text;
   }
   
   function PmHiEl(el){
