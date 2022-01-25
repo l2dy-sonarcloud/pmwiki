@@ -676,7 +676,7 @@ function PPRE($pat, $rep, $x) {
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
-  if (!$x) return '';
+  if ($x==='' || is_null($x)) return '';
   foreach((array)$array as $pat => $rep) {
     # skip broken patterns rather than crash the PHP installation
     $oldpat = preg_match('!^/.+/[^/]*e[^/]*$!', $pat);
@@ -1031,6 +1031,7 @@ function MakePageName($basepage, $str) {
   global $MakePageNameFunction, $PageNameChars, $PagePathFmt,
     $MakePageNamePatterns, $MakePageNameSplitPattern;
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage, $str);
+  
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
     "/'/" => '',                      # strip single-quotes
