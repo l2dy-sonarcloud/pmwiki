@@ -443,7 +443,6 @@
       // recent uploads, other? we want to know when the link becomes "visited"
       else diff = link.href + '#diff' + stamp; 
       times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>';
-      if(previous && stamp>previous) li.classList.add('rcnew');
     }
     
     var difflinks = dqsa('a[href*="#diff"]'), diffcnt = 0;
@@ -453,7 +452,8 @@
       var a = link.href.match(/[#]diff(\d+)$/);
       if(!a) continue;
       diffcnt++;
-      var x = fmtLocalTime(a[1]);
+      stamp = parseInt(a[1]);
+      var x = fmtLocalTime(stamp);
       
       link.innerHTML = x[0];
       link.setAttribute('title', x[1] ? x[1]: link.textContent);
@@ -462,6 +462,7 @@
       if(!par) continue;
       par.insertBefore(link, par.firstChild);
       adjae(link, "&nbsp;&nbsp;");
+      if(previous && stamp>previous) par.classList.add('rcnew');
     }
     if(!diffcnt) return;
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
