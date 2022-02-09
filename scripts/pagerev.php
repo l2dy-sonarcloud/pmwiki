@@ -181,7 +181,8 @@ function HandleDiff($pagename, $auth='read') {
 
 function HandleDiffList($pagename, $auth='read') {
   global $EnableDiffHidden, $Now, $Charset, $EnableLocalTimes;
-  $days = ($EnableLocalTimes>=100)? $EnableLocalTimes%100 : 3;
+  $days = floor($EnableLocalTimes/10);
+  if(!$days) $days = 3;
   $since = $Now - $days*24*3600;
   header("Content-Type: text/plain; charset=$Charset");
   $page = RetrieveAuthPage($pagename, $auth, false);

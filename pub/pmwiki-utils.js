@@ -30,8 +30,7 @@
     window.localStorage.setItem(key, value);}
   function PHSC(x) { return x.replace(/[&]/g, '&amp;').replace(/[<]/g, '&lt;').replace(/[>]/g, '&gt;'); }
 
-  var __script__ = dqs('script[src*="pmwiki-utils.js"]');
-  var wikitext = document.getElementById('wikitext');
+  var __script__, wikitext;
   var log = console.log;
 
   function PmXMail() {
@@ -404,11 +403,11 @@
   function localTimes() {
     ltmode = pf(__script__.dataset.localtimes);
     if(! ltmode) return;
-    if(ltmode>=100) {
-      var days = ltmode % 100;
-      ltmode = Math.round((ltmode - days)/100);
+    if(ltmode>=11) {
+      var days = Math.floor(ltmode/10);
+      ltmode = ltmode%10;
     }
-    else days = 3;
+    else var days = 3;
     Now = new Date();
     pagename = __script__.dataset.fullname;
     var seenstamp = getLS('seenstamp', true);
@@ -444,7 +443,6 @@
       // recent uploads, other? we want to know when the link becomes "visited"
       else diff = link.href + '#diff' + stamp; 
       times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>';
-      if(previous && stamp>previous) li.classList.add('rcnew');
     }
     
     var difflinks = dqsa('a[href*="#diff"]'), diffcnt = 0;
@@ -454,7 +452,8 @@
       var a = link.href.match(/[#]diff(\d+)$/);
       if(!a) continue;
       diffcnt++;
-      var x = fmtLocalTime(a[1]);
+      stamp = parseInt(a[1]);
+      var x = fmtLocalTime(stamp);
       
       link.innerHTML = x[0];
       link.setAttribute('title', x[1] ? x[1]: link.textContent);
@@ -463,6 +462,7 @@
       if(!par) continue;
       par.insertBefore(link, par.firstChild);
       adjae(link, "&nbsp;&nbsp;");
+      if(previous && stamp>previous) par.classList.add('rcnew');
     }
     if(!diffcnt) return;
     var pagetitle = dqs('#wikititle h1, h1.pagetitle');
@@ -502,12 +502,10 @@
   }
 
   function ready(){
-    PmXMail();
-    inittoggle();
-    autotoc();
-    makesortable();
-    highlight_pre();
-    localTimes();
+    __script__ = dqs('script[src*="pmwiki-utils.js"]');
+    wikitext = document.getElementById('wikitext');
+    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, makesortable];
+    fn.forEach(function(a){a();});
   }
   if( document.readyState !== 'loading' ) ready();
   else window.addEventListener('DOMContentLoaded', ready);

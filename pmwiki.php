@@ -441,6 +441,7 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 ## helper functions
 function stripmagic($x) {
   $fn = 'get_magic_quotes_gpc';
+  $x = strval($x);
   if (!function_exists($fn)) return $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
@@ -676,7 +677,7 @@ function PPRE($pat, $rep, $x) {
   return preg_replace_callback($pat, $lambda, $x);
 }
 function PPRA($array, $x) {
-  if (!$x) return '';
+  if ($x==='' || is_null($x)) return '';
   foreach((array)$array as $pat => $rep) {
     # skip broken patterns rather than crash the PHP installation
     $oldpat = preg_match('!^/.+/[^/]*e[^/]*$!', $pat);
@@ -1031,6 +1032,7 @@ function MakePageName($basepage, $str) {
   global $MakePageNameFunction, $PageNameChars, $PagePathFmt,
     $MakePageNamePatterns, $MakePageNameSplitPattern;
   if (@$MakePageNameFunction) return $MakePageNameFunction($basepage, $str);
+  
   SDV($PageNameChars,'-[:alnum:]');
   SDV($MakePageNamePatterns, array(
     "/'/" => '',                      # strip single-quotes
@@ -1589,6 +1591,7 @@ function PrintFmt($pagename,$fmt) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
+  $fmt = strval($fmt);
   $x = FmtPageName($fmt,$pagename);
   if (strncmp($fmt, 'function:', 9) == 0 &&
       preg_match('/^function:(\S+)\s*(.*)$/s', $x, $match) &&
@@ -1911,6 +1914,7 @@ function LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   $FmtV['$LinkUrl'] = PUE(str_replace('$1',$path,$IMap[$imap]));
   $FmtV['$LinkText'] = $txt;
   if (@$alt) $FmtV['$LinkAlt'] = Keep(str_replace(array('"',"'"),array('&#34;','&#39;'),$alt));
+  else $FmtV['$LinkAlt'] = '';
   if (!$fmt) 
     $fmt = (isset($IMapLinkFmt[$imap])) ? $IMapLinkFmt[$imap] : $UrlLinkFmt;
   if (IsEnabled($AddLinkCSS['samedomain'])) {
@@ -2443,14 +2447,14 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved, $FmtV, $ROSPatterns, $PCache, 
-    $IncludedPages, $EnableIncludedPages;
+    $IncludedPages, $EnableListIncludedPages;
   $text = ProcessROESPatterns($new['text'], $ROSPatterns);
   $text = '(:groupheader:)'.$text.'(:groupfooter:)';
   $IncludedPages = array();
   $preview = MarkupToHTML($pagename,$text);
   $incp = array_diff(array_keys($IncludedPages), array($pagename));
   $cnt = count($incp);
-  if (IsEnabled($EnableIncludedPages,0) && $cnt) {
+  if (IsEnabled($EnableListIncludedPages,0) && $cnt) {
     $label = XL('Text or data included from other pages');
     $edit = XL('Edit');
     $out = "<br/><details class='inclpages' style='display: inline-block;'>"
