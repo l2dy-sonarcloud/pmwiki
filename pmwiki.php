@@ -1591,6 +1591,7 @@ function PrintFmt($pagename,$fmt) {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
   }
+  $fmt = strval($fmt);
   $x = FmtPageName($fmt,$pagename);
   if (strncmp($fmt, 'function:', 9) == 0 &&
       preg_match('/^function:(\S+)\s*(.*)$/s', $x, $match) &&
