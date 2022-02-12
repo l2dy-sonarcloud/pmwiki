@@ -324,8 +324,8 @@ if (isset($_GET['action'])) $action = $_GET['action'];
 elseif (isset($_POST['action'])) $action = $_POST['action'];
 else $action = 'browse';
 
-$pagename = @$_REQUEST['n'];
-if (!$pagename) $pagename = @$_REQUEST['pagename'];
+$pagename = strval(@$_REQUEST['n']);
+if (!$pagename) $pagename = strval(@$_REQUEST['pagename']);
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
