@@ -1410,7 +1410,7 @@ class PageStore {
     $page['host'] = $_SERVER['REMOTE_ADDR'];
     $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
     if (IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
-    $page['rev'] = @$page['rev']+1;
+    $page['rev'] = intval(@$page['rev'])+1;
     unset($page['version']); unset($page['newline']);
     uksort($page, 'CmpPageAttr');
     $s = false;
