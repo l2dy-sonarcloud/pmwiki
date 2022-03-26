@@ -324,8 +324,8 @@ if (isset($_GET['action'])) $action = $_GET['action'];
 elseif (isset($_POST['action'])) $action = $_POST['action'];
 else $action = 'browse';
 
-$pagename = @$_REQUEST['n'];
-if (!$pagename) $pagename = @$_REQUEST['pagename'];
+$pagename = strval(@$_REQUEST['n']);
+if (!$pagename) $pagename = strval(@$_REQUEST['pagename']);
 if (!$pagename && 
     preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
       $_SERVER['REQUEST_URI'],$match))
@@ -1410,7 +1410,7 @@ class PageStore {
     $page['host'] = $_SERVER['REMOTE_ADDR'];
     $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
     if (IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
-    $page['rev'] = @$page['rev']+1;
+    $page['rev'] = intval(@$page['rev'])+1;
     unset($page['version']); unset($page['newline']);
     uksort($page, 'CmpPageAttr');
     $s = false;

@@ -597,9 +597,10 @@ function PageListCache(&$list, &$opt, $pn, &$page) {
       if (!file_exists($cache) || filemtime($cache) <= $LastModTime)
         return PAGELIST_POST;
       StopWatch("PageListCache begin load key=$key");
-      list($list, $opt['=protectsafe']) = 
+      @list($list, $opt['=protectsafe']) = 
         unserialize(file_get_contents($cache));
       $opt['=cached'] = 1;
+      if(!is_array($opt['=protectsafe'])) $opt['=protectsafe'] = array();
       StopWatch("PageListCache end load");
       return 0;
 
