@@ -608,7 +608,7 @@ function PageListCache(&$list, &$opt, $pn, &$page) {
       StopWatch("PageListCache begin save key=$key");
       $fp = @fopen($cache, "w");
       if ($fp) {
-        fputs($fp, serialize(array($list, $opt['=protectsafe'])));
+        fputs($fp, serialize(array($list, (array)@$opt['=protectsafe'])));
         fclose($fp);
       }
       StopWatch("PageListCache end save");
