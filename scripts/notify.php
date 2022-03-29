@@ -101,7 +101,7 @@ function NotifyUpdate($pagename, $dir='') {
   ##   Read in the current notify configuration
   $pn = FmtPageName($NotifyListPageFmt, $pagename);
   $npage = ReadPage($pn, READPAGE_CURRENT);
-  preg_match_all('/^[\s*:#->]*(notify[:=].*)/m', strval($npage['text']), $nlist);
+  preg_match_all('/^[\s*:#->]*(notify[:=].*)/m', strval(@$npage['text']), $nlist);
   $nlist = array_merge((array)@$NotifyList, (array)@$nlist[1]);
   if (!$nlist) return;
 
