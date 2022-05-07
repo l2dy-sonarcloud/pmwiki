@@ -1147,7 +1147,7 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
-  return @$PCache[$pagename]["=p_$var"];
+  return strval(@$PCache[$pagename]["=p_$var"]);
 }
 
 
