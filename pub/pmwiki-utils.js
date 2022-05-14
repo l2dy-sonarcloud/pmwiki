@@ -475,11 +475,11 @@
       if(e.which == 2) this.classList.remove('rcnew');
     });
     tap('.rcplus', function(e){
-      let plus = this;
+      var plus = this;
       plus.style.display = 'none';
-      let basehref = plus.dataset.url.replace(/&fmt=rclist/, '#diff')
+      var basehref = plus.dataset.url.replace(/&fmt=rclist/, '#diff')
         .replace(/[&]/g, '&amp;');
-      let fmt = '<p class="outdent"><a href="'+basehref+'%d" title="%T">%t</a> %s</p>\n';
+      var fmt = '<p class="outdent"><a href="'+basehref+'%d" title="%T">%t</a> %s</p>\n';
       fetch(plus.dataset.url)
       .then(function(resp){return resp.text();})
       .then(function(text){
