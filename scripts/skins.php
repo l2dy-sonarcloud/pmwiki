@@ -122,6 +122,14 @@ function cb_includeskintemplate($m) {
   }
 }
 
+# Helper function for recipes
+function DisableSkinTemplate($x) {
+  $x = explode(' ', $x);
+  foreach($x as $y) {
+    SetTmplDisplay("Page{$y}Fmt",0);
+  }
+}
+
 # LoadPageTemplate loads a template into $TmplFmt
 function LoadPageTemplate($pagename,$tfilefmt) {
   global $PageStartFmt, $PageEndFmt, $SkinTemplateIncludeLevel,
