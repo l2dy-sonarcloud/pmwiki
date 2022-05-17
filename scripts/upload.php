@@ -293,9 +293,9 @@ function HandlePostUpload($pagename, $auth = 'upload') {
     Abort('Cannot modify site -- $EnableReadOnly is set', 'readonly');
 
   UploadAuth($pagename, $auth);
-  $uploadfile = $_FILES['uploadfile'];
+  $uploadfile = @$_FILES['uploadfile'];
   $upname = @$_REQUEST['upname'];
-  if ($upname=='') $upname=$uploadfile['name'];
+  if ($upname=='') $upname=strval(@$uploadfile['name']);
   $upname = MakeUploadName($pagename,$upname);
   if (!function_exists($UploadVerifyFunction))
     Abort('?no UploadVerifyFunction available');
@@ -358,7 +358,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
   preg_match('/\\.([^.\\/]+)$/',$filepath,$match); $ext=@$match[1];
   $maxsize = $UploadExtSize[$ext];
   if ($maxsize<=0) return "upresult=badtype&upext=$ext";
-  if ($uploadfile['size']>$maxsize) 
+  if (intval(@$uploadfile['size'])>$maxsize) 
     return "upresult=toobigext&upext=$ext&upmax=$maxsize";
   switch (@$uploadfile['error']) {
     case 1: return 'upresult=toobig';
@@ -366,7 +366,7 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     case 3: return 'upresult=partial';
     case 4: return 'upresult=nofile';
   }
-  if (!is_uploaded_file($uploadfile['tmp_name'])) return 'upresult=nofile';
+  if (!is_uploaded_file(strval(@$uploadfile['tmp_name']))) return 'upresult=nofile';
   $filedir = preg_replace('#/[^/]*$#','',$filepath);
   if ($UploadPrefixQuota && 
       (dirsize($filedir)-@filesize($filepath)+$uploadfile['size']) >
