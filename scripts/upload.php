@@ -313,6 +313,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
     $result = "upresult=success";
     $FmtV['$upname'] = $upname;
     $FmtV['$upsize'] = $uploadfile['size'];
+    $FmtV['$upurl'] = DownloadUrl($pagename, $upname);
     if (IsEnabled($EnableRecentUploads, 0)) {
       SDV($RecentUploadsFmt, array( # not SDVA
         '$SiteGroup.AllRecentChanges' => 
