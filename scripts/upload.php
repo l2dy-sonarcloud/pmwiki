@@ -311,6 +311,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
     fixperms($filepath, $UploadPermAdd, $UploadPermSet);
     if ($LastModFile) { touch($LastModFile); fixperms($LastModFile); }
     $result = "upresult=success";
+    $FmtV['$filepath'] = $filepath;
     $FmtV['$upname'] = $upname;
     $FmtV['$upsize'] = $uploadfile['size'];
     $FmtV['$upurl'] = DownloadUrl($pagename, $upname);
