@@ -334,10 +334,11 @@
     }
     var column_index;
     document.addEventListener('click', function(e) {
-      var element = e.target;
-      if (element.nodeName != 'TH') return;
+      if(e.target.closest('a')) return; // links
+      var element = e.target.closest('th');
+      if (! element) return;
       var table = element.offsetParent;
-      if (!table.classList.contains('sortable')) return
+      if (!table.classList.contains('sortable')) return;
                               
       var cells = element.parentNode.cells;
       for (var i = 0; i < cells.length; i++) {
