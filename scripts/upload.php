@@ -300,7 +300,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
   if (!function_exists($UploadVerifyFunction))
     Abort('?no UploadVerifyFunction available');
   $filepath = FmtPageName("$UploadFileFmt/$upname",$pagename);
-  $result = $UploadVerifyFunction($pagename,$uploadfile,$filepath);
+  $result = $UploadVerifyFunction($pagename,$uploadfile,$filepath,$upname);
   if ($result=='') {
     $filedir = preg_replace('#/[^/]*$#','',$filepath);
     mkdirp($filedir);
