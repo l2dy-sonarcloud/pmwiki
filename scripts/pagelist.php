@@ -888,7 +888,7 @@ function PageIndexUpdate($pagelist = NULL, $dir = '') {
     if (time() > $timeout) continue;
     $page = ReadPage($pn, READPAGE_CURRENT);
     if ($page) {
-      $targets = str_replace(',', ' ', @$page['targets']);
+      $targets = str_replace(',', ' ', strval(@$page['targets']));
       $terms = PageIndexTerms(array(@$page['text'], $targets, $pn));
       usort($terms, $cmpfn);
       $x = '';
