@@ -34,6 +34,7 @@ if (IsEnabled($EnablePageIndex, 1)) {
 
 SDV($StrFoldFunction, 'strtolower');
 SDV($PageIndexFoldFunction, $StrFoldFunction);
+SDV($PageIndexTermsFunction, 'PageIndexTerms');
 SDV($PageListSortCmpFunction, 'strcasecmp');
 
 ## $SearchPatterns holds patterns for list= option
@@ -388,7 +389,7 @@ function PageListIf(&$list, &$opt, $pn, &$page) {
 }
 
 function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
-  global $FmtV;
+  global $PageIndexTermsFunction, $FmtV;
   static $reindex = array();
   $fold = $GLOBALS['StrFoldFunction'];
 
@@ -400,7 +401,7 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
       foreach((array)@$opt['+'] as $i) { $incl[] = $fold($i); }
       foreach((array)@$opt['-'] as $i) { $excl[] = $fold($i); }
 
-      $indexterms = PageIndexTerms($incl);
+      $indexterms = $PageIndexTermsFunction($incl);
       foreach($incl as $i) {
         $delim = (!preg_match('/[^\\w\\x80-\\xff]/', $i)) ? '$' : '/';
         $opt['=inclp'][] = $delim . preg_quote($i,$delim) . $delim . 'i';
@@ -867,7 +868,7 @@ function PageIndexTerms($terms) {
 ## on us).
 function PageIndexUpdate($pagelist = NULL, $dir = '') {
   global $EnableReadOnly, $PageIndexUpdateList, $PageIndexFile, 
-    $PageIndexTime, $Now;
+    $PageIndexTermsFunction, $PageIndexTime, $Now;
   if (IsEnabled($EnableReadOnly, 0)) return;
   $abort = ignore_user_abort(true);
   if ($dir) { flush(); chdir($dir); }
@@ -889,7 +890,7 @@ function PageIndexUpdate($pagelist = NULL, $dir = '') {
     $page = ReadPage($pn, READPAGE_CURRENT);
     if ($page) {
       $targets = str_replace(',', ' ', strval(@$page['targets']));
-      $terms = PageIndexTerms(array(@$page['text'], $targets, $pn));
+      $terms = $PageIndexTermsFunction(array(@$page['text'], $targets, $pn));
       usort($terms, $cmpfn);
       $x = '';
       foreach($terms as $t) { if (strpos($x, $t) === false) $x .= " $t"; }
