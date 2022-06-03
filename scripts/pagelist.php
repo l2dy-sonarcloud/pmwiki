@@ -156,6 +156,7 @@ function SearchBox($pagename, $opt) {
   if (isset($SearchBoxFmt)) return Keep(FmtPageName($SearchBoxFmt, $pagename));
   SDVA($SearchBoxOpt, array('size' => '40', 
     'label' => FmtPageName('$[Search]', $pagename),
+    'placeholder' => FmtPageName('$[Search]', $pagename),
     'value' => str_replace("'", "&#039;", $SearchQuery)));
   $opt = array_merge((array)$SearchBoxOpt, @$_GET, (array)$opt);
   $opt['action'] = 'search';
@@ -176,8 +177,9 @@ function SearchBox($pagename, $opt) {
   $out .= "<input type='$SearchBoxInputType' name='q' value='{$opt['value']}' ";
   $attrs = preg_grep('/^(placeholder|aria-\\w+)/', array_keys($opt));
   foreach ($attrs as $k) $out .= "  $k='{$opt[$k]}' ";
-  $out .= "  class='inputbox searchbox' size='{$opt['size']}' /><input type='submit' 
-    class='inputbutton searchbutton' value='{$opt['label']}' />";
+  $out .= "  class='inputbox searchbox' size='{$opt['size']}' />";
+  if($opt['label']) 
+    $out .= "<input type='submit' class='inputbutton searchbutton' value='{$opt['label']}' />";
   return '<form '.Keep($out).'</form>';
 }
 
