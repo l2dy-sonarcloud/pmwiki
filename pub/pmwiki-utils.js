@@ -361,7 +361,9 @@
       rows.sort(function(x, y) {
         var a = getValue(reverse? y:x),
             b = getValue(reverse? x:y);
-        return isNaN(a - b) ? a.localeCompare(b) : a - b;
+        var c = a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'}),
+            d = a - b;
+        return isNaN(d) ? c : d;
       });
       for (i = 0; i < rows.length; i++) {
         tbody.appendChild(rows[i]);
