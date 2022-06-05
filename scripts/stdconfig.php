@@ -47,8 +47,10 @@ if (IsEnabled($EnableCaches, 1))
   include_once("$FarmD/scripts/caches.php");
 
 ## Scripts that are part of a standard PmWiki distribution.
-if (IsEnabled($EnableAuthorTracking,1)) 
+if (IsEnabled($EnableAuthorTracking,1)) {
   include_once("$FarmD/scripts/author.php");
+  EnableSignatures();
+}
 if (IsEnabled($EnablePrefs, 1))
   include_once("$FarmD/scripts/prefs.php");
 if (IsEnabled($EnableSimulEdit, 1))

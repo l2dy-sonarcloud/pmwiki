@@ -35,7 +35,12 @@ if (!isset($AuthorPage)) $AuthorPage =
     FmtPageName('$AuthorGroup/$Name', MakePageName("$AuthorGroup.$AuthorGroup", $Author));
 SDV($AuthorLink,($Author) ? "[[~$Author]]" : '?');
 
-if (IsEnabled($EnableAuthorSignature,1)) {
+## EnableSignatures() is now called from stdconfig.php, because author.php may be 
+## included early by local config or recipe, before some variables are defined.
+function EnableSignatures() {
+  global $EnableLocalTimes, $CurrentLocalTime, $CurrentTime,
+    $Author, $EnableAuthorSignature, $ROSPatterns;
+  if (! IsEnabled($EnableAuthorSignature,1)) return;
   $time = IsEnabled($EnableLocalTimes, 0)? $CurrentLocalTime : $CurrentTime;
   SDVA($ROSPatterns, array(
     '/(?<!~)~~~~(?!~)/' => "[[~$Author]] $time",
