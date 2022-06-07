@@ -210,7 +210,9 @@
       }
       if(typeof r == 'function') text = text.replace(s, r);
       else text = text.replace(s, function(a){
-        var b = Array.from(arguments).slice(1, -2);
+        var b = [];
+        for(var ii=1; ii<arguments.length-2; ii++) b.push(arguments[ii]);
+//         var b = Array.from(arguments).slice(1, -2);
         if(r.match(/^[=!]/)) return Keep5(b, r);
         else return Keep(a, r);
       });
