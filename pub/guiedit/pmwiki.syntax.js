@@ -192,13 +192,14 @@
         if(m && m.length>1) { // parent>nested
           r = m[0];
           return text.replace(s, function(a){
-            var b = Array.from(arguments).slice(1, -2);
-            var j = b[4]? 3:1;
+            var bx = [];
+            for(var ii=1; ii<arguments.length-2; ii++) bx.push(arguments[ii]);
+            var j = bx[4]? 3:1;
             
             for(var i=1; i<m.length; i++) {
-              if(rule[i+1]) b[j] = PmHi1(b[j], [m[i], rule[i+1]]);
+              if(rule[i+1]) bx[j] = PmHi1(bx[j], [m[i], rule[i+1]]);
             }
-            return Keep5(b, r);
+            return Keep5(bx, r);
           });
         }
         else { // one classname, return match only_in_container
