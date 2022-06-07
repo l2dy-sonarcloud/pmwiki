@@ -233,7 +233,14 @@
     var pm = dqsa('table.markup td.markup1 > pre, '
       + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     if(! pm.length) return;
-    pm.forEach(PmHiEl);
+    try {
+      pm.forEach(PmHiEl);
+    }
+    catch(e) {
+      for(var i=0; i<pm.length; i++) {
+        PmHiEl(pm[i]);
+      }
+    }
     tap('.toggle-pmhlt', toggleStyles);
   }
 
@@ -434,7 +441,8 @@
     sortRX();
     initExtLangs();
     PmHiAll();
-    initEditForm();
+    if(typeof ResizeObserver == 'function')
+      initEditForm();
   });
 })();
 
