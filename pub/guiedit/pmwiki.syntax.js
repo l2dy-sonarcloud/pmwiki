@@ -66,7 +66,7 @@
 
     // urls can have percents so before wikistyle (populated by InterMap)
     ['ttip', '=escaped', /(\[\[)(.*?\S)(?= *(?:\||\]\]))/g,  /(")(.*)(")$/ ], // tooltop
-    ['link0', '=escaped', /\[\[.*?\S(?= *(?:\||\]\]))/g, /(\()(.*?)(\))/g],// hidden 
+    ['link0', '=escaped', /\[\[.*?\S(?= *(?:\||\]\]))/g, /(\()(.*?)(\))/g],// hidden
     ['_url'],
 
     // wikistyles
@@ -119,7 +119,7 @@
     custom_hrx[ hrx[i][0] ] = [];
     custom_hrx[ '>'+hrx[i][0] ] = [];
   }
-  
+
   function PmHi(text){
     var KPV = [];
     function Restore(all, n) { return KPV[parseInt(n)]; }
@@ -192,14 +192,13 @@
         if(m && m.length>1) { // parent>nested
           r = m[0];
           return text.replace(s, function(a){
-            var bx = [];
-            for(var ii=1; ii<arguments.length-2; ii++) bx.push(arguments[ii]);
-            var j = bx[4]? 3:1;
-            
+            var b = Array.from(arguments).slice(1, -2);
+            var j = b[4]? 3:1;
+
             for(var i=1; i<m.length; i++) {
-              if(rule[i+1]) bx[j] = PmHi1(bx[j], [m[i], rule[i+1]]);
+              if(rule[i+1]) b[j] = PmHi1(b[j], [m[i], rule[i+1]]);
             }
-            return Keep5(bx, r);
+            return Keep5(b, r);
           });
         }
         else { // one classname, return match only_in_container
@@ -210,15 +209,12 @@
       }
       if(typeof r == 'function') text = text.replace(s, r);
       else text = text.replace(s, function(a){
-        var b = [];
-        for(var ii=1; ii<arguments.length-2; ii++) b.push(arguments[ii]);
-//         var b = Array.from(arguments).slice(1, -2);
+        var b = Array.from(arguments).slice(1, -2);
         if(r.match(/^[=!]/)) return Keep5(b, r);
         else return Keep(a, r);
       });
       return text;
     }
-  
     for(var i=0; i<sorted_hrx.length; i++) {
       var rule = sorted_hrx[i];
       if(rule.length<2)  continue; // _begin, _end
@@ -226,7 +222,7 @@
     }
     return text;
   }
-  
+
   function PmHiEl(el){
     el.innerHTML = PmHi(el.textContent);
     el.classList.add('pmhlt');
@@ -236,14 +232,7 @@
     var pm = dqsa('table.markup td.markup1 > pre, '
       + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
     if(! pm.length) return;
-    try {
-      pm.forEach(PmHiEl);
-    }
-    catch(e) {
-      for(var i=0; i<pm.length; i++) {
-        PmHiEl(pm[i]);
-      }
-    }
+    pm.forEach(PmHiEl);
     tap('.toggle-pmhlt', toggleStyles);
   }
 
@@ -439,15 +428,12 @@
     }
     externalLangs = new RegExp('^('+aliases.join('|').replace(/[+]/g, '\\+')+')$', 'i');
   }
-  
+
   document.addEventListener('DOMContentLoaded', function(){
     sortRX();
     initExtLangs();
     PmHiAll();
-    if(typeof ResizeObserver == 'function')
-      initEditForm();
+    initEditForm();
   });
 })();
-
-
 

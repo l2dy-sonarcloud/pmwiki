@@ -447,7 +447,7 @@
       else diff = link.href + '#diff' + stamp; 
       times[i].innerHTML = '<a href="'+diff+'">'+times[i].innerHTML+'</a>';
     }
-    
+
     var difflinks = dqsa('a[href*="#diff"]'), diffcnt = 0;
     for(var i=0; i<difflinks.length; i++) {
       var link = difflinks[i];
@@ -513,26 +513,4 @@
   if( document.readyState !== 'loading' ) ready();
   else window.addEventListener('DOMContentLoaded', ready);
 })();
-
-/*
- Element.closest() polyfill
- https://developer.mozilla.org/en-US/docs/Web/API/Element/closest#polyfill
- */
-if (!Element.prototype.matches) {
-  Element.prototype.matches =
-    Element.prototype.msMatchesSelector ||
-    Element.prototype.webkitMatchesSelector;
-}
-
-if (!Element.prototype.closest) {
-  Element.prototype.closest = function(s) {
-    var el = this;
-    do {
-      if (Element.prototype.matches.call(el, s)) return el;
-      el = el.parentElement || el.parentNode;
-    } while (el !== null && el.nodeType === 1);
-    return null;
-  };
-}
-
 
