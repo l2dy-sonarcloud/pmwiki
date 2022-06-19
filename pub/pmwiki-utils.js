@@ -384,6 +384,7 @@
       if (n && n.tagName == 'PRE') pre.push(n);
       for(var j=0; j<pre.length; j++) {
         pre[j].className += ' ' + x[i].className;
+        if(pre[j].children) pre[j].textContent = pre[j].textContent;
         hljs.highlightElement(pre[j]);
       }
     }
