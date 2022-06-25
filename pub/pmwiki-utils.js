@@ -384,8 +384,22 @@
       if (n && n.tagName == 'PRE') pre.push(n);
       for(var j=0; j<pre.length; j++) {
         pre[j].className += ' ' + x[i].className;
+        var varlinks = pre[j].querySelectorAll('a.varlink');
+        var vararray = {};
+        for(var v=0; v<varlinks.length; v++) {
+          vararray[varlinks[v].textContent] = varlinks[v].href;
+        }
+        
         if(pre[j].children) pre[j].textContent = pre[j].textContent;
+
         hljs.highlightElement(pre[j]);
+        var hlvars = pre[j].querySelectorAll('span.hljs-variable');
+        for(var v=0; v<hlvars.length; v++) {
+          var hlvar = hlvars[v].textContent;
+          if(vararray.hasOwnProperty(hlvar)) {
+            hlvars[v].innerHTML = '<a class="varlink" href="'+vararray[hlvar]+'">'+hlvar+'</a>';
+          }
+        }
       }
     }
   }
