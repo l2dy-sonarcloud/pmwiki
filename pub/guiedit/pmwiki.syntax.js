@@ -229,9 +229,9 @@
   }
 
   function PmHiAll(){
+    var hlt = dqsa('.hlt.pm, .hlt.pmwiki, .highlight.pm, .highlight.pmwiki');
+    for(var i=0; i< hlt.length; i++) hlt[i].className = 'pmhlt';
     var pm = dqsa('table.markup td.markup1 > pre, '
-      + '.hlt.pm pre, .hlt.pm + pre, .hlt.pm code'
-      + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .hlt.pmwiki code'
       + '.pmhlt pre, .pmhlt + pre, .pmhlt code');
     if(! pm.length) return;
     pm.forEach(PmHiEl);
