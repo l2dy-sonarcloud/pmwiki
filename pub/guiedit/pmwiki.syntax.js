@@ -230,7 +230,9 @@
 
   function PmHiAll(){
     var pm = dqsa('table.markup td.markup1 > pre, '
-      + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .pmhlt pre, .pmhlt + pre, .pmhlt code');
+      + '.hlt.pm pre, .hlt.pm + pre, .hlt.pm code'
+      + '.hlt.pmwiki pre, .hlt.pmwiki + pre, .hlt.pmwiki code'
+      + '.pmhlt pre, .pmhlt + pre, .pmhlt code');
     if(! pm.length) return;
     pm.forEach(PmHiEl);
     tap('.toggle-pmhlt', toggleStyles);
