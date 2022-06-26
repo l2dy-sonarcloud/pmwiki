@@ -162,6 +162,8 @@
       return PHSC(attr);
     }
     function external(lang, code) {
+      if(lang.match(/^pm(wiki)?$/))
+        return keep0(PmHi(code));
       if (! externalLangs
         || lang == 'plaintext'
         || ! lang.match(externalLangs)
