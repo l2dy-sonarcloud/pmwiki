@@ -34,6 +34,8 @@
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_begin'],
     ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
+    ['pmhlt', 'external', /%(pm)hlt% *\[@([\s\S]*?)@\]/g],
+    ['pmhlt2', 'external', /%(pm)hlt% *@@ *\[=([\s\S]*?)=\] *@@/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /\\+\n/g],
 
