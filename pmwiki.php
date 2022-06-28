@@ -170,6 +170,8 @@ $HTTPHeaders = array(
   "Expires: Tue, 01 Jan 2002 00:00:00 GMT",
   "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=ISO-8859-1;");
+$HTTPHeaders['XFO'] = 'X-Frame-Options: SAMEORIGIN';
+$HTTPHeaders['CSP'] = 'Content-Security-Policy: frame-ancestors \'self\';';
 $CacheActions = array('browse','diff','print');
 $EnableHTMLCache = 0;
 $NoHTMLCache = 0;
