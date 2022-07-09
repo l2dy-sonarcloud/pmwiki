@@ -33,10 +33,10 @@
   }
   var hrx = [ // rule_name, [*=!]classname|function, [container_rx], rx
     ['_begin'],
-    ['external', 'external', /%hlt +([-\w+]+).*?% *\[@([\s\S]*?)@\]/g],
-    ['external2', 'external', /%hlt +([-\w+]+).*?% *@@ *\[=([\s\S]*?)=\] *@@/g],
-    ['pmhlt', 'external', /%(pm)hlt% *\[@([\s\S]*?)@\]/g],
-    ['pmhlt2', 'external', /%(pm)hlt% *@@ *\[=([\s\S]*?)=\] *@@/g],
+    ['external', 'external', /%hlt +([-\w+]+) *% *\[@([\s\S]*?)@\]/g],
+    ['external2', 'external', /%hlt +([-\w+]+) *% *@@ *\[=([\s\S]*?)=\] *@@/g],
+    ['pmhlt', 'external', /%(pm)hlt *% *\[@([\s\S]*?)@\]/g],
+    ['pmhlt2', 'external', /%(pm)hlt *% *@@ *\[=([\s\S]*?)=\] *@@/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
     ['joinline', '*bullet', /\\+\n/g],
 
@@ -165,7 +165,7 @@
       return PHSC(attr);
     }
     function external(lang, code) {
-      if(lang.match(/^pm(wiki)?$/))
+      if(lang.match(/^pm(wiki)?$/i))
         return keep0(PmHi(code));
       if (! externalLangs
         || lang == 'plaintext'
