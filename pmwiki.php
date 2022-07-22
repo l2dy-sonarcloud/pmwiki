@@ -1749,11 +1749,14 @@ function IncludeText($pagename, $inclspec) {
         $iname = MakePageName($pagename, $v);
         if (!$args['self'] && $iname == $pagename) continue;
         $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
-        $itext = IsEnabled($PCache[$iname]['=preview'], @$ipage['text']);
+        if(isset($PCache[$iname]['=preview'])) $itext = $PCache[$iname]['=preview'];
+        elseif(isset($ipage['text'])) $itext = $ipage['text'];
       }
-      $itext = TextSection(@$itext, $v, array('anchors' => 1));
+      if(isset($itext))
+        $itext = TextSection($itext, $v, array('anchors' => 1));
       continue;
     }
+    $itext = strval(@$itext);
     if (preg_match('/^(?:line|para)s?$/', $k)) {
       preg_match('/^(\\d*)(\\.\\.(\\d*))?$/', $v, $match);
       @list($x, $a, $dots, $b) = $match;
