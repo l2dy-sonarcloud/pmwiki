@@ -219,7 +219,7 @@ function InputMarkup($pagename, $type, $args) {
 
 ##  (:input default:) directive.
 function InputDefault($pagename, $type, $args) {
-  global $InputValues, $PageTextVarPatterns, $PCache;
+  global $InputValues, $PageTextVarPatterns, $PCache, $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
   $args = ParseArgs($args);
   $args[''] = (array)@$args[''];
   $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
@@ -258,6 +258,21 @@ function InputDefault($pagename, $type, $args) {
       break;
     }
   }
+  if (is_array(@$DefaultUnsetPageTextVars)) {
+    foreach($DefaultUnsetPageTextVars as $k=>$v) {
+      if (!preg_match('/[?*]/', $k))
+        SDVA($InputValues, array("ptv_$k"=>$v));
+    }
+  }
+  if (is_array(@$DefaultEmptyPageTextVars)) {
+    foreach($DefaultUnsetPageTextVars as $k=>$v) {
+      if (!preg_match('/[?*]/', $k))
+        if(isset($InputValues["ptv_$k"]) && $InputValues["ptv_$k"] === '') {
+          $InputValues["ptv_$k"] = $v;
+        }
+    }
+  }
+  
   return '';
 }
 
