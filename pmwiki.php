@@ -83,7 +83,7 @@ $RecentChangesFmt = array(
     '* [[{$Group}/{$Name}]]  . . . $CurrentLocalTime $[by] $AuthorLink: [=$ChangeSummary=]');
 $UrlScheme = (@$_SERVER['HTTPS']=='on' || @$_SERVER['SERVER_PORT']==443)
              ? 'https' : 'http';
-$ScriptUrl = $UrlScheme.'://'.$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
+$ScriptUrl = $UrlScheme.'://'.strval(@$_SERVER['HTTP_HOST']).strval(@$_SERVER['SCRIPT_NAME']);
 $PubDirUrl = preg_replace('#/[^/]*$#', '/pub', $ScriptUrl, 1);
 $HTMLVSpace = "<vspace>";
 $HTMLPNewline = '';
@@ -315,7 +315,7 @@ foreach(array('http:','https:','mailto:','ftp:','news:','gopher:','nap:',
   { $LinkFunctions[$m] = 'LinkIMap';  $IMap[$m]="$m$1"; }
 $LinkFunctions['<:page>'] = 'LinkPage';
 
-$q = preg_replace('/(\\?|%3f)([-\\w]+=)/i', '&$2', @$_SERVER['QUERY_STRING']);
+$q = preg_replace('/(\\?|%3f)([-\\w]+=)/i', '&$2', strval(@$_SERVER['QUERY_STRING']));
 if ($q != @$_SERVER['QUERY_STRING']) {
   unset($_GET);
   parse_str($q, $_GET);
@@ -329,8 +329,8 @@ else $action = 'browse';
 $pagename = strval(@$_REQUEST['n']);
 if (!$pagename) $pagename = strval(@$_REQUEST['pagename']);
 if (!$pagename && 
-    preg_match('!^'.preg_quote($_SERVER['SCRIPT_NAME'],'!').'/?([^?]*)!',
-      $_SERVER['REQUEST_URI'],$match))
+    preg_match('!^'.preg_quote(strval(@$_SERVER['SCRIPT_NAME']),'!').'/?([^?]*)!',
+      strval(@$_SERVER['REQUEST_URI']),$match))
   $pagename = urldecode($match[1]);
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
   $pagename=utf8_decode($pagename);
@@ -1409,8 +1409,8 @@ class PageStore {
     $page['charset'] = $Charset;
     $page['name'] = $pagename;
     $page['time'] = $Now;
-    $page['host'] = $_SERVER['REMOTE_ADDR'];
-    $page['agent'] = @$_SERVER['HTTP_USER_AGENT'];
+    $page['host'] = strval(@$_SERVER['REMOTE_ADDR']);
+    $page['agent'] = strval(@$_SERVER['HTTP_USER_AGENT']);
     if (IsEnabled($EnableRevUserAgent, 0)) $page["agent:$Now"] = $page['agent'];
     $page['rev'] = intval(@$page['rev'])+1;
     unset($page['version']); unset($page['newline']);
@@ -2388,7 +2388,7 @@ function PostPage($pagename, &$page, &$new) {
   $new['charset'] = $Charset; # kept for now, may be needed if custom PageStore
   $new['author'] = @$Author;
   $new["author:$Now"] = @$Author;
-  $new["host:$Now"] = $_SERVER['REMOTE_ADDR'];
+  $new["host:$Now"] = strval(@$_SERVER['REMOTE_ADDR']);
   $diffclass = preg_replace('/\\W/','',strval(@$_POST['diffclass']));
   if ($page['time']>0 && function_exists(@$DiffFunction)) 
     $new["diff:$Now:{$page['time']}:$diffclass"] =
@@ -2624,7 +2624,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
     }
   }
   $FmtV['$PostVars'] = $postvars;
-  $r = str_replace("'", '%37', stripmagic($_SERVER['REQUEST_URI']));
+  $r = str_replace("'", '%37', stripmagic(strval(@$_SERVER['REQUEST_URI'])));
   SDV($AuthPromptFmt,array(&$PageStartFmt,
     "<p><b>$[Password required]</b></p>
       <form name='authform' action='$r' method='post'>
