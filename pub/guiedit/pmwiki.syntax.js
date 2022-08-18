@@ -237,7 +237,7 @@
     var hlt = dqsa('.hlt.pm, .hlt.pmwiki, .highlight.pm, .highlight.pmwiki');
     for(var i=0; i< hlt.length; i++) hlt[i].className = 'pmhlt';
     var pm = dqsa('table.markup td.markup1 > pre, '
-      + '.pmhlt pre, .pmhlt + pre, .pmhlt code');
+      + '.pmhlt pre, .pmhlt + pre, .pmhlt code, pre.pmhlt, code.pmhlt');
     if(! pm.length) return;
     pm.forEach(PmHiEl);
     tap('.toggle-pmhlt', toggleStyles);
