@@ -154,6 +154,11 @@ function InputToHTML($pagename, $type, $args, &$opt) {
                          ? $checked : false;
       } else if (!isset($opt['value'])) $opt['value'] = $InputValues[$name];
     }
+    if ( (strpos($name, 'ptv_') === 0) && !isset($opt['value']) ) {
+      # $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars with wildcards
+      $default = PageTextVar($pagename, substr($name, 4));
+      if ($default !== '') $opt['value'] = $default;
+    }
   }
   ##  build $InputFormContent
   $FmtV['$InputFormContent'] = '';
@@ -219,7 +224,7 @@ function InputMarkup($pagename, $type, $args) {
 
 ##  (:input default:) directive.
 function InputDefault($pagename, $type, $args) {
-  global $InputValues, $PageTextVarPatterns, $PCache, $DefaultUnsetPageTextVars, $DefaultEmptyPageTextVars;
+  global $InputValues, $PageTextVarPatterns, $PCache;
   $args = ParseArgs($args);
   $args[''] = (array)@$args[''];
   $name = (isset($args['name'])) ? $args['name'] : array_shift($args['']);
@@ -256,20 +261,6 @@ function InputDefault($pagename, $type, $args) {
               $InputValues['ptv_'.$m[2]] = 
                 PHSC(Qualify($source, $m[3]), ENT_NOQUOTES);
       break;
-    }
-  }
-  if (is_array(@$DefaultUnsetPageTextVars)) {
-    foreach($DefaultUnsetPageTextVars as $k=>$v) {
-      if (!preg_match('/[?*]/', $k))
-        SDVA($InputValues, array("ptv_$k"=>$v));
-    }
-  }
-  if (is_array(@$DefaultEmptyPageTextVars)) {
-    foreach($DefaultUnsetPageTextVars as $k=>$v) {
-      if (!preg_match('/[?*]/', $k))
-        if(isset($InputValues["ptv_$k"]) && $InputValues["ptv_$k"] === '') {
-          $InputValues["ptv_$k"] = $v;
-        }
     }
   }
   

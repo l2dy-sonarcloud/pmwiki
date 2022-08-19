@@ -319,9 +319,11 @@
   }
 
   function initEditForm(){
-    if(!_script || _script.dataset.mode != "2") return;
+    if(!_script || !_script.dataset.mode.match(/^[23]$/)) return;
     var text = dqs('#wikiedit textarea#text');
     if(!text) return;
+               
+    var defaultEnabled = _script.dataset.mode == '3'? 1: 0;
 
     var lastTextContent = false;
     var GUIEditInterval = false;
@@ -380,25 +382,31 @@
       resizePre();
 
       htext.inert = true;
+      htext.style.textAlign =  window.getComputedStyle(text, null).getPropertyValue('text-align');
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);
       text.addEventListener('dragstart', dragstart);
       text.addEventListener('dragend', dragend);
       GUIEditInterval = setInterval(updatePre, 100); // for GUIEdit buttons
 
-      resizeObserver = new ResizeObserver(resizePre)
+      resizeObserver = new ResizeObserver(resizePre);
       resizeObserver.observe(text);
+    }
+    
+    function storeEnabled(enabled) {
+      if(enabled ^ defaultEnabled) localStorage.setItem('EnableHighlight', enabled);
+      else localStorage.removeItem('EnableHighlight');
     }
 
     function EnableHighlight() {
       if(chk_hlt.classList.contains('pmhlt')) {
-        localStorage.setItem('EnableHighlight', 1);
+        storeEnabled(1);
         updatePre();
         resizePre();
       }
       else {
         lastTextContent = false;
-        localStorage.removeItem('EnableHighlight');
+        storeEnabled(0);
       }
     }
 
@@ -411,7 +419,7 @@
         + '</code>');
 
       initPre();
-      var enabled = localStorage.getItem('EnableHighlight');
+      var enabled = parseInt(localStorage.getItem('EnableHighlight') || defaultEnabled);
       if(enabled) {
         chk_hlt.classList.add('pmhlt');
         EnableHighlight();
