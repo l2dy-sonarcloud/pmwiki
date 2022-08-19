@@ -394,7 +394,7 @@
     }
     
     function storeEnabled(enabled) {
-      if(enabled ^ defaultEnabled) localStorage.setItem('EnableHighlight', enabled);
+      if(enabled != defaultEnabled) localStorage.setItem('EnableHighlight', enabled);
       else localStorage.removeItem('EnableHighlight');
     }
 
