@@ -655,11 +655,13 @@ function HandleSearchA($pagename, $level = 'read') {
 function CalcRange($range, $n) {
   if ($n < 1) return array(0, 0);
   if (strpos($range, '..') === false) {
+    $range = intval($range);
     if ($range > 0) return array(1, min($range, $n));
     if ($range < 0) return array(max($n + $range + 1, 1), $n);
     return array(1, $n);
   }
   list($r0, $r1) = explode('..', $range);
+  $r0 = intval($r0); $r1 = intval($r1);
   if ($r0 < 0) $r0 += $n + 1;
   if ($r1 < 0) $r1 += $n + 1;
   else if ($r1 == 0) $r1 = $n;
