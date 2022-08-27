@@ -156,13 +156,16 @@ $FmtPV = array(
   '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
   '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
   '$EnabledIMap'  => 'implode("|", array_keys($GLOBALS["IMap"]))', # PmSyntax
+  '$GroupHomePage' => 'FmtGroupHome($pn,$group,$var)',
+  '$GroupHomePageName' => 'FmtGroupHome($pn,$group,$var)',
+  '$GroupHomePageTitle' => 'FmtGroupHome($pn,$group,$var)',
+  '$GroupHomePageTitlespaced' => 'FmtGroupHome($pn,$group,$var)',
   );
 $SaveProperties = array('title', 'description', 'keywords');
 $PageTextVarPatterns = array(
   'var:'        => '/^(:*[ \\t]*(\\w[-\\w]*)[ \\t]*:[ \\t]?)(.*)($)/m',
   '(:var:...:)' => '/(\\(: *(\\w[-\\w]*) *:(?!\\))\\s?)(.*?)(:\\))/s'
   );
-
 
 $WikiTitle = 'PmWiki';
 $Charset = 'ISO-8859-1';
@@ -1250,6 +1253,14 @@ function FmtPageTitle($title, $name, $spaced=0) {
     )$/x", $name) && $name != XL($name))
       return XL($name);
   return ($spaced || $SpaceWikiWords) ? $AsSpacedFunction($name) : $name;
+}
+
+## FmtGroupHome returns the homepage of any page ($Group or $DefaultName)
+function FmtGroupHome($pn,$group,$var) {
+  $gpn = MakePageName($pn, "$group.");
+  $pv = substr($var, 14);
+  if(!$pv) return $gpn;
+  return PageVar($gpn, "\$$pv");
 }
 
 ## FmtTemplateVars uses $vars to replace all occurrences of 
