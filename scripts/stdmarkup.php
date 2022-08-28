@@ -693,3 +693,24 @@ table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
 table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
 table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; }');
 
+
+# Helper function for recipes
+# Generic Markup directive (:abc params:)...(:abcend:)?
+function AutoMarkupDirective($m) { # all, directive, params?, content?
+  global $MarkupToHTML, $MarkupDirectiveFunctions;
+  extract($MarkupToHTML); # get $pagename
+  @list($all, $directive, $params, $content) = $m;
+  if(!isset($MarkupDirectiveFunctions[$directive])) return Keep($all);
+  
+  $args = ParseArgs(strval(@$params));
+  $content = trim(strval(@$content));
+  
+  return $MarkupDirectiveFunctions[$directive]($pagename, $directive, $args, $content);
+}
+
+if(isset($MarkupDirectiveFunctions)) {
+  $keys = implode(array_keys($MarkupDirectiveFunctions));
+  Markup('anydir', 'directives', "/\\(:($keys)(\\s+.*?)?:\\)/s", 'AutoMarkupDirective');
+  Markup('anydir2', '<autodir', "/\\(:($keys)(\\s+.*?)?:\\).*?\\(:\\1end:\\)/s", 'AutoMarkupDirective');
+}
+
