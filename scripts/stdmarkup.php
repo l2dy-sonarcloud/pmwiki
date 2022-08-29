@@ -711,6 +711,6 @@ function AutoMarkupDirective($m) { # all, directive, params?, content?
 if(isset($MarkupDirectiveFunctions)) {
   $keys = implode(array_keys($MarkupDirectiveFunctions));
   Markup('anydir', 'directives', "/\\(:($keys)(\\s+.*?)?:\\)/s", 'AutoMarkupDirective');
-  Markup('anydir2', '<autodir', "/\\(:($keys)(\\s+.*?)?:\\).*?\\(:\\1end:\\)/s", 'AutoMarkupDirective');
+  Markup('anydir2', '<anydir', "/\\(:($keys)(\\s+.*?)?:\\).*?\\(:\\1end:\\)/s", 'AutoMarkupDirective');
 }
 
