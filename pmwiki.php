@@ -446,12 +446,12 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 ## helper functions
 function stripmagic($x) {
   $fn = 'get_magic_quotes_gpc';
-  $x = strval($x);
   if (!function_exists($fn)) return $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
     return $x;
   }
+  $x = strval($x);
   return @$fn() ? stripslashes($x) : $x;
 }
 function pre_r(&$x)
