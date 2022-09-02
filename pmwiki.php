@@ -277,7 +277,12 @@ function CondExpr($pagename, $condname, $condparm) {
     if (preg_match("/^($CondExprOps)$/i", $t)) continue;
     if ($t) $terms[$i] = CondText($pagename, "if $t", 'TRUE') ? '1' : '0';
   }
-  return @eval('return(' . implode(' ', $terms) . ');');
+  
+  ## PITS:01480, (:if [ {$MissingPV} and ... ]:) 
+  $code = preg_replace('/(^\\s*|(and|x?or|&&|\\|\\||!)\\s+)(?=and|x?or|&&|\\|\\|)/', 
+    '$1 0 ', trim(implode(' ', $terms))); 
+
+  return @eval("return( $code );");
 }
 $Conditions['expr'] = 'CondExpr($pagename, $condname, $condparm)';
 $Conditions['('] = 'CondExpr($pagename, $condname, $condparm)';
@@ -446,7 +451,7 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 ## helper functions
 function stripmagic($x) {
   $fn = 'get_magic_quotes_gpc';
-  if (!function_exists($fn)) return $x;
+  if (!function_exists($fn)) return is_null($x)? '' : $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
     return $x;
