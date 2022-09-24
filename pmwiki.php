@@ -278,7 +278,7 @@ function CondExpr($pagename, $condname, $condparm) {
     if ($t) $terms[$i] = CondText($pagename, "if $t", 'TRUE') ? '1' : '0';
   }
   
-  ## PITS:01480, (:if [ {$MissingPV} and ... ]:) 
+  ## PITS:01480, (:if [ {$EmptyPV} and ... ]:) 
   $code = preg_replace('/(^\\s*|(and|x?or|&&|\\|\\||!)\\s+)(?=and|x?or|&&|\\|\\|)/', 
     '$1 0 ', trim(implode(' ', $terms))); 
 
@@ -594,13 +594,16 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
   
   if (@$fmt == '') $fmt = $FTimeFmt;
   $stamp = is_numeric($stamp)? intval($stamp) : $Now;
+  
+  if(strpos($fmt, '%L')!==false)
+    $fmt = str_replace($fmt, '%L', PSFT('@%Y-%m-%dT%H:%M:%SZ', $stamp, null, 'GMT'));
 
   if (! $cached['new']) {
     if (@$locale) 
       setlocale(LC_TIME, preg_split('/[, ]+/', $locale, -1, PREG_SPLIT_NO_EMPTY));
     if (@$tz) @date_default_timezone_set($tz);
     $fmt = str_replace(array('%F', '%s', '%o'), 
-      array('%Y-%m-%d', $stamp, date('S', $stamp)), 
+        array('%Y-%m-%d', $stamp, date('S', $stamp)), 
       $fmt);
     $ret = strftime($fmt, $stamp);
     if ($tz) date_default_timezone_set($cached['dtz']);
@@ -1132,12 +1135,14 @@ function PageTextVar($pagename, $var) {
     if ($page) {
       foreach((array)$PageTextVarPatterns as $pat) 
         if (preg_match_all($pat, IsEnabled($pc['=preview'],strval(@$page['text'])),
-          $match, PREG_SET_ORDER))
+          $match, PREG_SET_ORDER)) {
           foreach($match as $m) {
             $t = preg_replace("/\\{\\$:{$m[2]}\\}/", '', $m[3]);
+            
             $pc["=p_{$m[2]}"] = Qualify($pagename, $t);
           }
-    }
+        }
+      }
   }
   if (! isset($PCache[$pagename]["=p_$var"]) && is_array($DefaultUnsetPageTextVars)) {
     foreach($DefaultUnsetPageTextVars as $k=>$v) {
@@ -1148,7 +1153,7 @@ function PageTextVar($pagename, $var) {
     }
     SDV($PCache[$pagename]["=p_$var"], ''); # to avoid re-loop
   }
-  elseif (@$PCache[$pagename]["=p_$var"] == '' && is_array($DefaultEmptyPageTextVars)) {
+  elseif (@$PCache[$pagename]["=p_$var"] === '' && is_array($DefaultEmptyPageTextVars)) {
     foreach($DefaultEmptyPageTextVars as $k=>$v) {
       if (count(MatchNames($var, $k))) {
         $PCache[$pagename]["=p_$var"] = $v;
@@ -1666,7 +1671,8 @@ function MarkupEscape($text) {
 }
 function MarkupRestore($text) {
   global $KeepToken, $KPV;
-  if (!$text) return '';
+  if (is_null($text)) return '';
+  if (!$text) return $text;
   return preg_replace_callback("/$KeepToken(\\d.*?)$KeepToken/", 'cb_expandkpv', $text);
 }
 
@@ -2046,7 +2052,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   $t = preg_replace('/[()]/','',trim($tgt));
   $t = preg_replace('/<[^>]*>/','',$t);
   $t = trim(MarkupRestore($t));
-  $txtr = trim(MarkupRestore($txt));
+  $txtr = trim(MarkupRestore(strval($txt)));
   
   preg_match("/^($LinkPattern)?(.+)$/",$t,$m);
   if (!@$m[1]) $m[1]='<:page>';
@@ -2145,7 +2151,7 @@ function BuildMarkupRules() {
     uasort($MarkupTable,'mpcmp');
     foreach($MarkupTable as $id=>$m) 
       if (@$m['pat'] && @$m['seq']) {
-        $MarkupRules[str_replace('\\L',$LinkPattern,$m['pat'])]
+        $MarkupRules[str_replace('\\L',strval(@$LinkPattern),$m['pat'])]
           = array($m['rep'], $id);
       }
   }
@@ -2571,8 +2577,7 @@ function HandleSource($pagename, $auth = 'read') {
 ## GroupAttribute pages to be able to speed up subsequent calls.
 function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   global $DefaultPasswords, $GroupAttributesFmt, $AllowPassword,
-    $AuthCascade, $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, 
-    $AuthId, $AuthList, $NoHTMLCache;
+    $AuthCascade, $AuthId, $AuthList, $NoHTMLCache;
   static $acache;
   SDV($GroupAttributesFmt,'$Group/GroupAttributes');
   SDV($AllowPassword,'nopass');
@@ -2621,6 +2626,13 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   $GLOBALS['AuthNeeded'] = (@$_POST['authpw']) 
     ? $page['=pwsource'][$level] . ' ' . $level : '';
   PCache($pagename, $page);
+  PrintAuthForm($pagename);
+  exit;
+}
+
+## Split from PmWikiAuth to allow for recipes to call it
+function PrintAuthForm($pagename) {
+  global $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt;
   $postvars = '';
   foreach($_POST as $k=>$v) {
     if ($k == 'authpw' || $k == 'authid') continue;
@@ -2652,6 +2664,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   PrintFmt($pagename,$AuthPromptFmt);
   exit;
 }
+
 
 function IsAuthorized($chal, $source, &$from) {
   global $AuthList, $AuthPw, $AllowPassword;
@@ -2703,8 +2716,8 @@ function SessionAuth($pagename, $auth = NULL) {
   $sid = session_id();
   @session_start();
   if ($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
-    && IsEnabled($EnableAuthPostRegenerateSID, true)) {
-    session_regenerate_id();
+    && IsEnabled($EnableAuthPostRegenerateSID, true) && $sid) {
+    @session_regenerate_id();
   }
   
   foreach((array)$auth as $k => $v) {
