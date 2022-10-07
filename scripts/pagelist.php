@@ -170,7 +170,7 @@ function SearchBox($pagename, $opt) {
     $v = PHSC($v, ENT_QUOTES);
     $opt[$k] = $v;
     if(preg_match('/^(q|label|value|size|placeholder|aria-\\w+)$/', $k)) continue;
-    $k = str_replace("'", "&#039;", $k);
+    $k = PHSC($k, ENT_QUOTES);
     $out .= "<input type='hidden' name='$k' value='$v' />";
   }
   SDV($SearchBoxInputType, 'text');
