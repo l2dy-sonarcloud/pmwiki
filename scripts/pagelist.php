@@ -167,7 +167,7 @@ function SearchBox($pagename, $opt) {
                      $target);
   foreach($opt as $k => $v) {
     if ($v == '' || is_array($v)) continue;
-    $v = str_replace("'", "&#039;", $v);
+    $v = PHSC($v, ENT_QUOTES);
     $opt[$k] = $v;
     if(preg_match('/^(q|label|value|size|placeholder|aria-\\w+)$/', $k)) continue;
     $k = str_replace("'", "&#039;", $k);
