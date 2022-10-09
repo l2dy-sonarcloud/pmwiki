@@ -328,9 +328,6 @@ SDVA($InputTags['auth_form'], array(
   'method' => 'post',
   'name' => 'authform'));
 SDV($AuthPromptFmt, array(&$PageStartFmt, 'page:$SiteGroup.AuthForm',
-  "<script language='javascript' type='text/javascript'><!--
-    try { document.authform.authid.focus(); }
-    catch(e) { document.authform.authpw.focus(); } //--></script>",
   &$PageEndFmt));
 
 ## PITS:01188, these should exist in "browse" mode

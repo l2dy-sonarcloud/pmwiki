@@ -2657,10 +2657,8 @@ function PrintAuthForm($pagename) {
     "<p><b>$[Password required]</b></p>
       <form name='authform' action='$r' method='post'>
         $[Password]: <input tabindex='1' type='password' name='authpw' 
-          value='' />
-        <input type='submit' value='$[OK]' />\$PostVars</form>
-        <script language='javascript' type='text/javascript'><!--
-          document.authform.authpw.focus() //--></script>", &$PageEndFmt));
+          value='' autofocus='autofocus' />
+        <input type='submit' value='$[OK]' />\$PostVars</form>", &$PageEndFmt));
   PrintFmt($pagename,$AuthPromptFmt);
   exit;
 }
