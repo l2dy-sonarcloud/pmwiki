@@ -1750,7 +1750,7 @@ function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') 
     if (!PageExists($t)) continue;
     $tpage = RetrieveAuthPage($t, $auth, false, READPAGE_CURRENT);
     if (!$tpage) continue;
-    $text = TextSection(IsEnabled($PCache[$t]['=preview'],$tpage['text']),$pagesection);
+    $text = TextSection(IsEnabled($PCache[$t]['=preview'],strval(@$tpage['text'])),$pagesection);
     if ($text !== false) { $RASPageName = $t; return $text; }
   }
   $RASPageName = '';

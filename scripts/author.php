@@ -28,8 +28,8 @@ if (!isset($Author)) {
   } elseif (@$_COOKIE[$AuthorCookie]) {
     $x = stripmagic(@$_COOKIE[$AuthorCookie]);
   } else $x = @$AuthId;
-  $Author = PHSC(preg_replace("/[^$AuthorNameChars]/", '', strval($x)), 
-                ENT_COMPAT);
+  $Author = trim(PHSC(preg_replace("/[^$AuthorNameChars]/", '', strval($x)), 
+                ENT_COMPAT));
 }
 if (!isset($AuthorPage)) $AuthorPage = 
     FmtPageName('$AuthorGroup/$Name', MakePageName("$AuthorGroup.$AuthorGroup", $Author));
