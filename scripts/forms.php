@@ -390,7 +390,7 @@ SDVA($InputTags['e_changesummary'], array(
   'placeholder' => PHSC(XL('Summary'), ENT_QUOTES),
   'value' => PHSC(stripmagic(@$_POST['csum']), ENT_QUOTES)));
 SDVA($InputTags['e_minorcheckbox'], array(
-  ':html' => "<input type='checkbox' \$InputFormArgs />\$InputFormLabel" ,
+  ':html' => "<input type='checkbox' \$InputFormArgs />\$InputFormLabel",
   'name' => 'diffclass', 'value' => 'minor'));
 if (@$_POST['diffclass']=='minor') 
   SDV($InputTags['e_minorcheckbox']['checked'], 'checked');
