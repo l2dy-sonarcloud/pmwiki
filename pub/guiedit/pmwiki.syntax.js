@@ -64,7 +64,7 @@
       /\b(expr|e_preview|enabled|auth(id)?|name|group|true|false|attachments|date|equal|match|exists|ontrail)\b/g,
       special, /[[\]()]+/g ],
     ['tmpl', '!meta>=keyword', /(\(:template[^\S\r\n]+)(\S.*?)(:\))/g,
-      /^([ !]*)(each|first|last|defaults?|none)/],
+      /^([ !]*)(each|first|last|defaults?|requires?|none)/],
     ['rdir', '!meta', /(\(:redirect)(.*?)(:\))/g],
 
     // urls can have percents so before wikistyle (populated by InterMap)
