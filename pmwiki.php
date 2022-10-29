@@ -1643,7 +1643,7 @@ function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
     if (PageExists($p)) {
       $page = ($auth) ? RetrieveAuthPage($p, $auth, false, READPAGE_CURRENT)
               : ReadPage($p, READPAGE_CURRENT);
-      if ($page['text']) 
+      if (@$page['text']) 
         echo MarkupToHTML($pagename,Qualify($p, $page['text']));
       return;
     }
@@ -2118,7 +2118,7 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
 
 function Markup_e($id, $when, $pat, $rep, $template = 'markup_e') {
   if (!is_callable($rep)) {
-    if (function_exists('create_function'))
+    if (PHP_VERSION_ID < 70200)
       $rep = PCCF($rep, $template);
     else $rep = 'ObsoleteMarkup';
   }
