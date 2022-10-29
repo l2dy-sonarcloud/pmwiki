@@ -2079,7 +2079,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
 }
 
 function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
-  global $MarkupTable, $EnableMarkupDiag;
+  global $MarkupTable, $EnableMarkupDiag, $ObsoleteMarkups;
   unset($GLOBALS['MarkupRules']);
   if (preg_match('/^([<>])?(.+)$/', $when, $m)) {
     $MarkupTable[$id]['cmd'] = $when;
@@ -2096,40 +2096,57 @@ function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
     $oldpat = preg_match('!(^/.+/[^/]*)e([^/]*)$!', $pat, $mm);
     if ($oldpat && PHP_VERSION_ID >= 50500) {
       # disable old markup for recent PHP versions
+      $trace = TraceMarkup($id, true);
       $rep = 'ObsoleteMarkup';
       $pat = $mm[1].$mm[2];
     }    
     $MarkupTable[$id]['pat'] = $pat;
     $MarkupTable[$id]['rep'] = $rep;
     
-    if (IsEnabled($EnableMarkupDiag, 0) || $oldpat) {
-      $exmark = $oldpat ? '!' : ' ';
-      if (function_exists('debug_backtrace')) {
-        $dbg = debug_backtrace();
-        $dbginfo = $dbg[$tracelev];
-        $MarkupTable[$id]['dbg'] = "$exmark file: {$dbginfo['file']}, "
-          . "line: {$dbginfo['line']}, pat: {$dbginfo['args'][2]}";
-      }
-      else 
-        $MarkupTable[$id]['dbg'] = "$exmark id: '$id', pat: '$pat'";
+    if (IsEnabled($EnableMarkupDiag, 0) || isset($ObsoleteMarkups[$id])) {
+      $MarkupTable[$id]['dbg'] = isset($ObsoleteMarkups[$id])
+        ? $ObsoleteMarkups[$id]
+        : TraceMarkup($id, false);
     }
   }
 }
 
 function Markup_e($id, $when, $pat, $rep, $template = 'markup_e') {
   if (!is_callable($rep)) {
-    if (PHP_VERSION_ID < 70200)
+    if (PHP_VERSION_ID < 70200 || isset($GLOBALS['PCCFOverrideFunction']))
       $rep = PCCF($rep, $template);
-    else $rep = 'ObsoleteMarkup';
+    else {
+      TraceMarkup($id, true);
+      $rep = 'ObsoleteMarkup';
+    }
   }
   Markup($id, $when, $pat, $rep, 1);
 }
 
+function TraceMarkup($id, $obsolete = false) {
+  global $ObsoleteMarkups;
+  $trace = debug_backtrace();
+  foreach($trace as $t) {
+    if(! preg_match('/^Markup(_e)?$/i', $t['function'])) continue;
+    if($t['args'][0] !== $id) continue;
+    $excl = $obsolete? "!" : " ";
+    $msg = "$excl File: {$t['file']}, line: {$t['line']}"
+      . ", pat: {$t['args'][2]}, rep: {$t['args'][3]}.";
+    if($obsolete) $ObsoleteMarkups[$id] = $msg;
+    return $msg;
+  }
+}
+
 function ObsoleteMarkup($m) {
   extract($GLOBALS['MarkupToHTML']);
-  $id = PHSC($markupid, ENT_QUOTES);
-  $txt = PHSC($m[0], ENT_QUOTES);
-  return Keep("<code title='Markup rule &quot;$id&quot; is obsolete and has been disabled. See pmwiki.org/Troubleshooting' 
+  global $ObsoleteMarkups;
+  $id = PHSC($markupid, ENT_QUOTES, null, false);
+  $txt = PHSC($m[0], ENT_QUOTES, null, false);
+  if(isset($ObsoleteMarkups[$markupid])) {
+    $dbg = PHSC($ObsoleteMarkups[$markupid], ENT_QUOTES, null, false);
+  }
+  else $dbg = '';
+  return Keep("<code title='Markup rule &quot;$id&quot; is obsolete and has been disabled. $dbg See pmwiki.org/Troubleshooting' 
     class='obsolete-markup frame'>&#9888; $txt</code>");
 }
 
