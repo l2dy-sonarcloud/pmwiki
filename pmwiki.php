@@ -595,8 +595,10 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
   if (@$fmt == '') $fmt = $FTimeFmt;
   $stamp = is_numeric($stamp)? intval($stamp) : $Now;
   
-  if(strpos($fmt, '%L')!==false)
-    $fmt = str_replace($fmt, '%L', PSFT('@%Y-%m-%dT%H:%M:%SZ', $stamp, null, 'GMT'));
+  if(preg_match('/(?<!%)(%L)/', $fmt)) {
+    $gmt = PSFT('@%Y-%m-%dT%H:%M:%SZ', $stamp, null, 'GMT');
+    $fmt = preg_replace('/(?<!%)(%L)/', $gmt, $fmt);
+  }
 
   if (! $cached['new']) {
     if (@$locale) 
@@ -1269,7 +1271,7 @@ function FmtPageTitle($title, $name, $spaced=0) {
 function FmtGroupHome($pn,$group,$var) {
   $gpn = MakePageName($pn, "$group.");
   $pv = substr($var, 14);
-  if(!$pv) return $gpn;
+  if (!$pv) return $gpn;
   return PageVar($gpn, "\$$pv");
 }
 
@@ -1744,7 +1746,7 @@ function RetrieveAuthSection($pagename, $pagesection, $list=NULL, $auth='read') 
   global $RASPageName, $PCache;
   if ($pagesection[0] != '#')
     $list = array(MakePageName($pagename, $pagesection));
-  else if (is_null($list)) $list = array($pagename);
+  elseif (is_null($list)) $list = array($pagename);
   foreach((array)$list as $t) {
     $t = FmtPageName($t, $pagename);
     if (!PageExists($t)) continue;
@@ -1771,10 +1773,10 @@ function IncludeText($pagename, $inclspec) {
         $iname = MakePageName($pagename, $v);
         if (!$args['self'] && $iname == $pagename) continue;
         $ipage = RetrieveAuthPage($iname, 'read', false, READPAGE_CURRENT);
-        if(isset($PCache[$iname]['=preview'])) $itext = $PCache[$iname]['=preview'];
-        elseif(isset($ipage['text'])) $itext = $ipage['text'];
+        if (isset($PCache[$iname]['=preview'])) $itext = $PCache[$iname]['=preview'];
+        elseif (isset($ipage['text'])) $itext = $ipage['text'];
       }
-      if(isset($itext))
+      if (isset($itext))
         $itext = TextSection($itext, $v, array('anchors' => 1));
       continue;
     }
@@ -2127,12 +2129,12 @@ function TraceMarkup($id, $obsolete = false) {
   global $ObsoleteMarkups;
   $trace = debug_backtrace();
   foreach($trace as $t) {
-    if(! preg_match('/^Markup(_e)?$/i', $t['function'])) continue;
-    if($t['args'][0] !== $id) continue;
+    if (! preg_match('/^Markup(_e)?$/i', $t['function'])) continue;
+    if ($t['args'][0] !== $id) continue;
     $excl = $obsolete? "!" : " ";
     $msg = "$excl File: {$t['file']}, line: {$t['line']}"
       . ", pat: {$t['args'][2]}, rep: {$t['args'][3]}.";
-    if($obsolete) $ObsoleteMarkups[$id] = $msg;
+    if ($obsolete) $ObsoleteMarkups[$id] = $msg;
     return $msg;
   }
 }
@@ -2142,7 +2144,7 @@ function ObsoleteMarkup($m) {
   global $ObsoleteMarkups;
   $id = PHSC($markupid, ENT_QUOTES, null, false);
   $txt = PHSC($m[0], ENT_QUOTES, null, false);
-  if(isset($ObsoleteMarkups[$markupid])) {
+  if (isset($ObsoleteMarkups[$markupid])) {
     $dbg = PHSC($ObsoleteMarkups[$markupid], ENT_QUOTES, null, false);
   }
   else $dbg = '';
@@ -2309,7 +2311,7 @@ function AutoCheckToken() {
   elseif ($x==1) {
     if ( count($_POST) < 1 || pmtoken(''.@$_POST[$tname]) ) return true;
   }
-  elseif($x==2 && pmtoken(''.@$_GET[$tname])) return true;
+  elseif ($x==2 && pmtoken(''.@$_GET[$tname])) return true;
   
   $EnablePost = 0;
   $MessagesFmt[] = $BlockMessageFmt;
