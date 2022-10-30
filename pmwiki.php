@@ -591,7 +591,7 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
       ? $EnableFTimeNew
       : (PHP_VERSION_ID>=80100);
   }
-  
+
   if (@$fmt == '') $fmt = $FTimeFmt;
   $stamp = is_numeric($stamp)? intval($stamp) : $Now;
   
