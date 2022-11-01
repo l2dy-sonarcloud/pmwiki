@@ -450,8 +450,9 @@ function HandleDispatch($pagename, $action, $msg=NULL) {
 
 ## helper functions
 function stripmagic($x) {
+  if(is_null($x)) return '';
   $fn = 'get_magic_quotes_gpc';
-  if (!function_exists($fn)) return is_null($x)? '' : $x;
+  if (!function_exists($fn)) return $x;
   if (is_array($x)) {
     foreach($x as $k=>$v) $x[$k] = stripmagic($v);
     return $x;
@@ -2080,7 +2081,7 @@ function MakeLink($pagename,$tgt,$txt=NULL,$suffix=NULL,$fmt=NULL) {
   return preg_replace('/(<[^>]+)\\stitle=(""|\'\')/', '$1', $out);
 }
 
-function Markup($id, $when, $pat=NULL, $rep=NULL, $tracelev=0) {
+function Markup($id, $when, $pat=NULL, $rep=NULL) {
   global $MarkupTable, $EnableMarkupDiag, $ObsoleteMarkups;
   unset($GLOBALS['MarkupRules']);
   if (preg_match('/^([<>])?(.+)$/', $when, $m)) {

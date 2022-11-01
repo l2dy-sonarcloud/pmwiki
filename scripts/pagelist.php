@@ -196,7 +196,7 @@ function FmtPageList($outfmt, $pagename, $opt) {
   # Handle "group/" at the beginning of the form-submitted request
   if (preg_match("!^($GroupPattern(\\|$GroupPattern)*)?/!i", $rq, $match)) {
     $opt['group'] = @$match[1];
-    $rq = substr($rq, strlen(@$match[1])+1);
+    $rq = substr($rq, strlen(strval(@$match[1]))+1);
   }
   $opt = array_merge($opt, ParseArgs($opt['o'], $PageListArgPattern));
   # merge markup options with form and url
