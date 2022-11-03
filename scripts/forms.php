@@ -111,10 +111,6 @@ function MarkupInputForms($m) {
 Markup('input+sp', '<split', 
   '/(\\(:input\\s+(select|datalist)\\s(?>.*?:\\)))\\s+(?=\\(:input\\s)/', '$1');
 
-SDV($InputFocusFmt, 
-  "<script language='javascript' type='text/javascript'><!--
-   document.getElementById('\$InputFocusId').focus();//--></script>");
-
 ##  InputToHTML performs standard processing on (:input ...:) arguments,
 ##  and returns the formatted HTML string.
 function InputToHTML($pagename, $type, $args, &$opt) {
@@ -184,13 +180,9 @@ function InputToHTML($pagename, $type, $args, &$opt) {
     $FmtV['$InputFormLabel'] = " <label for=\"{$opt['id']}\"$lbtitle>{$opt['label']}</label> ";
   }
   ##  handle focus=# option
-  $focus = @$opt['focus'];
-  if (isset($focus)
-      && (!isset($InputFocusLevel) || $focus < $InputFocusLevel)) {
-    if (!isset($opt['id'])) $opt['id'] = "wikifocus$focus";
-    $InputFocusLevel = $focus;
-    $InputFocusId = $opt['id'];
-    $HTMLFooterFmt['inputfocus'] = $InputFocusFmt;
+  if (@$opt['focus']) {
+    unset($opt['focus']);
+    $opt['autofocus'] = 'autofocus';
   }
   ##  build $InputFormArgs from $opt
   $attrlist = (isset($opt[':attr'])) ? $opt[':attr'] : $InputAttrs;
