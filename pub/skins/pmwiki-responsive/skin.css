@@ -210,7 +210,7 @@ h6 { font-size:15px; }
 .wikiaction { margin-top:4px; margin-bottom:4px; }
 
 /* These control the fixed-width text elements of the page */
-pre, code { font-size:14px; }
+pre, code { font-size: .93333em; } /*14px didn't scale down in smaller text*/
 pre, code, .diffmarkup { font-family:'Lucida Console','Andale Mono','Courier New',Courier,monospace; }
 pre { line-height: 18px; }
 pre code, code code, pre pre { font-size:100%; }

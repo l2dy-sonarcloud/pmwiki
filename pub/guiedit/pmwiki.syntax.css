@@ -72,7 +72,8 @@
   --pmsyntax-radpad: 3px;
   --pmsyntax-fontfamily: monospace;
 
-  --pmsyntax-fontsize: 14px;
+  --pmsyntax-fontsize: .93333em;
+  --pmsyntax-fontsize-editform: 14px;
   --pmsyntax-lineheight: 1.3;
 
   /* color of the blinking cursor in the textarea */
@@ -89,7 +90,6 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 .pmhlt .pmtag, .pmhlt .pmpunct {
   font-weight: bold;
 }
-
 .pmhlt .pmcomment {
   color: var(--pmsyntax-comment);
 }
@@ -169,13 +169,14 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   padding: var(--pmsyntax-radpad);
   box-sizing: border-box;
   font-family: var(--pmsyntax-fontfamily);
-  font-size: var(--pmsyntax-fontsize);
+  font-size: var(--pmsyntax-fontsize-editform);
   line-height: var(--pmsyntax-lineheight);
   background-color: transparent;
   width: 100%;
   max-width: 100%;
   margin: 0;
   word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 #wikiedit #hwrap #htext {
   display: none;
