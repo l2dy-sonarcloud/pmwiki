@@ -11,7 +11,7 @@
     The CSS variables can be redefined in skins and in local customization in 
     order to adapt to other color themes.
 */
-#wikiedit #hwrap textarea#text, #wikiedit #htext, .pmhlt {
+#wikiedit #hwrap textarea#text, #wikiedit #htext, .pmhlt, #chk_hlt {
   /* base text color and background */
   --pmsyntax-color: inherit;
   --pmsyntax-bgcolor: inherit;
@@ -195,11 +195,12 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
 }
 #chk_hlt {
   float: right;
-  font-size: 90%;
+  font-size: var(--pmsyntax-fontsize);;
   cursor: pointer;
   user-select: none;
   position: relative;
   z-index: 3;
+  font-family: var(--pmsyntax-fontfamily);
 }
 #wikiedit #chk_hlt.pmhlt ~ * #text,
 #wikiedit #chk_hlt.pmhlt ~ #text {
