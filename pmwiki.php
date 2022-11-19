@@ -175,6 +175,8 @@ $HTTPHeaders = array(
   "Content-type: text/html; charset=ISO-8859-1;");
 $HTTPHeaders['XFO'] = 'X-Frame-Options: SAMEORIGIN';
 $HTTPHeaders['CSP'] = 'Content-Security-Policy: frame-ancestors \'self\';';
+$HTTPHeaders['XSSP'] = 'X-XSS-Protection: 1; mode=block';
+
 $CacheActions = array('browse','diff','print');
 $EnableHTMLCache = 0;
 $NoHTMLCache = 0;
