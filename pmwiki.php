@@ -174,7 +174,7 @@ $HTTPHeaders = array(
   "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=ISO-8859-1;");
 $HTTPHeaders['XFO'] = 'X-Frame-Options: SAMEORIGIN';
-$HTTPHeaders['CSP'] = 'Content-Security-Policy: frame-ancestors \'self\';';
+$HTTPHeaders['CSP'] = 'Content-Security-Policy: frame-ancestors \'self\'; base-uri \'self\'';
 $HTTPHeaders['XSSP'] = 'X-XSS-Protection: 1; mode=block';
 
 $CacheActions = array('browse','diff','print');
@@ -419,23 +419,23 @@ function pm_session_start($a = array()) {
   if (isset($EnableCookieSecure) && !isset($a['secure']))
     $a['secure'] = $EnableCookieSecure;
   if (isset($EnableCookieHTTPOnly) && !isset($a['httponly']))
+    $a['httponly'] = $EnableCookieHTTPOnly;
   if (!isset($a['samesite'])) $a['samesite'] = IsEnabled($CookieSameSite, 'Lax');
-  
-  $params = array_merge($params, $a);
+  SDVA($a, $params);
   
   if (PHP_VERSION_ID < 70300) {
-    if (!$params['path']) $params['path'] = '/';
-    $params['path'] .= "; SameSite={$a['samesite']}";
+    if (!$a['path']) $a['path'] = '/';
+    $a['path'] .= "; SameSite={$a['samesite']}";
     session_set_cookie_params(
-      $params['lifetime'],
-      $params['path'],
-      $params['domain'],
-      $params['secure'],
-      $params['httponly']
+      $a['lifetime'],
+      $a['path'],
+      $a['domain'],
+      $a['secure'],
+      $a['httponly']
     );
   }
   else {
-    session_set_cookie_params($params);
+    session_set_cookie_params($a);
   }
   return session_start();
 }
