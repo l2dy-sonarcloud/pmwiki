@@ -174,7 +174,7 @@ $HTTPHeaders = array(
   "Cache-Control: no-store, no-cache, must-revalidate",
   "Content-type: text/html; charset=ISO-8859-1;");
 $HTTPHeaders['XFO'] = 'X-Frame-Options: SAMEORIGIN';
-$HTTPHeaders['CSP'] = 'Content-Security-Policy: frame-ancestors \'self\'; base-uri \'self\'';
+$HTTPHeaders['CSP'] = "Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none';";
 $HTTPHeaders['XSSP'] = 'X-XSS-Protection: 1; mode=block';
 
 $CacheActions = array('browse','diff','print');
