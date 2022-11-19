@@ -388,18 +388,56 @@ if (isset($PostConfig) && is_array($PostConfig)) {
   }
 }
 
-function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $httponly=null) {
-  global $EnableCookieSecure, $EnableCookieHTTPOnly, $SetCookieFunction;
+function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $httponly=null, $samesite=null) {
+  global $EnableCookieSecure, $EnableCookieHTTPOnly, $SetCookieFunction, $CookieSameSite;
   if (IsEnabled($SetCookieFunction))
-    return $SetCookieFunction($name, $val, $exp, $path, $dom, $secure, $httponly);
+    return $SetCookieFunction($name, $val, $exp, $path, $dom, $secure, $httponly, $samesite);
   if (is_null($secure))   $secure   = IsEnabled($EnableCookieSecure,   false);
   if (is_null($httponly)) $httponly = IsEnabled($EnableCookieHTTPOnly, false);
-  setcookie($name, $val, $exp, $path, $dom, $secure, $httponly);
+  if (is_null($samesite)) $samesite = IsEnabled($CookieSameSite, 'Lax');
+  
+  if (PHP_VERSION_ID>=70300) {
+    return setcookie($name, $val, array(
+       'expires' => $exp, 
+       'path' => $path, 
+       'domain' => $dom, 
+       'secure' => $secure, 
+       'httponly' => $httponly,
+       'samesite' => $samesite
+    ));
+  }
+  if (!$path) $path = '/';
+  setcookie($name, $val, $exp, "$path; SameSite=$samesite", $dom, $secure, $httponly);
 }
-if (IsEnabled($EnableCookieSecure, false)) 
-    @ini_set('session.cookie_secure', $EnableCookieSecure);
-if (IsEnabled($EnableCookieHTTPOnly, false)) 
-    @ini_set('session.cookie_httponly', $EnableCookieHTTPOnly);
+function pm_session_start($a = array()) {
+  global $EnableCookieSecure, $EnableCookieHTTPOnly, $CookieSameSite;
+  if(session_status() == PHP_SESSION_ACTIVE) return true;
+  
+  $params = session_get_cookie_params();
+  if (isset($EnableCookieSecure) && !isset($a['secure']))
+    $a['secure'] = $EnableCookieSecure;
+  if (isset($EnableCookieHTTPOnly) && !isset($a['httponly']))
+  if (!isset($a['samesite'])) $a['samesite'] = IsEnabled($CookieSameSite, 'Lax');
+  
+  $params = array_merge($params, $a);
+  
+  if (PHP_VERSION_ID < 70300) {
+    if (!$params['path']) $params['path'] = '/';
+    $params['path'] .= "; SameSite={$a['samesite']}";
+    session_set_cookie_params(
+      $params['lifetime'],
+      $params['path'],
+      $params['domain'],
+      $params['secure'],
+      $params['httponly']
+    );
+  }
+  else {
+    session_set_cookie_params($params);
+  }
+  return session_start();
+}
+
 
 foreach((array)$InterMapFiles as $f) {
   $f = FmtPageName($f, $pagename);
@@ -744,7 +782,7 @@ function pmtoken($token = null) {
   global $SessionMaxTokens, $PmTokenFn;
   if (IsEnabled($PmTokenFn) && function_exists($PmTokenFn))
     return $PmTokenFn($token);
-  @session_start();
+  pm_session_start();
   if (!isset($_SESSION['pmtokens'])) $_SESSION['pmtokens'] = array();
   if (is_null($token)) { # create a one-time token
     $len = mt_rand(20,30);
@@ -2732,7 +2770,7 @@ function SessionAuth($pagename, $auth = NULL) {
   if (!$auth && ($called > 1 || (!@$_REQUEST[$sn] && !@$_COOKIE[$sn]))) return;
 
   $sid = session_id();
-  @session_start();
+  pm_session_start();
   if ($called == 1 && isset($_POST['authpw']) && $_POST['authpw']
     && IsEnabled($EnableAuthPostRegenerateSID, true) && $sid) {
     @session_regenerate_id();
@@ -2848,7 +2886,7 @@ function HandlePostAttr($pagename, $auth = 'attr') {
   WritePage($pagename,$page);
   Lock(0);
   if (IsEnabled($EnablePostAttrClearSession, 1)) {
-    @session_start();
+    pm_session_start();
     unset($_SESSION['authid']);
     unset($_SESSION['authlist']);
     $_SESSION['authpw'] = array();
@@ -2862,7 +2900,7 @@ function HandleLogoutA($pagename, $auth = 'read') {
   global $LogoutRedirectFmt, $LogoutCookies;
   SDV($LogoutRedirectFmt, '$FullName');
   SDV($LogoutCookies, array());
-  @session_start();
+  pm_session_start();
   $_SESSION = array();
   if ( session_id() != '' || isset($_COOKIE[session_name()]) )
     pmsetcookie(session_name(), '', time()-43200, '/');

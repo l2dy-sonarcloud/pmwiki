@@ -167,7 +167,7 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   if (@$opt['secure'] == '#') $opt['secure'] = rand();
   if (@$opt['secure'] > '') {
     $md5 = md5($opt['secure'] . $opt['value']);
-    @session_start(); 
+    pm_session_start(); 
     $_SESSION['forms'][$md5] = $opt['value'];
     $opt['value'] = $md5;
   }

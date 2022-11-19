@@ -16,7 +16,7 @@
 if ($action=='diag') {
   @ini_set('track_errors','1');
   @ini_set('display_errors', '1');
-  @session_start();
+  pm_session_start();
   header('Content-type: text/plain');
   print_r($GLOBALS);
   exit();
