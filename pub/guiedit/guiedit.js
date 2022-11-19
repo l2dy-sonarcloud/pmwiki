@@ -142,8 +142,20 @@ window.addEventListener('DOMContentLoaded', function(){
 function newButtons(){
   var el = dqs('.GUIButtons');
   if(! el) return;
-  var buttons = JSON.parse(el.dataset.json
-    .replace(/\\\\n/g, '\\n').replace(/\\\\/g, '\\').replace(/%25/g, '%'));
+  
+  function unxp(a) {
+    if(typeof a == 'number') return a;
+    if(typeof a == 'string')
+      return a.replace(/\\n/g, '\n')
+        .replace(/\\\\/g, '\\').replace(/%25/g, '%');
+    var b = [];
+    for(var i=0; i<a.length; i++) {
+      b[i] = unxp(a[i]);
+    }
+    return b;
+  }
+  var buttons = unxp(JSON.parse(el.dataset.json));
+  
   for(var i=0; i<buttons.length; i++) {
     var b = buttons[i];
     if(!b || !b.length) continue;
@@ -154,7 +166,7 @@ function newButtons(){
     }
     var x = tag.match(/^(.*\.(gif|jpg|png|webp|svg))("([^"]+)")?$/);
     if(x) {
-      var title = x[4]? 'title="'+x[4]+'"' : '';
+      var title = x[4]? 'alt="'+x[4]+'" title="'+x[4]+'"' : '';
       tag = "<img src='"+x[1]+"' "+title+" style='border:0px;' />";
     }
     var a = document.createElement('a');
