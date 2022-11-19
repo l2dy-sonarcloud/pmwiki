@@ -142,7 +142,8 @@ window.addEventListener('DOMContentLoaded', function(){
 function newButtons(){
   var el = dqs('.GUIButtons');
   if(! el) return;
-  var buttons = JSON.parse(el.dataset.json.replace(/\\\\n/g, '\\n'));
+  var buttons = JSON.parse(el.dataset.json
+    .replace(/\\\\n/g, '\\n').replace(/\\\\/g, '\\').replace(/%25/g, '%'));
   for(var i=0; i<buttons.length; i++) {
     var b = buttons[i];
     if(!b || !b.length) continue;
