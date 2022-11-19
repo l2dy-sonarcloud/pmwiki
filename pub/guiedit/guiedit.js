@@ -143,7 +143,6 @@ function newButtons(){
   var el = dqs('.GUIButtons');
   if(! el) return;
   var buttons = JSON.parse(el.dataset.json.replace(/\\\\n/g, '\\n'));
-  console.log(buttons);
   for(var i=0; i<buttons.length; i++) {
     var b = buttons[i];
     if(!b || !b.length) continue;
@@ -167,8 +166,7 @@ function newButtons(){
     a.className = 'newbutton';
     el.appendChild(a);
   }
-  tap('.GUIButtons .newbutton', function(e){
-    console.log(this.dataset);
+  tap('.GUIButtons a.newbutton', function(e){
     insMarkup(this.dataset.mopen, this.dataset.mclose, this.dataset.mtext);
   });
 }
