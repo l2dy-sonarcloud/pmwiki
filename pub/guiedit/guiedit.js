@@ -4,7 +4,7 @@
     by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.  See pmwiki.php for full details.
 
-    This file provides Javascript functions to support WYSIWYG-style
+    This file provides JavaScript functions to support WYSIWYG-style
     editing.  The concepts are borrowed from the editor used in Wikipedia,
     but the code has been rewritten from scratch to integrate better with
     PHP and PmWiki's codebase.
@@ -87,7 +87,6 @@ function aE(el, ev, fn) {
 function dqs(str)  { return document.querySelector(str); }
 function dqsa(str) { return document.querySelectorAll(str); }
 function tap(q, fn) { aE(q, 'click', fn); };
-function adata(el, x) { return el.getAttribute("data-"+x); }
 function FixSelectedURL(str) {
   var rx = new RegExp("[ <>\"{}|\\\\^`()\\[\\]']", 'g');
   str = str.replace(rx, function(a){
@@ -96,6 +95,8 @@ function FixSelectedURL(str) {
 }
 
 window.addEventListener('DOMContentLoaded', function(){
+  newButtons();
+  
   var NsForm = false;
 
   var sTop = dqs("#textScrollTop");
@@ -133,6 +134,44 @@ window.addEventListener('DOMContentLoaded', function(){
   }
   if(dqs('#EnableEditAutoText')) EditAutoText();
 });
+
+/*
+ *  New GUI edit buttons, without inline JavaScript
+ *  (c) 2022 Petko Yotov www.pmwiki.org/petko
+ */
+function newButtons(){
+  var el = dqs('.GUIButtons');
+  if(! el) return;
+  var buttons = JSON.parse(el.dataset.json.replace(/\\\\n/g, '\\n'));
+  console.log(buttons);
+  for(var i=0; i<buttons.length; i++) {
+    var b = buttons[i];
+    if(!b || !b.length) continue;
+    var mopen=b[1], mclose=b[2], mtext=b[3], tag=b[4], mkey=b[5];
+    if(tag.charAt(0) == '<') {
+      el.insertAdjacentHTML('beforeend', tag);
+      continue;
+    }
+    var x = tag.match(/^(.*\.(gif|jpg|png|webp|svg))("([^"]+)")?$/);
+    if(x) {
+      var title = x[4]? 'title="'+x[4]+'"' : '';
+      tag = "<img src='"+x[1]+"' "+title+" style='border:0px;' />";
+    }
+    var a = document.createElement('a');
+    a.setAttribute('tabindex', -1);
+    if(mkey) a.setAttribute('accesskey', mkey);
+    a.dataset.mopen = mopen;
+    a.dataset.mclose = mclose;
+    a.dataset.mtext = mtext;    
+    a.innerHTML = tag;
+    a.className = 'newbutton';
+    el.appendChild(a);
+  }
+  tap('.GUIButtons .newbutton', function(e){
+    console.log(this.dataset);
+    insMarkup(this.dataset.mopen, this.dataset.mclose, this.dataset.mtext);
+  });
+}
 
 /*
  *  Edit helper for PmWiki

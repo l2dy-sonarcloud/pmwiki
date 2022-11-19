@@ -38,7 +38,7 @@ if(IsEnabled($EnableGUIButtons,0)) {
                     '$[ak_strong]'),
     'pagelink' => array(200, '[[', ']]', '$[Page link]',
                     '$GUIButtonDirUrlFmt/pagelink.gif"$[Link to internal page]"'),
-    'extlink'  => array(210, '[[', ']]', 'http:// | $[link text]',
+    'extlink'  => array(210, '[[', ']]', 'https:// | $[link text]',
                     '$GUIButtonDirUrlFmt/extlink.gif"$[Link to external page]"'),
     'big'      => array(300, "'+", "+'", '$[Big text]',
                     '$GUIButtonDirUrlFmt/big.gif"$[Big text]"'),
@@ -62,34 +62,17 @@ if(IsEnabled($EnableGUIButtons,0)) {
     '/\\(:e_guibuttons:\\)/', 'GUIButtonCode');
 }
 
-function cb_gbcompare($a, $b) {return $a[0]-$b[0];}
 function GUIButtonCode() {
   global $GUIButtons;
   extract($GLOBALS["MarkupToHTML"]); # get $pagename
 
   usort($GUIButtons, 'cb_gbcompare');
-
-  $out = "<script type='text/javascript'><!--\n";
-  foreach ($GUIButtons as $k => $g) {
-    if (!$g) continue;
-    @list($when, $mopen, $mclose, $mtext, $tag, $mkey) = $g;
-    if (@$ta[0] == '<') { 
-        $out .= "document.write(\"$tag\");\n";
-        continue; 
-    }
-    if (preg_match('/^(.*\\.(gif|jpg|png))("([^"]+)")?$/', $tag, $m)) {
-      $title = (@$m[4] > '') ? "title='{$m[4]}'" : '';
-      $tag = "<img src='{$m[1]}' $title style='border:0px;' />";
-    }
-    $mopen = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mopen);
-    $mclose = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mclose);
-    $mtext = str_replace(array('\\', "'"), array('\\\\', "\\\\'"), $mtext);
-    $out .= 
-      "insButton(\"$mopen\", \"$mclose\", '$mtext', \"$tag\", \"$mkey\");\n";
-  }
-  $out .= '//--></script>';
+  
+  $json = PHSC(json_encode($GUIButtons));
+  $out = "<span class='GUIButtons' data-json=\"$json\"></span>";
   return Keep(FmtPageName($out, $pagename));
 }
+function cb_gbcompare($a, $b) {return $a[0]-$b[0];}
 
 
 
