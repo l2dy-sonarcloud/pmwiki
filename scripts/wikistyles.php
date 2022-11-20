@@ -165,7 +165,6 @@ function ApplyStyles($x) {
       foreach((array)$s as $k=>$v) {
         $v = trim($v);
         if ($wt) $ws = str_replace('$1', "$ns$k='$v'", $wt);
-        if ($k == 'class' && $v) $spanattr = "{$ns}class='$v'";
         elseif ($k=='id') $id = preg_replace('/[^-A-Za-z0-9:_.]+/', '_', $v);
         elseif (($k=='width' || $k=='height') && !@$WikiStyleApply[$a]
             && preg_match("/\\s*<$imgTag\\b/", $p)) 
@@ -175,8 +174,10 @@ function ApplyStyles($x) {
           $p = preg_replace(
                  "/<({$WikiStyleAttr[$k]}(?![^>]*\\s(?:$ns)?$k=))([^>]*)>/s",
                  "$ws<$1 $ns$k='$v' $2>", $p);
-        elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
+        elseif (preg_match($wikicsspat,$k)) WikiStyleToClassName("$k: $v;", $s);
       }
+      if (@$s['class']) $spanattr = "{$ns}class='{$s['class']}'";
+      
       if ($stylev) $spanattr .= " {$ns}style='".implode(' ',$stylev)."'";
       if ($id) $spanattr .= " {$ns}id='$id'";
       if ($spanattr) {
@@ -202,3 +203,17 @@ function ApplyStyles($x) {
   return $out;
 }
 
+## This function replaces inline style attributes with class names to avoid CSP
+## styles 'unsafe-inline'. Written by Petko Yotov 2022 pmwiki.org/petko
+function WikiStyleToClassName($ws, &$s) {
+  global $HTMLStylesFmt;
+  static $classes = array();
+  if (!isset($HTMLStylesFmt['wsclasses'])) $HTMLStylesFmt['wsclasses'] = array();
+  if (!@$classes[$ws]) {
+    $c = "-pm--" . count($classes);
+    $classes[$ws] = $c;
+    $HTMLStylesFmt['wsclasses'][$ws] = ".$c { $ws }\n";
+  }
+  if (@$s['class']) $s['class'] .= " {$classes[$ws]}";
+  else $s['class'] = $classes[$ws];
+}
