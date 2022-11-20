@@ -517,7 +517,7 @@ Markup('det-summ', '<table', '/(\\(:details[ ].*?)summary=(?:([\'"])(.*?)\\2
 
 function SimpleTableAttr($attr) {
   global $SimpleTableDefaultClassName;
-  $qattr = PQA($attr);
+  $qattr = PQA($attr, true, true);
   if(IsEnabled($SimpleTableDefaultClassName) && !preg_match("/(^| )class='.*?' /", $qattr))
     $qattr .= "class='$SimpleTableDefaultClassName'";
   return $qattr;
@@ -526,7 +526,7 @@ function SimpleTableAttr($attr) {
 #### (:table:) markup (AdvancedTables)
 function Cells($name,$attr) {
   global $MarkupFrame, $EnableTableAutoValignTop;
-  $attr = PQA($attr);
+  $attr = PQA($attr, true, true);
   $tattr = @$MarkupFrame[0]['tattr'];
   $name = strtolower($name);
   $key = preg_replace('/end$/', '', $name);

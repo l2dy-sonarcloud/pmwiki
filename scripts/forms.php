@@ -135,7 +135,7 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   if (isset($opt['id'])) $opt['id'] = preg_replace('/[^-A-Za-z0-9:_.]+/', '_', $opt['id']);
   ##  convert any remaining positional args to flags
   foreach ((array)@$opt[''] as $a) 
-    { $a = strtolower($a); if (!isset($opt[$a])) $opt[$a] = $a; }
+    { $a = strtolower($a); if ( preg_match('/^\\w+$/', $a) && !isset($opt[$a])) $opt[$a] = $a; }
   if (isset($opt['name'])) {
     $opt['name'] = preg_replace('/^\\$:/', 'ptv_', @$opt['name']);
     $opt['name'] = preg_replace('/[^-A-Za-z0-9:_.\\[\\]]+/', '_', $opt['name']);
