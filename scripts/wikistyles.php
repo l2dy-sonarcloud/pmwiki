@@ -185,7 +185,7 @@ function ApplyStyles($x) {
         if (!@$WikiStyleApply[$a]) {
           $p = preg_replace("!^(.*?)($|</?($BlockPattern))!s", 
                             "$ws<$spanTag $spanattr>$1</$spanTag>$2", $p, 1);
-}
+        }
         elseif (!preg_match('/^(\\s*<[^>]+>)*$/s',$p) ||
                 preg_match("/<$imgTag\\b/", $p)) {
           $p = preg_replace("/<({$WikiStyleApply[$a]})\\b/",
