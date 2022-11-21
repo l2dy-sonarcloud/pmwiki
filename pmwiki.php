@@ -1673,10 +1673,10 @@ function PrePrintFmt($pagename,$fmt) {
     elseif (substr($x, 0, 5) == 'page:')
       $fmt[$k] = PrintWikiPage($pagename, substr($x, 5), '', true);
     elseif (substr($x, 0, 9) == 'function:') {
-        ob_start();
-        PrintFmt($pagename,$x);
-        $fmt[$k] = ob_get_contents();
-        ob_end_clean();
+      ob_start();
+      PrintFmt($pagename,$x);
+      $fmt[$k] = ob_get_contents();
+      ob_end_clean();
     }
   }
   return $fmt;
