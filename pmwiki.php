@@ -513,7 +513,8 @@ function PRR($x=NULL)
 function PUE($x)
   { return $x? preg_replace_callback('/[\\x80-\\xff \'"<>]/', "cb_pue", $x) : ''; }
 function cb_pue($m) { return '%'.dechex(ord($m[0])); }
-function PQA($x, $keep=true, $styletoclass=false) { 
+function PQA($x, $keep=true, $styletoclass=false) {
+  global $EnableUnsafeInlineStyle;
   if (!@$x) return ''; # PHP 8.1
   $out = '';
   $s = array();
@@ -525,6 +526,7 @@ function PQA($x, $keep=true, $styletoclass=false) {
       $val = preg_replace('/^([\'"]?)(.*)\\1$/', '$2', $a[2]);
       $s[$a[1]] = $val;
     }
+    if (!IsEnabled($EnableUnsafeInlineStyle)) unset($s['style']);
     if ($styletoclass && @$s['style'] && function_exists('WikiStyleToClassName')) {
       WikiStyleToClassName($s['style'], $s);
       unset($s['style']);
@@ -1661,27 +1663,21 @@ function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
 ## headers and styles, to allow recipes and wikistyles from sidebars and footers 
 function PrePrintFmt($pagename,$fmt) {
   global $PageStartFmt;
+  ob_start();
   foreach($fmt as $k=>$x) {
-    # &$PageStartFmt processed after pages for (:noleft:) etc. to work
+    # $PageStartFmt processed after pages, for (:noleft:) etc. to work
     if ($x == $PageStartFmt) continue;
     if (is_array($x)) {
       $fmt[$k] = PrePrintFmt($pagename,$x);
       continue;
     }
-    $x = FmtPageName($x,$pagename);
-    if (substr($x, 0, 7) == 'markup:')
-      $fmt[$k] = MarkupToHTML($pagename, substr($x, 7));
-    elseif (substr($x, 0, 5) == 'wiki:')
-      $fmt[$k] = PrintWikiPage($pagename, substr($x, 5), 'read', true);
-    elseif (substr($x, 0, 5) == 'page:')
-      $fmt[$k] = PrintWikiPage($pagename, substr($x, 5), '', true);
-    elseif (substr($x, 0, 9) == 'function:') {
-      ob_start();
+    if (preg_match('/^(markup|wiki|page|function):/', $x)) {
       PrintFmt($pagename,$x);
       $fmt[$k] = ob_get_contents();
-      ob_end_clean();
+      ob_clean();
     }
   }
+  ob_end_clean();
   return $fmt;
 }
 
