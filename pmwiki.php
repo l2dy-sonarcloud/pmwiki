@@ -517,6 +517,7 @@ function PQA($x, $keep=true, $styletoclass=false) {
   if (!@$x) return ''; # PHP 8.1
   $out = '';
   $s = array();
+  $x = MarkupRestore($x);
   if (preg_match_all('/([a-zA-Z][-\\w]*)\\s*=\\s*("[^"]*"|\'[^\']*\'|\\S*)/',
                      $x, $attr, PREG_SET_ORDER)) {
     foreach($attr as $a) {
@@ -529,8 +530,8 @@ function PQA($x, $keep=true, $styletoclass=false) {
       unset($s['style']);
     }
     foreach($s as $key=>$val) {
-      if ($keep) $val = Keep(PHSC($val, ENT_QUOTES, null, false));
-      else $val = str_replace("'", '&#39;', $val);
+      $val = PHSC($val, ENT_QUOTES, null, false);
+      if ($keep) $val = Keep($val);
       $out .= "$key='$val' ";
     }
   }
