@@ -1660,7 +1660,10 @@ function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
 ## This function processes any wiki pages and functions to HTML before printing 
 ## headers and styles, to allow recipes and wikistyles from sidebars and footers 
 function PrePrintFmt($pagename,$fmt) {
+  global $PageStartFmt;
   foreach($fmt as $k=>$x) {
+    # &$PageStartFmt processed after pages for (:noleft:) etc. to work
+    if ($x == $PageStartFmt) continue;
     if (is_array($x)) {
       $fmt[$k] = PrePrintFmt($pagename,$x);
       continue;
