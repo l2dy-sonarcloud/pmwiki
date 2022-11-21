@@ -196,9 +196,12 @@ function LoadPageTemplate($pagename,$tfilefmt) {
 # according to the settings in $TmplDisplay.
 function PrintSkin($pagename, $arg) {
   global $TmplFmt, $TmplDisplay;
+  $fmt = array();
   foreach ($TmplFmt[$arg] as $k => $v) 
     if (!isset($TmplDisplay[$k]) || $TmplDisplay[$k])
-      PrintFmt($pagename, $v);
+      $fmt[] = $v;
+  
+  PrintFmt($pagename, $fmt);
 }
 
 # This function parses a wiki page like Site.LocalCSS

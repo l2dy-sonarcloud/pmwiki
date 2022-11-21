@@ -1657,10 +1657,38 @@ function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
   exit;
 }
 
+## This function processes any wiki pages and functions to HTML before printing 
+## headers and styles, to allow recipes and wikistyles from sidebars and footers 
+function PrePrintFmt($pagename,$fmt) {
+  foreach($fmt as $k=>$x) {
+    if (is_array($x)) {
+      $fmt[$k] = PrePrintFmt($pagename,$x);
+      continue;
+    }
+    $x = FmtPageName($x,$pagename);
+    if (substr($x, 0, 7) == 'markup:')
+      $fmt[$k] = MarkupToHTML($pagename, substr($x, 7));
+    elseif (substr($x, 0, 5) == 'wiki:')
+      $fmt[$k] = PrintWikiPage($pagename, substr($x, 5), 'read', true);
+    elseif (substr($x, 0, 5) == 'page:')
+      $fmt[$k] = PrintWikiPage($pagename, substr($x, 5), '', true);
+    elseif (substr($x, 0, 9) == 'function:') {
+        ob_start();
+        PrintFmt($pagename,$x);
+        $fmt[$k] = ob_get_contents();
+        ob_end_clean();
+    }
+  }
+  return $fmt;
+}
+
 function PrintFmt($pagename,$fmt) {
   global $HTTPHeaders,$FmtV;
-  if (is_array($fmt)) 
-    { foreach($fmt as $f) PrintFmt($pagename,$f); return; }
+  if (is_array($fmt)) {
+    $fmt = PrePrintFmt($pagename,$fmt);
+    foreach($fmt as $f) PrintFmt($pagename,$f); 
+    return; 
+  }
   if ($fmt == 'headers:') {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);
     return;
@@ -1687,18 +1715,22 @@ function PrintFmt($pagename,$fmt) {
   echo $x;
 }
 
-function PrintWikiPage($pagename, $wikilist=NULL, $auth='read') {
+function PrintWikiPage($pagename, $wikilist=NULL, $auth='read', $return=false) {
   if (is_null($wikilist)) $wikilist=$pagename;
   $pagelist = preg_split('/\s+/',$wikilist,-1,PREG_SPLIT_NO_EMPTY);
   foreach($pagelist as $p) {
     if (PageExists($p)) {
       $page = ($auth) ? RetrieveAuthPage($p, $auth, false, READPAGE_CURRENT)
               : ReadPage($p, READPAGE_CURRENT);
-      if (@$page['text']) 
-        echo MarkupToHTML($pagename,Qualify($p, $page['text']));
-      return;
+      if (@$page['text']) {
+        $html = MarkupToHTML($pagename,Qualify($p, $page['text']));
+        if ($return) return $html;
+        echo $html;
+      }
+      return '';
     }
   }
+  return '';
 }
 
 function Keep($x, $pool=NULL) {
