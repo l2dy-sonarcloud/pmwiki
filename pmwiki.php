@@ -760,8 +760,11 @@ function PPRA($array, $x) {
 ## callback functions
 class PPRC { # PmWiki preg replace callbacks + pass local vars
   var $vars;
-  function __construct($vars = false) {
-    if ($vars && !is_null($vars)) $this->vars = $vars;
+  var $cb;
+  function __construct($vars = null, $cb = null) {
+    if (!is_null($vars)) $this->vars = $vars;
+    if (!is_null($cb)) $this->cb = $cb;
+    
   }
   function pagevar($m) { # called from FmtPageName
     $pagename = $this->vars;
@@ -770,6 +773,10 @@ class PPRC { # PmWiki preg replace callbacks + pass local vars
   function ftime($m) { # called from PSFT
     $vars = $this->vars;
     return cb_PSFT($m[0], $vars);
+  }
+  function callback($m) {
+    $cb = $this->cb;
+    return $cb($m, $this->vars);
   }
 }
 

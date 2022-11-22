@@ -174,7 +174,7 @@ function ApplyStyles($x) {
           $p = preg_replace(
                  "/<({$WikiStyleAttr[$k]}(?![^>]*\\s(?:$ns)?$k=))([^>]*)>/s",
                  "$ws<$1 $ns$k='$v' $2>", $p);
-        elseif (preg_match($wikicsspat,$k)) WikiStyleToClassName("$k: $v;", $s);
+        elseif (preg_match($wikicsspat,$k)) WikiStyleToClassName("$k: $v", $s);
       }
       if (@$s['class']) $spanattr = "{$ns}class='{$s['class']}'";
       
@@ -192,7 +192,7 @@ function ApplyStyles($x) {
                  "$ws<$1 $spanattr", $p);
         }
       }
-      if (@$s['color']) {
+      if (0 && @$s['color']) { # Is this still needed?
         $colorattr = "{$ns}style='color: {$s['color']}'";
         if ($wt) $ws = str_replace('$1', $colorattr, $wt);
         $p = preg_replace("/<$aTag\\b/", "$ws<$aTag $colorattr", $p);
@@ -212,8 +212,11 @@ function WikiStyleToClassName($ws, &$s) {
   if (!@$classes[$ws]) {
     $c = "-pm--" . count($classes);
     $classes[$ws] = $c;
-    $HTMLStylesFmt['wsclasses'][$ws] = ".$c { $ws }\n";
+    $HTMLStylesFmt['wsclasses'][$ws] = ".$c{{$ws};}\n";
+    if (substr($ws, 0, 6)=='color:') 
+      $HTMLStylesFmt['wsclasses'][$ws] .= ".$c a{{$ws} !important;}\n";
   }
   if (@$s['class']) $s['class'] .= " {$classes[$ws]}";
   else $s['class'] = $classes[$ws];
+  return $classes[$ws];
 }
