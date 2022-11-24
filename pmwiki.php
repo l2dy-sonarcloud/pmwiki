@@ -2595,7 +2595,7 @@ function AutoCreateTargets($pagename, &$page, &$new) {
 
 function PreviewPage($pagename,&$page,&$new) {
   global $IsPageSaved, $FmtV, $ROSPatterns, $PCache, 
-    $IncludedPages, $EnableListIncludedPages;
+    $HTMLStylesFmt, $IncludedPages, $EnableListIncludedPages;
   $text = ProcessROESPatterns($new['text'], $ROSPatterns);
   $text = '(:groupheader:)'.$text.'(:groupfooter:)';
   $IncludedPages = array();
@@ -2605,7 +2605,8 @@ function PreviewPage($pagename,&$page,&$new) {
   if (IsEnabled($EnableListIncludedPages,0) && $cnt) {
     $label = XL('Text or data included from other pages');
     $edit = XL('Edit');
-    $out = "<br/><details class='inclpages' style='display: inline-block;'>"
+    SDV($HTMLStylesFmt['inclpages'], 'details.inclpages {display: inline-block;}');
+    $out = "<br/><details class='inclpages'>"
       . "<summary>($cnt) $label</summary><ul>\n";
     sort($incp);
     foreach($incp as $pn) {

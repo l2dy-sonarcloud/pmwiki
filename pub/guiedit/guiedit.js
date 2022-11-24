@@ -167,7 +167,7 @@ function newButtons(){
     var x = tag.match(/^(.*\.(gif|jpg|png|webp|svg))("([^"]+)")?$/);
     if(x) {
       var title = x[4]? 'alt="'+x[4]+'" title="'+x[4]+'"' : '';
-      tag = "<img src='"+x[1]+"' "+title+" style='border:0px;' />";
+      tag = "<img src='"+x[1]+"' "+title+" />";
     }
     var a = document.createElement('a');
     a.setAttribute('tabindex', -1);

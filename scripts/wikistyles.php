@@ -86,6 +86,7 @@ if (IsEnabled($EnableStdWikiStyles,1)) {
     'width' => '200px', 'apply' => 'block', 'text-align' => 'center'));
   ##  preformatted text sections
   SDV($WikiStyle['pre'], array('apply' => 'block', 'white-space' => 'pre'));
+  SDV($WikiStyle['notoc'], array('apply' => 'block', 'class' => 'notoc'));
   SDV($WikiStyle['sidehead'], array('apply' => 'block', 'class' => 'sidehead'));
   SDV($WikiStyle['reversed'], array('apply' => 'list', 'reversed' => 'reversed'));
 }
