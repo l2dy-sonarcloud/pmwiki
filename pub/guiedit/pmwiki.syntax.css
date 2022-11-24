@@ -87,6 +87,9 @@ code.pmhlt, .pmhlt code, #htext.pmhlt {
   font-family: var(--pmsyntax-fontfamily);
   font-size: var(--pmsyntax-fontsize);
 }
+#htext.pmhlt, #htext.pmhlt code, #htext.pmhlt code.hljs {
+  font-size: var(--pmsyntax-fontsize-editform);  
+}
 .pmhlt .pmtag, .pmhlt .pmpunct {
   font-weight: bold;
 }
