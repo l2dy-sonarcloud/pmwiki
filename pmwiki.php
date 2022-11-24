@@ -152,6 +152,7 @@ $FmtPV = array(
   '$DefaultName'  => '$GLOBALS["DefaultName"]',
   '$BaseName'     => 'MakeBaseName($pn)',
   '$Action'       => '$GLOBALS["action"]',
+  '$Nonce'        => 'PmNonce()',
   '$PasswdRead'   => 'PasswdVar($pn, "read")',
   '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
   '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
@@ -198,7 +199,7 @@ $HTMLStylesFmt['pmwiki'] = "
   img { border:0px; }
   ";
 $HTMLHeaderFmt['styles'] = array(
-  "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
+  "<style nonce='{\$Nonce}' type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
 $HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
   &$HTMLBodyFmt);
@@ -527,7 +528,8 @@ function PQA($x, $keep=true, $styletoclass=false) {
       $s[$a[1]] = $val;
     }
     if (!IsEnabled($EnableUnsafeInlineStyle)) unset($s['style']);
-    if ($styletoclass && @$s['style'] && function_exists('WikiStyleToClassName')) {
+    if ($styletoclass && @$s['style'] && function_exists('WikiStyleToClassName')
+        && @$EnableUnsafeInlineStyle == 2) {
       WikiStyleToClassName($s['style'], $s);
       unset($s['style']);
     }
@@ -828,6 +830,19 @@ function pmtoken($token = null) {
   }
   return false;
 }
+
+function PmNonce() {
+  static $nonce;
+  if (is_null($nonce)) {
+    if (function_exists('random_bytes')) {
+      $nonce = bin2hex(random_bytes(5));
+    }
+    else $nonce = mt_rand();
+  }
+  return $nonce;
+}
+
+
 
 function StopWatch($x) { 
   global $StopWatch, $EnableStopWatch;
