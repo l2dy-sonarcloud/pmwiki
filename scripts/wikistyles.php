@@ -209,12 +209,13 @@ function WikiStyleToClassName($ws, &$s) {
   global $HTMLStylesFmt;
   static $classes = array();
   if (!isset($HTMLStylesFmt['wsclasses'])) $HTMLStylesFmt['wsclasses'] = array();
+  $ws = preg_replace('/;\\s*$/', '', $ws); # could come from PQA()
   if (!@$classes[$ws]) {
     $c = "-pm--" . count($classes);
     $classes[$ws] = $c;
     $HTMLStylesFmt['wsclasses'][$ws] = ".$c{{$ws};}\n";
     if (substr($ws, 0, 6)=='color:') 
-      $HTMLStylesFmt['wsclasses'][$ws] .= ".$c a{{$ws} !important;}\n";
+      $HTMLStylesFmt['wsclasses'][$ws] .= ".$c > a{{$ws} !important;}\n";
   }
   if (@$s['class']) $s['class'] .= " {$classes[$ws]}";
   else $s['class'] = $classes[$ws];
