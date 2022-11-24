@@ -1883,7 +1883,7 @@ function IncludeText($pagename, $inclspec) {
               ? MakePageName($pagename, $args['basepage'])
               : @$iname;
   if ($basepage) $itext = Qualify(@$basepage, @$itext);
-  if ($itext) @$IncludedPages[$iname]++;
+  if (@$itext) @$IncludedPages[$iname]++;
   return FmtTemplateVars(PVSE(@$itext), $args);
 }
 
