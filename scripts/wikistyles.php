@@ -107,7 +107,7 @@ SDVA($WikiStyleRepl,array(
   ));
 
 $WikiStyleCSS[] = 'color|background-color';
-$WikiStyleCSS[] = 'clear|text-align|text-decoration';
+$WikiStyleCSS[] = 'overflow|text-align|text-decoration';
 $WikiStyleCSS[] = 'font-size|font-family|font-weight|font-style';
 
 SDV($imgTag, '(?:img|object|embed)');  SDV($aTag, 'a'); SDV($spanTag, 'span');
