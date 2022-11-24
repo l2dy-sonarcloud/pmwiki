@@ -187,8 +187,8 @@
         txt = txt.slice(0, -selength);
       }
       
-      html += '<a style="margin-left: '+ actual_level
-        + 'em;" href="#'+hc[2]+'">' + txt + '</a>\n';
+      html += '<a class="pmtoc-indent'+ actual_level
+        + '" href="#'+hc[2]+'">' + txt + '</a>\n';
       if(dtoc.EnableBacklinks) 
         adjbe(hc[0], ' <a class="back-arrow" href="#_toc">&uarr;</a>');
       

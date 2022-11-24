@@ -274,6 +274,7 @@ div.imgonly img, div.imgcaption img:first-child { vertical-align: bottom; }
 .frame { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
 .lfloat { float:left; margin-right:7px; }
 .rfloat { float:right; margin-left:7px; }
+.clearboth { clear: both; }
 
 /* stdmarkup.php */
 table.markup { border:2px dotted #ccf; width:100%; }

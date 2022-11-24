@@ -38,7 +38,7 @@ function MarkupKeepTrackAnchors($m) {
 }
 
 # in HTML5 "clear" is a style not an attribute
-Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br style='clear:both;' />");
+Markup('[[<<]]','inline','/\\[\\[&lt;&lt;\\]\\]/',"<br class='clearboth' />");
 
 # Allow skin header and footer to be written 
 # in a wiki page, and use defaults otherwise
