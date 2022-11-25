@@ -19,7 +19,8 @@
   var log = console.log;
   function aE(el, ev, fn) {
     if(typeof el == 'string') el = dqsa(el);
-    for(var i=0; i<el.length; i++) el[i].addEventListener(ev, fn);
+    var ell = el.length;
+    for(var i=0; i<ell; i++) el[i].addEventListener(ev, fn);
   }
   function dqs(str)  { return document.querySelector(str); }
   function dqsa(str) { return document.querySelectorAll(str); }
@@ -118,7 +119,8 @@
     ['_end']
   ];
   var custom_hrx = {}, sorted_hrx = [];
-  for(var i=0; i<hrx.length; i++) {
+  var hl = hrx.length;
+  for(var i=0; i<hl; i++) {
     custom_hrx[ hrx[i][0] ] = [];
     custom_hrx[ '>'+hrx[i][0] ] = [];
   }
@@ -199,8 +201,8 @@
           return text.replace(s, function(a){
             var b = Array.from(arguments).slice(1, -2);
             var j = b[4]? 3:1;
-
-            for(var i=1; i<m.length; i++) {
+            var ml = m.length;
+            for(var i=1; i<ml; i++) {
               if(rule[i+1]) b[j] = PmHi1(b[j], [m[i], rule[i+1]]);
             }
             return Keep5(b, r);
@@ -220,7 +222,8 @@
       });
       return text;
     }
-    for(var i=0; i<sorted_hrx.length; i++) {
+    var sl = sorted_hrx.length;
+    for(var i=0; i<sl; i++) {
       var rule = sorted_hrx[i];
       if(rule.length<2)  continue; // _begin, _end
       text = PmHi1(text, rule);
@@ -235,7 +238,8 @@
 
   function PmHiAll(){
     var hlt = dqsa('.hlt.pm, .hlt.pmwiki, .highlight.pm, .highlight.pmwiki');
-    for(var i=0; i< hlt.length; i++) hlt[i].className = 'pmhlt';
+    var hl = hlt.length;
+    for(var i=0; i< hl; i++) hlt[i].className = 'pmhlt';
     var pm = dqsa('table.markup td.markup1 > pre, '
       + '.pmhlt pre, .pmhlt + pre, .pmhlt code, pre.pmhlt, code.pmhlt');
     if(! pm.length) return;
@@ -247,7 +251,8 @@
     e.preventDefault();
     var c1 = 'pmhlt', c2 = 'pmhlt-disabled';
     var x = dqsa('.'+c1+',.'+c2);
-    for(var i=0; i<x.length; i++) {
+    var xl = x.length;
+    for(var i=0; i<xl; i++) {
       x[i].classList.toggle(c1);
       x[i].classList.toggle(c2);
     }
@@ -283,15 +288,16 @@
         log("Parsing custom rules failed.", _script.dataset.custom);
         var list = [];
       }
-
-      for(var i=0; i<list.length; i++) {
+      var ll = list.length;
+      for(var i=0; i<ll; i++) {
         var rule = list[i];
         if(typeof rule == 'string') rule = rule.trim().split(/\s{2,}/g);
         if(rule[0]=='InterMap') {
           imaps.push(rule[1]);
           continue;
         }
-        for(var j=2; j<rule.length; j++) rule[j] = str2rx(rule[j]);
+        var rl = rule.length;
+        for(var j=2; j<rl; j++) rule[j] = str2rx(rule[j]);
         cm.push(rule);
       }
     }
@@ -299,19 +305,22 @@
     cm.push(['>_url', 'url', new RegExp(
       '\\b(' +imaps.join('|')+ ')[^\\s'+uec+']*[^\\s.,?!'+uec+']', 'g'
     )]);
-    for(var i=0; i<cm.length; i++) {
+    var cml = cm.length;
+    for(var i=0; i<cml; i++) {
       var key = cm[i][0].replace(/^</, '');
       if(custom_hrx.hasOwnProperty(key)) custom_hrx[key].push(cm[i].slice(1));
       else log('No rule name to attach to.', cm[i]);
     }
     sorted_hrx = [];
-    for(var i=0; i<hrx.length; i++) {
+    var hrxl = hrx.length;
+    for(var i=0; i<hrxl; i++) {
       var key = hrx[i][0];
       var keys = [key, '>'+key];
       for(var k=0; k<2; k++) {
         if(k) sorted_hrx.push(hrx[i].slice(1));
         var kk = keys[k];
-        for(var j=0; j<custom_hrx[kk].length; j++) {
+        var chl = custom_hrx[kk].length;
+        for(var j=0; j<chl; j++) {
           sorted_hrx.push(custom_hrx[kk][j]);
         }
       }
@@ -329,67 +338,83 @@
     var lastTextContent = false;
     var resizeObserver;
 
+    function average(arr) {
+      return arr.reduce(function(a, b){ return a+b; }, 0) / arr.length;
+    }
+    var perf = [];
+    var t0 = 0;
+    function stopwatch(end) {
+      var t1 = performance.now();
+      if(!end) {
+        t0 = t1;
+        return;
+      }
+      var dt = t1 - t0;
+      perf.push(dt);
+      var avg = average(perf).toFixed(2);
+      console.log(`PmSyntax ${dt} ms, ${avg} ms average from ${perf.length}.`);
+    }
+    function mapHi(x) {
+      var y = (x==='' || x.charAt(0) == '\n') 
+        ? '<i>'+x+'</i>'
+        : '<span>'+PmHi(x.replace(/\034\034/g, '\\\n'))+'</span>';
+      return y;
+    }
+  
     function updatePre() {
       if(! chk_hlt.classList.contains('pmhlt')) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
       
+//       stopwatch();
       var parts = splitParts(tc);
       if(!parts.length) parts = [''];
-      var diff = diffParts(parts);
-      var spans = htext.childNodes;
       
       if(lastTextParts.length==0) {
-        for(var i=0; i<parts.length; i++) {
-          var el = document.createElement('span');
-          el.innerHTML = PmHi(parts[i]);
-          htext.appendChild(el);
-        }
-        htext.insertAdjacentHTML('beforeend', '\n');
+        var out = parts.map(mapHi).join('') + '\n';
+        htext.insertAdjacentHTML('afterbegin', out);
+        var juststarted = 1;
       }
       else {
-        for(var i=diff.lastchanged; i>=diff.firstchanged; i--) {
-          htext.removeChild(spans[i]);
+        var diff = diffParts(parts);
+        var spans = htext.children;
+                
+        for(var i=diff.last; i>=diff.first; i--) {
+          if(spans[i]) htext.removeChild(spans[i]);
         }
-        var add = diff.newchanged.reverse();
-        for(var i=0; i<add.length; i++) {
-          var el = document.createElement('span');
-          el.innerHTML = PmHi(add[i]);
-          htext.insertBefore(el, spans[diff.firstchanged]);
+        if(diff.add) {
+          if(spans[diff.first]) spans[diff.first].insertAdjacentHTML('beforebegin', diff.add);
+          else if(spans[diff.first-1]) spans[diff.first-1].insertAdjacentHTML('afterend', diff.add);
+          else htext.insertAdjacentHTML('afterbegin', diff.add);
         }
       }
       lastTextContent = tc;
       lastTextParts = parts;
       textScrolled();
+//       stopwatch(true);
+      if(juststarted) perf = [];
     }
     
     function splitParts(value) {
-      var parts = value.split(/(%(?:pmhlt|hlt|hlt \w+)%\[@[\s\S]+?@\]|\[[=@][\s\S]+?[@=]\]|\(:[\s\S]+?:\)|\n+)/s);
-      var parts2 = [];
-      for(var i=0; i<parts.length; i++) {
-        var pl = parts2.length
-        if(parts[i]==='') continue;
-        else if(pl && parts[i].match(/^\s/) && parts2[pl-1].match(/[^\n]$/)) 
-          parts2[pl-1] += parts[i];
-        else parts2.push(parts[i]);
-      }
-      return parts2;
+      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=@][\s\S]+?[@=]\]\s*|\(:[\s\S]+?:\)\s*|\n+)/s).filter(Boolean);
+      return parts;
     }
     function diffParts(parts2) {
       var firstchanged = lastTextParts.length-1;
-      for(var i=0; i<lastTextParts.length; i++) {
+      var ll = lastTextParts.length;
+      for(var i=0; i<ll; i++) {
         if(lastTextParts[i]===parts2[i]) continue;
         firstchanged = i;
         break;
       }
-      var lastchanged = firstchanged, delta = parts2.length-lastTextParts.length;
-      for(var i=lastTextParts.length-1; i>=firstchanged; i--) {
+      var lastchanged = firstchanged, delta = parts2.length-ll;
+      for(var i=ll-1; i>=firstchanged; i--) {
         if(lastTextParts[i]===parts2[i+delta]) continue;
         lastchanged = i;
         break;
       }
-      var newchanged = parts2.slice(firstchanged, lastchanged+delta+1);
-      return {firstchanged, lastchanged, newchanged};
+      var add = parts2.slice(firstchanged, lastchanged+delta+1).filter(Boolean).map(mapHi).join('');
+      return {first:firstchanged, last:lastchanged, add:add};
     }
     
     function textScrolled() {
@@ -489,7 +514,8 @@
     if(typeof hljs == 'undefined') return;
     var langs = hljs.listLanguages();
     var aliases = langs.slice(0);
-    for(var i=0; i<langs.length; i++) {
+    var ll = langs.length
+    for(var i=0; i<ll; i++) {
       var l = hljs.getLanguage(langs[i]);
       if(l.aliases) aliases = aliases.concat(l.aliases);
     }
