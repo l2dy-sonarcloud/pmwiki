@@ -378,9 +378,9 @@
       else {
         var diff = diffParts(parts);
         var spans = htext.children;
-                
-        for(var i=diff.last; i>=diff.first; i--) {
-          if(spans[i]) htext.removeChild(spans[i]);
+        
+        for(var i=0; i<diff.count; i++) {
+          htext.removeChild(spans[diff.first]);
         }
         if(diff.add) {
           if(spans[diff.first]) spans[diff.first].insertAdjacentHTML('beforebegin', diff.add);
@@ -396,25 +396,25 @@
     }
     
     function splitParts(value) {
-      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=@][\s\S]+?[@=]\]\s*|\(:[\s\S]+?:\)\s*|\n+)/s).filter(Boolean);
+      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=][\s\S]+?[=]\]\s*|\[[@][\s\S]+?[@]\]\s*|\(:[\s\S]+?:\)\s*|\n+)/s).filter(Boolean);
       return parts;
     }
-    function diffParts(parts2) {
-      var firstchanged = lastTextParts.length-1;
-      var ll = lastTextParts.length;
-      for(var i=0; i<ll; i++) {
-        if(lastTextParts[i]===parts2[i]) continue;
-        firstchanged = i;
-        break;
+    function diffParts(parts) {
+      var ll = lastTextParts.slice(0), pp = parts.slice(0), firstchanged = 0;
+      while(ll.length && pp.length) {
+        if(ll[0] !== pp[0]) break;
+        ll.shift(); pp.shift();
+        firstchanged++;
       }
-      var lastchanged = firstchanged, delta = parts2.length-ll;
-      for(var i=ll-1; i>=firstchanged; i--) {
-        if(lastTextParts[i]===parts2[i+delta]) continue;
-        lastchanged = i;
-        break;
+            
+      ll.reverse(); pp.reverse();
+      while(ll.length && pp.length) {
+        if(ll[0] !== pp[0]) break;
+        ll.shift(); pp.shift();
       }
-      var add = parts2.slice(firstchanged, lastchanged+delta+1).filter(Boolean).map(mapHi).join('');
-      return {first:firstchanged, last:lastchanged, add:add};
+      
+      var add = pp.reverse().map(mapHi).join('');
+      return {first:firstchanged, count:ll.length, add:add};
     }
     
     function textScrolled() {
