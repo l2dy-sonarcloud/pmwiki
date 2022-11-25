@@ -325,22 +325,73 @@
                
     var defaultEnabled = _script.dataset.mode == '3'? 1: 0;
 
+    var lastTextParts = [];
     var lastTextContent = false;
-    var GUIEditInterval = false;
     var resizeObserver;
 
     function updatePre() {
       if(! chk_hlt.classList.contains('pmhlt')) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
+      
+      var parts = splitParts(tc);
+      if(!parts.length) parts = [''];
+      var diff = diffParts(parts);
+      var spans = htext.childNodes;
+      
+      if(lastTextParts.length==0) {
+        for(var i=0; i<parts.length; i++) {
+          var el = document.createElement('span');
+          el.innerHTML = PmHi(parts[i]);
+          htext.appendChild(el);
+        }
+        htext.insertAdjacentHTML('beforeend', '\n');
+      }
+      else {
+        for(var i=diff.lastchanged; i>=diff.firstchanged; i--) {
+          htext.removeChild(spans[i]);
+        }
+        var add = diff.newchanged.reverse();
+        for(var i=0; i<add.length; i++) {
+          var el = document.createElement('span');
+          el.innerHTML = PmHi(add[i]);
+          htext.insertBefore(el, spans[diff.firstchanged]);
+        }
+      }
       lastTextContent = tc;
-
-      var clone = htext.cloneNode(false);
-      htext.parentNode.replaceChild(clone, htext);
-      htext.innerHTML = PmHi(tc+'\n');
+      lastTextParts = parts;
       textScrolled();
-      htext.addEventListener('scroll', preScrolled);
     }
+    
+    function splitParts(value) {
+      var parts = value.split(/(%(?:pmhlt|hlt|hlt \w+)%\[@[\s\S]+?@\]|\[[=@][\s\S]+?[@=]\]|\(:[\s\S]+?:\)|\n+)/s);
+      var parts2 = [];
+      for(var i=0; i<parts.length; i++) {
+        var pl = parts2.length
+        if(parts[i]==='') continue;
+        else if(pl && parts[i].match(/^\s/) && parts2[pl-1].match(/[^\n]$/)) 
+          parts2[pl-1] += parts[i];
+        else parts2.push(parts[i]);
+      }
+      return parts2;
+    }
+    function diffParts(parts2) {
+      var firstchanged = lastTextParts.length-1;
+      for(var i=0; i<lastTextParts.length; i++) {
+        if(lastTextParts[i]===parts2[i]) continue;
+        firstchanged = i;
+        break;
+      }
+      var lastchanged = firstchanged, delta = parts2.length-lastTextParts.length;
+      for(var i=lastTextParts.length-1; i>=firstchanged; i--) {
+        if(lastTextParts[i]===parts2[i+delta]) continue;
+        lastchanged = i;
+        break;
+      }
+      var newchanged = parts2.slice(firstchanged, lastchanged+delta+1);
+      return {firstchanged, lastchanged, newchanged};
+    }
+    
     function textScrolled() {
       if(! chk_hlt.classList.contains('pmhlt')) return;
       if(ignoreTextScrolled) return;
@@ -383,11 +434,12 @@
 
       htext.inert = true;
       htext.style.textAlign =  window.getComputedStyle(text, null).getPropertyValue('text-align');
+      htext.addEventListener('scroll', preScrolled);
+      
       text.addEventListener('scroll', textScrolled);
       text.addEventListener('input', updatePre);
       text.addEventListener('dragstart', dragstart);
       text.addEventListener('dragend', dragend);
-      GUIEditInterval = setInterval(updatePre, 100); // for GUIEdit buttons
 
       resizeObserver = new ResizeObserver(resizePre);
       resizeObserver.observe(text);
@@ -410,7 +462,7 @@
       }
     }
 
-    function initCheckbox(){
+    function initToggle(x){
       var form = text.closest('form');
       form.insertAdjacentHTML('afterbegin', '<code id="chk_hlt">'
         + '<span class="pmpunct">[[</span><span class="pmurl">'
@@ -429,7 +481,7 @@
         EnableHighlight();
       })
     }
-    initCheckbox();
+    initToggle();
   }
 
   var externalLangs = false;

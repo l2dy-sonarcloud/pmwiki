@@ -76,6 +76,8 @@ function insMarkup() {
     }
     range.select();
   } else { tarea.value += mopen + mtext + mclose; }
+  var evt = new Event('input');
+  tarea.dispatchEvent(evt);
   return;
 }
 
@@ -232,6 +234,10 @@ function EditAutoText(){
     this.value = content;
     this.selectionStart = caret + insert.length;
     this.selectionEnd = caret + insert.length;
+    
+    var evt = new Event('input');
+    this.dispatchEvent(evt);
+    
     return false;
   });
 };
