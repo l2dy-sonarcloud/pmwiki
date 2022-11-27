@@ -152,7 +152,6 @@ $FmtPV = array(
   '$DefaultName'  => '$GLOBALS["DefaultName"]',
   '$BaseName'     => 'MakeBaseName($pn)',
   '$Action'       => '$GLOBALS["action"]',
-  '$Nonce'        => 'PmNonce()',
   '$PasswdRead'   => 'PasswdVar($pn, "read")',
   '$PasswdEdit'   => 'PasswdVar($pn, "edit")',
   '$PasswdAttr'   => 'PasswdVar($pn, "attr")',
@@ -199,7 +198,7 @@ $HTMLStylesFmt['pmwiki'] = "
   img { border:0px; }
   ";
 $HTMLHeaderFmt['styles'] = array(
-  "<style nonce='{\$Nonce}' type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
+  "<style type='text/css'><!--",&$HTMLStylesFmt,"\n--></style>");
 $HTMLBodyFmt = "</head>\n<body>";
 $HTMLStartFmt = array('headers:',&$HTMLDoctypeFmt,&$HTMLHeaderFmt,
   &$HTMLBodyFmt);
