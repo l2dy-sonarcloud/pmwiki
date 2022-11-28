@@ -439,7 +439,7 @@ function pm_session_start($a = array()) {
   else {
     session_set_cookie_params($a);
   }
-  return session_start();
+  return @session_start();
 }
 
 
