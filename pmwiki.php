@@ -528,12 +528,6 @@ function PQA($x, $keep=true, $styletoclass=false) {
       $val = preg_replace('/^([\'"]?)(.*)\\1$/', '$2', $a[2]);
       $s[$a[1]] = $val;
     }
-    if (!IsEnabled($EnableUnsafeInlineStyle)) unset($s['style']);
-    if ($styletoclass && @$s['style'] && function_exists('WikiStyleToClassName')
-        && @$EnableUnsafeInlineStyle == 2) {
-      WikiStyleToClassName($s['style'], $s);
-      unset($s['style']);
-    }
     foreach($s as $key=>$val) {
       $val = PHSC($val, ENT_QUOTES, null, false);
       if ($keep) $val = Keep($val);
@@ -1682,34 +1676,11 @@ function Redirect($pagename, $urlfmt='$PageUrl', $redirecturl=null) {
   exit;
 }
 
-## This function processes any wiki pages and functions to HTML before printing 
-## headers and styles, to allow recipes and wikistyles from sidebars and footers 
-function PrePrintFmt($pagename,$fmt) {
-  global $PageStartFmt;
-  ob_start();
-  foreach($fmt as $k=>$x) {
-    # $PageStartFmt processed after pages, for (:noleft:) etc. to work
-    if ($x == $PageStartFmt) continue;
-    if (is_array($x)) {
-      $fmt[$k] = PrePrintFmt($pagename,$x);
-      continue;
-    }
-    if (preg_match('/^(markup|wiki|page|function):/', $x)) {
-      PrintFmt($pagename,$x);
-      $fmt[$k] = ob_get_contents();
-      ob_clean();
-    }
-  }
-  ob_end_clean();
-  return $fmt;
-}
-
 function PrintFmt($pagename,$fmt) {
   global $HTTPHeaders,$FmtV;
   if (is_array($fmt)) {
-    $fmt = PrePrintFmt($pagename,$fmt);
     foreach($fmt as $f) PrintFmt($pagename,$f); 
-    return; 
+    return;
   }
   if ($fmt == 'headers:') {
     foreach($HTTPHeaders as $h) (@$sent++) ? @header($h) : header($h);

@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2020 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -196,12 +196,9 @@ function LoadPageTemplate($pagename,$tfilefmt) {
 # according to the settings in $TmplDisplay.
 function PrintSkin($pagename, $arg) {
   global $TmplFmt, $TmplDisplay;
-  $fmt = array();
   foreach ($TmplFmt[$arg] as $k => $v) 
     if (!isset($TmplDisplay[$k]) || $TmplDisplay[$k])
-      $fmt[] = $v;
-  
-  PrintFmt($pagename, $fmt);
+      PrintFmt($pagename, $v);
 }
 
 # This function parses a wiki page like Site.LocalCSS

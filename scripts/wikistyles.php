@@ -175,7 +175,7 @@ function ApplyStyles($x) {
           $p = preg_replace(
                  "/<({$WikiStyleAttr[$k]}(?![^>]*\\s(?:$ns)?$k=))([^>]*)>/s",
                  "$ws<$1 $ns$k='$v' $2>", $p);
-        elseif (preg_match($wikicsspat,$k)) WikiStyleToClassName("$k: $v", $s);
+        elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
       }
       if (@$s['class']) $spanattr = "{$ns}class='{$s['class']}'";
       
@@ -202,23 +202,4 @@ function ApplyStyles($x) {
     $out .= $p;
   }
   return $out;
-}
-
-## This function replaces inline style attributes with class names to avoid CSP
-## styles 'unsafe-inline'. Written by Petko Yotov 2022 pmwiki.org/petko
-function WikiStyleToClassName($ws, &$s) {
-  global $HTMLStylesFmt;
-  static $classes = array();
-  if (!isset($HTMLStylesFmt['wsclasses'])) $HTMLStylesFmt['wsclasses'] = array();
-  $ws = preg_replace('/;\\s*$/', '', $ws); # could come from PQA()
-  if (!@$classes[$ws]) {
-    $c = "-pm--" . count($classes);
-    $classes[$ws] = $c;
-    $HTMLStylesFmt['wsclasses'][$ws] = ".$c{{$ws};}\n";
-    if (substr($ws, 0, 6)=='color:') 
-      $HTMLStylesFmt['wsclasses'][$ws] .= ".$c > a{{$ws} !important;}\n";
-  }
-  if (@$s['class']) $s['class'] .= " {$classes[$ws]}";
-  else $s['class'] = $classes[$ws];
-  return $classes[$ws];
 }
