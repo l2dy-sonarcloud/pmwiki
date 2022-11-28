@@ -2674,7 +2674,6 @@ function HandleEdit($pagename, $auth = 'edit') {
     <input type='hidden' name='\$TokenName' value='\$TokenValue' />
     \$EditMessageFmt
     <textarea id='text' name='text' rows='25' cols='60'
-      onkeydown='if (event.keyCode==27) event.returnValue=false;'
       >\$EditText</textarea><br />
     <input type='submit' name='post' value=' $[Save] ' />");
   SDV($HandleEditFmt, array(&$PageStartFmt, &$PageEditFmt, &$PageEndFmt));
