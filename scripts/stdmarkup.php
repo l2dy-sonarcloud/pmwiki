@@ -295,11 +295,9 @@ Markup('[+','inline','/\\[(([-+])+)(.*?)\\1\\]/',
 
 function MarkupBigSmall($m) {
   $size = round(pow(6/5,($m[2]=='-'? -1:1)*strlen($m[1]))*100,0);
-  $x = array();
-  $cname = WikiStyleToClassName("font-size: $size%", $x);
-  return "<span class='$cname'>{$m[3]}</span>";
+  return "<span style='font-size: $size%;'>{$m[3]}</span>";
 }
-    
+
 ## {+ins+}, {-del-}
 Markup('{+','inline','/\\{\\+(.*?)\\+\\}/','<ins>$1</ins>');
 Markup('{-','inline','/\\{-(.*?)-\\}/','<del>$1</del>');
