@@ -367,9 +367,7 @@ SDVA($InputTags['e_form'], array(
     /><input type='hidden' name='textScrollTop' id='textScrollTop' value='$TextScrollTop'
     />"));
 SDVA($InputTags['e_textarea'], array(
-  ':html' => "<textarea \$InputFormArgs 
-    onkeydown='if (event.keyCode==27) event.returnValue=false;' 
-    >\$EditText</textarea>\$IncludedPages",
+  ':html' => "<textarea \$InputFormArgs>\$EditText</textarea>\$IncludedPages",
   'name' => 'text', 'id' => 'text', 'accesskey' => XL('ak_textedit'),
   'rows' => XL('e_rows'), 'cols' => XL('e_cols')));
 SDVA($InputTags['e_author'], array(
