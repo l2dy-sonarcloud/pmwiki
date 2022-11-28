@@ -413,7 +413,9 @@ function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $h
 }
 function pm_session_start($a = array()) {
   global $EnableCookieSecure, $EnableCookieHTTPOnly, $CookieSameSite;
-  if(session_status() == PHP_SESSION_ACTIVE) return true;
+  if (function_exists('session_status')) {
+    if (session_status() == PHP_SESSION_ACTIVE) return true;
+  }
   
   $params = session_get_cookie_params();
   if (isset($EnableCookieSecure) && !isset($a['secure']))
