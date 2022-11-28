@@ -827,13 +827,10 @@ function pmtoken($token = null) {
 }
 
 function PmNonce() {
-  static $nonce;
-  if (is_null($nonce)) {
-    if (function_exists('random_bytes')) {
-      $nonce = bin2hex(random_bytes(5));
-    }
-    else $nonce = mt_rand();
+  if (function_exists('random_bytes')) {
+    $nonce = bin2hex(random_bytes(5));
   }
+  else $nonce = mt_rand();
   return $nonce;
 }
 
