@@ -193,7 +193,7 @@ function ApplyStyles($x) {
                  "$ws<$1 $spanattr", $p);
         }
       }
-      if (0 && @$s['color']) { # Is this still needed?
+      if (@$s['color']) { 
         $colorattr = "{$ns}style='color: {$s['color']}'";
         if ($wt) $ws = str_replace('$1', $colorattr, $wt);
         $p = preg_replace("/<$aTag\\b/", "$ws<$aTag $colorattr", $p);
