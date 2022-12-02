@@ -177,7 +177,7 @@ function ApplyStyles($x) {
                  "$ws<$1 $ns$k='$v' $2>", $p);
         elseif (preg_match($wikicsspat,$k)) $stylev[]="$k: $v;";
       }
-      if (@$s['class']) $spanattr = "{$ns}class='{$s['class']}'";
+      if (@$s['class']) $spanattr = "{$ns}class='".trim($s['class']). "'";
       
       if ($stylev) $spanattr .= " {$ns}style='".implode(' ',$stylev)."'";
       if ($id) $spanattr .= " {$ns}id='$id'";
