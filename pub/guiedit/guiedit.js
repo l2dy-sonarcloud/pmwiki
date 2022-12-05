@@ -22,14 +22,23 @@ function insButton(mopen, mclose, mtext, mlabel, mkey) {
 }
 
 function insMarkup() {
-  var func = false, tid='text', mopen = '', mclose = '', mtext = '';
+  var func = false, tid='text', mopen = '', mclose = '', mtext = '', unselect = false;
   if (arguments[0] == 'FixSelectedURL') {
     func = FixSelectedURL;
   }
   else if (typeof arguments[0] == 'function') {
     var func = arguments[0];
     if(arguments.length > 1) tid = arguments[1];
-    mtext = func('');
+    x = func('');
+    if(typeof x == 'object') {
+      if(x.mopen) mopen = x.mopen;
+      if(x.mclose) mclose = x.mclose;
+      if(x.mtext) mtext = x.mtext;
+      if(x.unselect) unselect = x.unselect;
+    }
+    else {
+      mtext = x;
+    }
   }
   else if (arguments.length >= 3) {
     var mopen = arguments[0], mclose = arguments[1], mtext = arguments[2];
@@ -37,7 +46,7 @@ function insMarkup() {
   }
 
   var tarea = document.getElementById(tid);
-  if (tarea.setSelectionRange > '') {
+  if (tarea.setSelectionRange > '') { // recent browsers
     var p0 = tarea.selectionStart;
     var p1 = tarea.selectionEnd;
     var top = tarea.scrollTop;
@@ -51,11 +60,17 @@ function insMarkup() {
       cur0 = p0 + mopen.length + str.length + mclose.length;
       cur1 = cur0;
     }
-    tarea.value = tarea.value.substring(0,p0)
-      + mopen + str + mclose
-      + tarea.value.substring(p1);
-    tarea.focus();
-    tarea.selectionStart = cur0;
+    if(document.execCommand) {
+      tarea.focus();
+      document.execCommand('insertText', false, mopen + str + mclose);
+    }
+    else {
+      tarea.value = tarea.value.substring(0,p0)
+        + mopen + str + mclose
+        + tarea.value.substring(p1);
+      tarea.focus();
+    }
+    tarea.selectionStart = unselect? cur1 : cur0;
     tarea.selectionEnd = cur1;
     tarea.scrollTop = top;
   } else if (document.selection) {
@@ -74,7 +89,7 @@ function insMarkup() {
       }
       range.text = mopen + str + mclose;
     }
-    range.select();
+    if (!unselect) range.select();
   } else { tarea.value += mopen + mtext + mclose; }
   var evt = new Event('input');
   tarea.dispatchEvent(evt);
