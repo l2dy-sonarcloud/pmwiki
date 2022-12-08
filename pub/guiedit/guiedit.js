@@ -211,22 +211,77 @@ function EditAutoText(){
 
 
   t.addEventListener('keydown', function(e){
-    if (e.keyCode != 13) return;
-    //else [Enter/Return]
-    var caret = this.selectionStart;
-    if(!caret) return true; // old MSIE, sorry
+    var caret = this.selectionStart, endcaret = this.selectionEnd;
+    if(typeof caret != 'number') return true; // old MSIE, sorry
+
     var content = this.value;
+    
+    // Ctrl+L (lowercase), Ctrl+Shift+L (uppercase)
+    if((e.key.toLowerCase() === 'l') && e.ctrlKey && caret != endcaret && document.execCommand) {
+      e.preventDefault();
+      var sel = content.substring(caret, endcaret);
+      sel = e.shiftKey? sel.toUpperCase(): sel.toLowerCase();
+      document.execCommand('insertText', false, sel);
+      this.selectionStart = caret;
+      return;
+    }
+    
+    // Ctrl+Shift+ArrowUp, Ctrl+Shift+ArrowDown: swap lines
+    else if(e.ctrlKey && e.shiftKey && e.key.match(/Arrow(Up|Down)/) && document.execCommand) {
+      e.preventDefault();
+      
+      var before = content.slice(0, caret), 
+        after = content.slice(endcaret), 
+        sel = content.slice(caret, endcaret);
+      var a = before.match(/[^\n]+$/);
+      if(a) {
+        sel = a[0]+sel;
+        before = before.slice(0, -a[0].length);
+      }
+      a = after.match(/^[^\n]*(\n|$)/);
+      sel = sel+a[0];
+      after = after.slice(a[0].length);
+      
+      if(e.key == 'ArrowUp') {
+        a = before.match(/[^\n]*\n$/);
+        if(!a) return;
+        var lineA = sel, lineB = a[0];
+        var deltacaret = -lineB.length;
+      }
+      else if(e.key == 'ArrowDown') {
+        a = after.match(/^([^\n]+$|[^\n]*\n)/);
+        if(!a) return;
+        var lineA = a[0], lineB = sel;
+        var deltacaret = lineA.length;
+      }
+      if(!lineA.match(/\n$/)) { // last line
+        lineB = "\n" + lineB.slice(0, -1);
+        if(deltacaret>0) deltacaret+=1;
+      }
+      var insert = lineA + lineB;
+      this.selectionStart = before.length + Math.min(deltacaret,0);
+      this.selectionEnd = this.selectionStart + insert.length;
+      document.execCommand('insertText', false, insert);
+      this.selectionStart = caret + deltacaret;
+      this.selectionEnd = endcaret + deltacaret;
+      return;
+    }
+    
+    if (e.key != "Enter") return;
+
     var before = content.substring(0, caret).split(/\n/g);
-    var after  = content.substring(this.selectionEnd);
+    var after  = content.substring(endcaret);
     var currline = before[before.length-1];
+    var linestartpos = content.lastIndexOf('\n', Math.max(0,caret-1));
 
     if(currline.match(/[^\\]\\$/)) return true; // line ending with a single \ backslash
-    var insert = "\n";
+                     
+    var insert;
     if(e.ctrlKey && e.shiftKey) {
-      insert = "~~~~\n";
+      insert = "~~~~";
     }
     else if(e.ctrlKey) {
-      insert = "[[<<]]\n";
+      insert = "[[<<]]";
     }
     else if(e.shiftKey) {
       insert = "\\\\\n";
@@ -234,10 +289,16 @@ function EditAutoText(){
     else {
       var m = currline.match(/^((?: *\*+| *\#+|-+[<>]|:+|\|\|| ) *)/);
       if(!m) return true;
-      if(currline==m[1] && after.charAt(0) == '\n') {
-        before = before.slice(0,-1);
+                     
+      if(currline==m[1] && (after === '' || after.charAt(0) == '\n')) {
         insert = "\n";
+        if(linestartpos<0) {
+          linestartpos = 0;
+          this.selectionEnd += 1;
+        }
+        this.selectionStart = linestartpos;
         caret = caret - currline.length - 1;
+        before = before.slice(0,-1); // if no execCommand
       }
       else {
         insert = "\n"+m[1];
@@ -245,8 +306,14 @@ function EditAutoText(){
     }
     e.preventDefault();
 
-    content = before.join("\n") + insert + after;
-    this.value = content;
+    if(document.execCommand) {
+      document.execCommand('insertText', false, insert);
+    }
+    else {
+      content = before.join("\n") + insert + after;
+      this.value = content;
+    }
+    
     this.selectionStart = caret + insert.length;
     this.selectionEnd = caret + insert.length;
     
