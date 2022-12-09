@@ -98,7 +98,7 @@ if (IsEnabled($EnableDiag,0) || $action == 'recipecheck')
 if (IsEnabled($EnablePmUtils,1))
   include_once("$FarmD/scripts/utils.php");
 
-if (IsEnabled($EnableUpgradeCheck,1)) {
+if (IsEnabled($EnableUpgradeCheck,1) && !IsEnabled($EnableReadOnly, 0)) {
   SDV($StatusPageName, "$SiteAdminGroup.Status");
   $page = ReadPage($StatusPageName, READPAGE_CURRENT);
   if (@$page['updatedto'] != $VersionNum) 
