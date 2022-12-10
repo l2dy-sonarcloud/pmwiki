@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2002-2005 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2002-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -24,11 +24,17 @@
     can force group customizations to be loaded first by using include_once
     on the group customization file.
     
+    Script maintained by Petko YOTOV www.pmwiki.org/petko
 */
 
 $f = 1;
 for($p=$pagename;$p;$p=preg_replace('/\\.*[^.]*$/','',$p)) {
   if (!IsEnabled($EnablePGCust,1)) return;
+  if (file_exists("$LocalDir/$p.php")) 
+    { include_once("$LocalDir/$p.php"); $f=0; }
+}
+if (IsEnabled($EnableBaseNameConfig, 0)) {
+  $p = MakeBaseName($pagename);
   if (file_exists("$LocalDir/$p.php")) 
     { include_once("$LocalDir/$p.php"); $f=0; }
 }
