@@ -396,7 +396,7 @@
     }
     
     function splitParts(value) {
-      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=][\s\S]+?[=]\]\s*|\[[@][\s\S]+?[@]\]\s*|\(:[\s\S]+?:\)\s*|\n+)/s).filter(Boolean);
+      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=][\s\S]+?[=]\]\s*|\[[@][\s\S]+?[@]\]\s*|\(:[\s\S]+?:\)\s*|\{\#[\s\S]*\#\}|\n+)/).filter(Boolean);
       return parts;
     }
     function diffParts(parts) {
