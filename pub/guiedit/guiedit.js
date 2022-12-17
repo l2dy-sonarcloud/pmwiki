@@ -274,7 +274,7 @@ function EditAutoText(){
     var currline = before[before.length-1];
     var linestartpos = content.lastIndexOf('\n', Math.max(0,caret-1));
 
-    if(currline.match(/[^\\]\\$/)) return true; // line ending with a single \ backslash
+    if(currline.match(/\\$/)) return true; // line ending with a \ backslash
                      
     var insert;
     if(e.ctrlKey && e.shiftKey) {
