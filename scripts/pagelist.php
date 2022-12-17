@@ -635,7 +635,7 @@ function HandleSearchA($pagename, $level = 'read') {
   if (!preg_match('/\\(:searchresults(\\s.*?)?:\\)/', $text))
     foreach((array)$PageSearchForm as $formfmt) {
       $form = ReadPage(FmtPageName($formfmt, $pagename), READPAGE_CURRENT);
-      if ($form['text']) break;
+      if (@$form['text']) break;
     }
   $text = @$form['text'];
   if (!$text) $text = '(:searchresults:)';
