@@ -39,7 +39,7 @@
     ['pmhlt', 'external', /%(pm)hlt *% *\[@([\s\S]*?)@\]/g],
     ['pmhlt2', 'external', /%(pm)hlt *% *@@ *\[=([\s\S]*?)=\] *@@/g],
     ['preserve', '=escaped', /\[([@=])[\s\S]*?\1\]/g, /^(\[[@=])([\s\S]*)([@=]\])$/],
-    ['joinline', '*bullet', /\\+\n/g],
+    ['joinline', '*bullet', /\\+(\n|$)/g],
 
     // variables
     ['pagevar', 'var', /\{([-\w\/.]+|[*=<>])?\$[$:]?\w+\}/g],
@@ -336,6 +336,7 @@
 
     var lastTextParts = [];
     var lastTextContent = false;
+    var hltEnabled = false;
     var resizeObserver;
 
     function average(arr) {
@@ -343,6 +344,7 @@
     }
     var perf = [];
     var t0 = 0;
+    
     function stopwatch(end) {
       var t1 = performance.now();
       if(!end) {
@@ -354,15 +356,9 @@
       var avg = average(perf).toFixed(2);
       console.log(`PmSyntax ${dt} ms, ${avg} ms average from ${perf.length}.`);
     }
-    function mapHi(x) {
-      var y = (x==='' || x.charAt(0) == '\n') 
-        ? '<i>'+x+'</i>'
-        : '<span>'+PmHi(x.replace(/\034\034/g, '\\\n'))+'</span>';
-      return y;
-    }
   
     function updatePre() {
-      if(! chk_hlt.classList.contains('pmhlt')) return;
+      if(!hltEnabled) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
       
@@ -378,7 +374,6 @@
       else {
         var diff = diffParts(parts);
         var spans = htext.children;
-        
         for(var i=0; i<diff.count; i++) {
           htext.removeChild(spans[diff.first]);
         }
@@ -395,8 +390,26 @@
       if(juststarted) perf = [];
     }
     
+    function mapHi(x) {
+      if(x!=='' && x.charAt(0) !== '\n') x = PmHi(x);
+      return '<span>'+x+'</span>';
+    }
+    
     function splitParts(value) {
-      var parts = value.replace(/\\\n/g, '\034\034').split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[[=][\s\S]+?[=]\]\s*|\[[@][\s\S]+?[@]\]\s*|\(:[\s\S]+?:\)\s*|\{\#[\s\S]*\#\}|\n+)/).filter(Boolean);
+      var keep = [];
+      // keep single-line escaped blocks
+      value = value.replace(/(\[=.*?=\]|\[@.*?@\]|\(:.*?:\)|\{#.*?#\}|\\\n)/g, function(a, a1){
+        keep.push(a1);
+        return '\034\034' + (keep.length - 1) + '\034\034';
+      });
+      
+      var parts = value
+        .split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[=[\s\S]+?=\]\s*|\[@[\s\S]+?@\]\s*|\(:[\s\S]+?:\)\s*|\{#[\s\S]*?#\}|\n+)/).filter(Boolean);
+      for(var i=0; i<parts.length; i++) {
+        parts[i] = parts[i].replace(/\034\034(\d+)\034\034/g, function(a, a1){
+          return keep[parseInt(a1)];
+        });
+      }
       return parts;
     }
     function diffParts(parts) {
@@ -414,11 +427,11 @@
       }
       
       var add = pp.reverse().map(mapHi).join('');
-      return {first:firstchanged, count:ll.length, add:add};
+      return {first:firstchanged, count:ll.length, newcount:pp.length, add:add};
     }
     
     function textScrolled() {
-      if(! chk_hlt.classList.contains('pmhlt')) return;
+      if(!hltEnabled) return;
       if(ignoreTextScrolled) return;
 
       if(ignorePreScrolled) clearTimeout(ignorePreScrolled-1);
@@ -428,7 +441,7 @@
     }
     var ignoreTextScrolled = false, ignorePreScrolled = false;
     function preScrolled() { // browser's in-page search
-      if(! chk_hlt.classList.contains('pmhlt')) return;
+      if(!hltEnabled) return;
       if(ignorePreScrolled) return;
       if(ignoreTextScrolled) clearTimeout(ignoreTextScrolled-1);
       ignoreTextScrolled = 1 + setTimeout(nullITS, 100);
@@ -441,7 +454,7 @@
     function dragend(e) { this.classList.remove('dragging'); }
 
     function resizePre() {
-      if(! chk_hlt.classList.contains('pmhlt')) return;
+      if(!hltEnabled) return;
       var rect = text.getBoundingClientRect();
       var w = Math.floor(rect.width) + 'px', h = Math.floor(rect.height) + 'px';
       text.style.width = w;
@@ -462,7 +475,6 @@
       htext.addEventListener('scroll', preScrolled);
       
       text.addEventListener('scroll', textScrolled);
-      text.addEventListener('input', updatePre);
       text.addEventListener('dragstart', dragstart);
       text.addEventListener('dragend', dragend);
 
@@ -477,13 +489,17 @@
 
     function EnableHighlight() {
       if(chk_hlt.classList.contains('pmhlt')) {
+        hltEnabled = true;
         storeEnabled(1);
         updatePre();
         resizePre();
+        text.addEventListener('input', updatePre);
       }
       else {
+        hltEnabled = false;
         lastTextContent = false;
         storeEnabled(0);
+        text.removeEventListener('input', updatePre);
       }
     }
 
@@ -504,7 +520,7 @@
       tap([chk_hlt], function(e){
         this.classList.toggle('pmhlt');
         EnableHighlight();
-      })
+      });
     }
     initToggle();
   }

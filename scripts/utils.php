@@ -57,6 +57,7 @@ PmUtilsJS();
 
 ##  This is a replacement for json_encode+PHSC, but only for arrays that
 ##  are used by the PmWiki core. It may or may not work in other cases.
+##  This may fail with international characters if UTF-8 is not enabled.
 function pm_json_encode($x, $encodespecial=false) {
   if (!isset($x) || is_null($x)) return 'null';
   if (is_bool($x)) return $x? "true" : "false";
