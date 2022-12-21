@@ -265,16 +265,25 @@
       return false;
     }
     var a = str.match(/^\/(.*)\/([gimsyu]*)$/);
+    var rx = false
     try {
-      if(a) return new RegExp(a[1], a[2]);
-      return new RegExp(str, 'g');
+      if(a) {
+        rx = new RegExp(a[1], a[2]);
+      }
+      else rx = new RegExp(str, 'g');
     }
     catch(e) {
       log('Could not create RegExp.', str);
     }
+    if(rx) {
+      if(rx.source.match(/\[(\\s\\S)|(\\S\\s)\]/)) {
+        PreserveMultilineArray.push(rx.source);
+      }
+      return rx;
+    }
   }
 
-  var _script;
+  var _script, PreserveMultilineArray = [], PreserveMultiline = false;
   function sortRX(){
     _script = dqs('script[src*="pmwiki.syntax.js"]');
     var cm = (window.PmSyntaxCustomMarkup)? window.PmSyntaxCustomMarkup : [];
@@ -297,7 +306,10 @@
           continue;
         }
         var rl = rule.length;
-        for(var j=2; j<rl; j++) rule[j] = str2rx(rule[j]);
+        for(var j=2; j<rl; j++) {
+          var r = str2rx(rule[j]);
+          if(r) rule[j] = r;
+        }
         cm.push(rule);
       }
     }
@@ -325,6 +337,9 @@
         }
       }
     }
+    if(PreserveMultilineArray.length) {
+      PreserveMultiline = new RegExp('('+PreserveMultilineArray.join('|')+')', 'g');
+    }
   }
 
   function initEditForm(){
@@ -347,6 +362,7 @@
     var t0 = 0;
     
     function stopwatch(end) {
+      if(!EnableStopwatch) return;
       var t1 = performance.now();
       if(!end) {
         t0 = t1;
@@ -355,7 +371,7 @@
       var dt = t1 - t0;
       perf.push(dt);
       var avg = average(perf).toFixed(2);
-      console.log(`PmSyntax ${dt} ms, ${avg} ms average from ${perf.length}.`);
+      if(perf.length%10 == 0) console.log(`PmSyntax ${dt} ms, ${avg} ms average from ${perf.length}.`);
     }
   
     function updatePre() {
@@ -363,7 +379,7 @@
       var tc = text.value;
       if(tc===lastTextContent) return;
 
-      if(EnableStopwatch) stopwatch();
+      stopwatch();
       var parts = splitParts(tc);
       if(!parts.length) parts = [''];
       
@@ -387,7 +403,7 @@
       lastTextContent = tc;
       lastTextParts = parts;
       textScrolled();
-      if(EnableStopwatch) stopwatch(true);
+      stopwatch(true);
       if(juststarted) perf = [];
     }
     
@@ -397,18 +413,26 @@
     }
     
     function splitParts(value) {
-      var keep = [];
+      var kept = [];
+      function keep(a, a1){
+        kept.push(restore(a1));
+        return '\034\034' + (kept.length - 1) + '\034\034';
+      };
+      function restore(str) {
+        return str.replace(/\034\034(\d+)\034\034/g, function(a, a1){
+          return kept[parseInt(a1)];
+        });
+      }
       // keep escaped blocks
       value = value
-        .replace(/(\[([@=])[\s\S]*?\2\]|\{#[\s\S]*?#\}|\(:[-\w]+ *:(?!\))[\s\S]*?:\)|\\\n)/g, function(a, a1){
-        keep.push(a1);
-        return '\034\034' + (keep.length - 1) + '\034\034';
-      });
+        .replace(/(\[([@=])[\s\S]*?\2\]|\(:[-\w]+ *:(?!\))[\s\S]*?:\)|\\\n)/g, keep);
+      if(PreserveMultiline) {
+        value = value.replace(PreserveMultiline, keep);
+      }
+      
       var parts = value.split(/(\n+)/).filter(Boolean);
       for(var i=0; i<parts.length; i++) {
-        parts[i] = parts[i].replace(/\034\034(\d+)\034\034/g, function(a, a1){
-          return keep[parseInt(a1)];
-        });
+        parts[i] = restore(parts[i]);
       }
       return parts;
     }
