@@ -337,6 +337,7 @@
     var lastTextParts = [];
     var lastTextContent = false;
     var hltEnabled = false;
+    var EnableStopwatch = localStorage.getItem('EnablePmSyntaxStopwatch')? true:false;
     var resizeObserver;
 
     function average(arr) {
@@ -361,8 +362,8 @@
       if(!hltEnabled) return;
       var tc = text.value;
       if(tc===lastTextContent) return;
-      
-//       stopwatch();
+
+      if(EnableStopwatch) stopwatch();
       var parts = splitParts(tc);
       if(!parts.length) parts = [''];
       
@@ -386,7 +387,7 @@
       lastTextContent = tc;
       lastTextParts = parts;
       textScrolled();
-//       stopwatch(true);
+      if(EnableStopwatch) stopwatch(true);
       if(juststarted) perf = [];
     }
     
@@ -397,14 +398,13 @@
     
     function splitParts(value) {
       var keep = [];
-      // keep single-line escaped blocks
-      value = value.replace(/(\[=.*?=\]|\[@.*?@\]|\(:.*?:\)|\{#.*?#\}|\\\n)/g, function(a, a1){
+      // keep escaped blocks
+      value = value
+        .replace(/(\[([@=])[\s\S]*?\2\]|\{#[\s\S]*?#\}|\(:[-\w]+ *:(?!\))[\s\S]*?:\)|\\\n)/g, function(a, a1){
         keep.push(a1);
         return '\034\034' + (keep.length - 1) + '\034\034';
       });
-      
-      var parts = value
-        .split(/(%(?:pmhlt|hlt|hlt \w+)% *\[@[\s\S]+?@\]\s*|\[=[\s\S]+?=\]\s*|\[@[\s\S]+?@\]\s*|\(:[\s\S]+?:\)\s*|\{#[\s\S]*?#\}|\n+)/).filter(Boolean);
+      var parts = value.split(/(\n+)/).filter(Boolean);
       for(var i=0; i<parts.length; i++) {
         parts[i] = parts[i].replace(/\034\034(\d+)\034\034/g, function(a, a1){
           return keep[parseInt(a1)];
@@ -419,13 +419,11 @@
         ll.shift(); pp.shift();
         firstchanged++;
       }
-            
       ll.reverse(); pp.reverse();
       while(ll.length && pp.length) {
         if(ll[0] !== pp[0]) break;
         ll.shift(); pp.shift();
       }
-      
       var add = pp.reverse().map(mapHi).join('');
       return {first:firstchanged, count:ll.length, newcount:pp.length, add:add};
     }
