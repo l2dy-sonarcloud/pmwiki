@@ -250,7 +250,7 @@ function CondAuth($pagename, $condparm) {
   global $HandleAuth;
   @list($level, $pn) = explode(' ', $condparm, 2);
   if (@$level && $level[0] == '@') { # user belongs to @group1,@group2
-    $keys = MatchNames(array_keys($AuthList), $level, true);
+    $keys = MatchNames(array_keys((array)@$AuthList), $level, true);
     foreach($keys as $k) {
       if (@$AuthList[$k] == 1 && $AuthList["-$k"] != 1) return true;
     }
