@@ -336,9 +336,9 @@ function HandlePostUpload($pagename, $auth = 'upload') {
   $UploadRedirectFunction($pagename,"{\$PageUrl}?action=upload&uprname=$upname&$result");
 }
 
-function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
-  global $EnableUploadOverwrite,$UploadExtSize,$UploadPrefixQuota,
-    $UploadDirQuota,$UploadDir, $UploadBlacklist,
+function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname) {
+  global $EnableUploadOverwrite, $UploadExtSize, $UploadPrefixQuota,
+    $EnableUploadVersions, $UploadDirQuota, $UploadDir, $UploadBlacklist,
     $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
 
   if(! AutoCheckToken()) {
@@ -349,10 +349,21 @@ function UploadVerifyBasic($pagename,$uploadfile,$filepath) {
     return 'upresult=authorrequired';
 
   if (count($UploadBlacklist)) {
-    $tmp = explode("/", $filepath);
-    $upname = strtolower(end($tmp));
     foreach($UploadBlacklist as $needle) {
-      if (strpos($upname, $needle)!==false) return 'upresult=badname';
+      if (stripos($upname, $needle)!==false) return 'upresult=badname';
+    }
+  }
+  if (IsEnabled($EnableUploadVersions, 0)>=10 && file_exists($filepath)) {
+    preg_match('!^(.*/)(.+?)(-\\d+)?(\\.[a-z0-9]+)$!i', $filepath, $m);
+    array_shift($m);
+    $m[2] = intval(@$m[2]);
+    for($i=1; $i<=$EnableUploadVersions; $i++) {
+      $m[2]--;
+      $nextpath = implode('', $m);
+      if (file_exists($nextpath)) continue;
+      $upname = substr($nextpath, strlen($m[0]));
+      $filepath = $nextpath;
+      break;
     }
   }
   if (!$EnableUploadOverwrite && file_exists($filepath)) 
