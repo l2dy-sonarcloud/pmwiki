@@ -247,7 +247,7 @@ function CompareArgs($arg)
 
 $Conditions['auth'] = 'NoCache(CondAuth($pagename, $condparm))';
 function CondAuth($pagename, $condparm) {
-  global $HandleAuth;
+  global $AuthList, $HandleAuth;
   @list($level, $pn) = explode(' ', $condparm, 2);
   if (@$level && $level[0] == '@') { # user belongs to @group1,@group2
     $keys = MatchNames(array_keys((array)@$AuthList), $level, true);

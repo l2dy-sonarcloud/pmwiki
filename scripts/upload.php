@@ -336,7 +336,7 @@ function HandlePostUpload($pagename, $auth = 'upload') {
   $UploadRedirectFunction($pagename,"{\$PageUrl}?action=upload&uprname=$upname&$result");
 }
 
-function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname) {
+function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname=null) {
   global $EnableUploadOverwrite, $UploadExtSize, $UploadPrefixQuota,
     $EnableUploadVersions, $UploadDirQuota, $UploadDir, $UploadBlacklist,
     $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
@@ -349,6 +349,10 @@ function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname) {
     return 'upresult=authorrequired';
 
   if (count($UploadBlacklist)) {
+    if (is_null($upname)) { # call from old recipe
+      $tmp = explode("/", $filepath);
+      $upname = strtolower(end($tmp));
+    }
     foreach($UploadBlacklist as $needle) {
       if (stripos($upname, $needle)!==false) return 'upresult=badname';
     }
