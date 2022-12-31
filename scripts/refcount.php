@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2018 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -69,7 +69,7 @@ function PrintRefCount($pagename) {
       if (!in_array('all',$flist) &&
           !in_array(FmtPageName('$Group',$pname),$flist)) continue;
       $rc = preg_match('/RecentChanges$/',$pname);
-      foreach(explode(',',@$page['targets']) as $r) {
+      foreach(explode(',',strval(@$page['targets'])) as $r) {
         if ($r=='') continue;
         if ($rc) @$tref[$r]['rc']++;
         else { @$tref[$r]['page']++; @$pref[$r][$pname]++; }
@@ -88,7 +88,7 @@ function PrintRefCount($pagename) {
       elseif ($whichrefs=='orphaned' &&
         (@$tref[$p]['page']>0 || !PageExists($p))) continue;
       echo "<tr><td valign='top'>",LinkPage($pagename, '', $p, '', $p);
-      if (@$tref[$p]['time']) echo strftime($RefCountTimeFmt,$tref[$p]['time']);
+      if (@$tref[$p]['time']) echo PSFT($RefCountTimeFmt,$tref[$p]['time']);
       if ($showrefs && is_array(@$pref[$p])) {
         foreach($pref[$p] as $pr=>$pc) 
           echo "<dd>", LinkPage($pagename, '', $pr, '', $pr);
