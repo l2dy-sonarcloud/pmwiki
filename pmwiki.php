@@ -445,7 +445,8 @@ function pm_session_start($a = array()) {
     );
   }
   else {
-    session_set_cookie_params($a);
+    if (!headers_sent())
+      session_set_cookie_params($a);
   }
   return @session_start();
 }
@@ -1272,7 +1273,7 @@ function PageVar($pagename, $var, $pn = '') {
       if (@$page['=auth']['read']) $authpage = &$page;
     }
   } else { $group = ''; $name = ''; }
-  if (@$FmtPV[$var]) return eval("return ({$FmtPV[$var]});");
+  if (isset($FmtPV[$var])) return eval("return ({$FmtPV[$var]});");
   if (strncmp($var, '$:', 2)==0) return PageTextVar($pn, substr($var, 2));
   return '';
 }
