@@ -422,31 +422,32 @@ function pmsetcookie($name, $val="", $exp=0, $path="", $dom="", $secure=null, $h
 function pm_session_start($a = array()) {
   global $EnableCookieSecure, $EnableCookieHTTPOnly, $CookieSameSite;
   if (function_exists('session_status')) {
-    if (session_status() == PHP_SESSION_ACTIVE) return true;
+    if (session_status() === PHP_SESSION_ACTIVE) return true;
   }
   
-  $params = session_get_cookie_params();
-  if (isset($EnableCookieSecure) && !isset($a['secure']))
-    $a['secure'] = $EnableCookieSecure;
-  if (isset($EnableCookieHTTPOnly) && !isset($a['httponly']))
-    $a['httponly'] = $EnableCookieHTTPOnly;
-  if (!isset($a['samesite'])) $a['samesite'] = IsEnabled($CookieSameSite, 'Lax');
-  SDVA($a, $params);
+  if (!headers_sent()){
+    $params = session_get_cookie_params();
+    if (isset($EnableCookieSecure) && !isset($a['secure']))
+      $a['secure'] = $EnableCookieSecure;
+    if (isset($EnableCookieHTTPOnly) && !isset($a['httponly']))
+      $a['httponly'] = $EnableCookieHTTPOnly;
+    if (!isset($a['samesite'])) $a['samesite'] = IsEnabled($CookieSameSite, 'Lax');
+    SDVA($a, $params);
   
-  if (PHP_VERSION_ID < 70300) {
-    if (!$a['path']) $a['path'] = '/';
-    $a['path'] .= "; SameSite={$a['samesite']}";
-    session_set_cookie_params(
-      $a['lifetime'],
-      $a['path'],
-      $a['domain'],
-      $a['secure'],
-      $a['httponly']
-    );
-  }
-  else {
-    if (!headers_sent())
+    if (PHP_VERSION_ID < 70300) {
+      if (!$a['path']) $a['path'] = '/';
+      $a['path'] .= "; SameSite={$a['samesite']}";
+      session_set_cookie_params(
+        $a['lifetime'],
+        $a['path'],
+        $a['domain'],
+        $a['secure'],
+        $a['httponly']
+      );
+    }
+    else {
       session_set_cookie_params($a);
+    }
   }
   return @session_start();
 }
