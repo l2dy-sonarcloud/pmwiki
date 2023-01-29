@@ -208,7 +208,8 @@ function HandleDiffList($pagename, $auth='read') {
 
 ## Functions for simple word-diff (written by Petko Yotov)
 function DiffRenderSource($in, $out, $which) {
-  global $WordDiffFunction, $EnableDiffInline;
+  global $WordDiffFunction, $EnableDiffInline, $DiffPrepareInlineFunction;
+  SDV($DiffPrepareInlineFunction, 'DiffPrepareInline');
   if (!IsEnabled($EnableDiffInline, 1)) {
     $a = $which? $out : $in;
     return str_replace("\n","<br />",PHSC(join("\n",$a)));  
@@ -216,12 +217,12 @@ function DiffRenderSource($in, $out, $which) {
   $countdifflines = abs(count($in)-count($out));
   $lines = $cnt = $x2 = $y2 = array();
   foreach($in as $line) {
-    $tmp = $countdifflines>20 ? array($line) : DiffPrepareInline($line);
+    $tmp = $countdifflines>20 ? array($line) : $DiffPrepareInlineFunction($line);
     if (!$which) $cnt[] = array(count($x2), count($tmp));
     $x2 = array_merge($x2, $tmp);
   }
   foreach($out as $line) {
-    $tmp = $countdifflines>20 ? array($line) : DiffPrepareInline($line);
+    $tmp = $countdifflines>20 ? array($line) : $DiffPrepareInlineFunction($line);
     if ($which) $cnt[] = array(count($y2), count($tmp));
     $y2 = array_merge($y2, $tmp);
   }
