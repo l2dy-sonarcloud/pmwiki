@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2023 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -588,7 +588,7 @@ function PageListUASort($x,$y) {
 }
 
 function PageListCache(&$list, &$opt, $pn, &$page) {
-  global $PageListCacheDir, $LastModTime, $PageIndexFile;
+  global $PageListCacheDir, $LastModTime;
 
   if (@!$PageListCacheDir) return 0;
   if (isset($opt['cache']) && !$opt['cache']) return 0;
