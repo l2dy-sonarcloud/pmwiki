@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2004-2022 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2004-2023 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -20,6 +20,8 @@ SDV($ActionSkin['print'], 'print');
 SDV($FarmPubDirUrl, $PubDirUrl);
 SDV($PageLogoUrl, "$FarmPubDirUrl/skins/pmwiki/pmwiki-32.gif");
 SDVA($TmplDisplay, array('PageEditFmt' => 0));
+SDV($LocalCSSDir, 'pub/css');
+SDV($LocalCSSDirUrl, '$PubDirUrl/css');
 
 ## from skinchange.php
 if (IsEnabled($EnableAutoSkinList, 0) || isset($PageSkinList)) {
@@ -58,9 +60,9 @@ else {
 }
 
 SDV($PageCSSListFmt,array(
-  'pub/css/local.css' => '$PubDirUrl/css/local.css',
-  'pub/css/{$Group}.css' => '$PubDirUrl/css/{$Group}.css',
-  'pub/css/{$FullName}.css' => '$PubDirUrl/css/{$FullName}.css'));
+  "$LocalCSSDir/local.css" => "$LocalCSSDirUrl/local.css",
+  "$LocalCSSDir/{\$Group}.css" => "$LocalCSSDirUrl/{\$Group}.css",
+  "$LocalCSSDir/{\$FullName}.css" => "$LocalCSSDirUrl/{\$FullName}.css"));
 
 foreach((array)$PageCSSListFmt as $k=>$v) 
   if (file_exists(FmtPageName($k,$pagename))) 
