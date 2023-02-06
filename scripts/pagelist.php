@@ -32,7 +32,7 @@ if (IsEnabled($EnablePageIndex, 1)) {
   $EditFunctions[] = 'PostPageIndex';
 }
 SDV($StrFoldFunction, 'strtolower');
-SDV($PageIndexFoldFunction, &$StrFoldFunction);
+SDV($PageIndexFoldFunction, $StrFoldFunction);
 SDV($PageIndexTermsFunction, 'PageIndexTerms');
 SDV($PageListSortCmpFunction, 'strcasecmp');
 
