@@ -168,12 +168,12 @@ function DownloadUrl($pagename, $path) {
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
   $FmtV['$LinkUpload'] =
     FmtPageName("\$PageUrl?action=upload&amp;upname=$encname", $pagename);
-  if (!file_exists($filepath)) return false;
-  $path = PUE(FmtPageName(IsEnabled($EnableDirectDownload, 1) 
+  $FmtV['$LinkDownload'] = PUE(FmtPageName(IsEnabled($EnableDirectDownload, 1) 
       ? "$UploadUrlFmt$UploadPrefixFmt/$encname"
       : "{\$PageUrl}?action=download&amp;upname=$encname",
     $pagename));
-  return $path;
+  if (!file_exists($filepath)) return false;
+  return $FmtV['$LinkDownload'];
 }
 
 function LinkUpload($pagename, $imap, $path, $alt, $txt, $fmt=NULL) {
