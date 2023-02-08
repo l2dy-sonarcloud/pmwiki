@@ -351,7 +351,7 @@ if (!$pagename &&
       strval(@$_SERVER['REQUEST_URI']),$match))
   $pagename = urldecode($match[1]);
 if (preg_match('/[\\x80-\\xbf]/',$pagename)) 
-  $pagename=utf8_decode($pagename);
+  $pagename=pm_recode($pagename, 'UTF-8', 'WINDOWS-1252');
 $pagename = preg_replace('![^[:alnum:]\\x80-\\xff]+$!','',$pagename);
 $pagename_unfiltered = $pagename;
 $pagename = preg_replace('![${}\'"\\\\]+!', '', $pagename);
@@ -1424,6 +1424,36 @@ function CmpPageAttr($a, $b) {
   return strcmp($a, $b);
 }
 
+function pm_recode($s,$from,$to) {
+  static $able;
+  if (is_null($able)) {
+    # can we rely on iconv() or on mb_convert_encoding() ?
+    if (function_exists('iconv') && @iconv("UTF-8", "WINDOWS-1252//IGNORE", "te\xd0\xafst")=='test' )
+      $able = 'iconv';
+    elseif (function_exists('mb_convert_encoding') && @mb_convert_encoding("te\xd0\xafst", "WINDOWS-1252", "UTF-8")=="te?st")
+      $able = 'mb';
+    elseif (class_exists('UConverter')) $able = 'uc';
+    else $able = false;
+  }
+  $to = strtoupper($to);
+  $from = strtoupper($from);
+  switch ($able) {
+    case "iconv":
+      return @iconv($from,"$to//IGNORE",$s);
+    case "mb":
+      return @mb_convert_encoding($s,$to,$from);
+    case "uc":
+      if ($to == 'WINDOWS-1252') $to = 'ISO-8859-1';
+      if ($from == 'WINDOWS-1252') $from = 'ISO-8859-1';
+      return @UConverter::transcode($s,$to,$from);
+  }
+  if (function_exists('utf8_decode')) {
+    if ($to=='UTF-8' && $from=='WINDOWS-1252') return @utf8_decode($s);
+    if ($from=='UTF-8' && $to=='WINDOWS-1252') return @utf8_encode($s);
+  }
+  return $s;
+}
+
 ## class PageStore holds objects that store pages via the native
 ## filesystem.
 class PageStore {
@@ -1436,23 +1466,7 @@ class PageStore {
     $GLOBALS['PageExistsCache'] = array();
   }
   function recodefn($s,$from,$to) {
-    static $able;
-    if (is_null($able)) {
-      # can we rely on iconv() or on mb_convert_encoding() ?
-      if (function_exists('iconv') && @iconv("UTF-8", "WINDOWS-1252//IGNORE", "te\xd0\xafst")=='test' )
-        $able = 'iconv';
-      elseif (function_exists('mb_convert_encoding') && @mb_convert_encoding("te\xd0\xafst", "WINDOWS-1252", "UTF-8")=="te?st")
-        $able = 'mb';
-    }
-    switch ($able) {
-      case "iconv":
-        return @iconv($from,"$to//IGNORE",$s);
-      case "mb":
-        return @mb_convert_encoding($s,$to,$from);
-    }
-    if ($to=='UTF-8' && $from=='WINDOWS-1252') return utf8_decode($s);
-    if ($from=='UTF-8' && $to=='WINDOWS-1252') return utf8_encode($s);
-    return $s;
+    return pm_recode($s,$from,$to);
   }
   function pagefile($pagename) {
     global $FarmD;
