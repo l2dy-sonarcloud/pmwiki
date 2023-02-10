@@ -1764,6 +1764,9 @@ function Keep($x, $pool=NULL) {
   return $KeepToken.$KPCount.$pool.$KeepToken;
 }
 
+function KeepBlock($x, $pool=NULL) {
+  return '<:block>' . Keep($x, $pool);
+}
 
 ##  MarkupEscape examines markup source and escapes any [@...@]
 ##  and [=...=] sequences using Keep().  MarkupRestore undoes the
