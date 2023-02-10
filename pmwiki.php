@@ -1,7 +1,7 @@
 <?php
 /*
     PmWiki
-    Copyright 2001-2022 Patrick R. Michaud
+    Copyright 2001-2023 Patrick R. Michaud
     pmichaud@pobox.com
     http://www.pmichaud.com/
 
@@ -2325,7 +2325,7 @@ function HandleBrowse($pagename, $auth = 'read') {
   $page = RetrieveAuthPage($pagename, $auth, true, READPAGE_CURRENT);
   if (!$page) Abort("?cannot read $pagename");
   PCache($pagename,$page);
-  if (PageExists($pagename)) $text = @$page['text'];
+  if (PageExists($pagename)) $text = $FmtV['$PageSourceText'] = @$page['text'];
   else {
     SDV($DefaultPageTextFmt,'(:include $[{$SiteGroup}.PageNotFound]:)');
     $text = FmtPageName($DefaultPageTextFmt, $pagename);
