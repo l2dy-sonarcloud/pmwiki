@@ -44,11 +44,7 @@ $FmtV['$TokenName'] = 'pmtoken';
 define('PmWiki',1);
 SDV($WorkDir,'wiki.d');
 SDV($FarmD,dirname(__FILE__));
-SDV($FarmPubDirPrefix, 'PmFarmPubDirUrl');
-if (strpos($FarmD, 'phar://')===0) {
-  $IsFarmArchive = 1;
-  SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
-}
+if (strpos($FarmD, 'phar://')===0) $IsFarmArchive = 1;
 elseif (preg_match('/\\w\\w:/', $FarmD)) exit();
 @include_once("$FarmD/scripts/version.php");
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
@@ -90,6 +86,8 @@ $UrlScheme = (@$_SERVER['HTTPS']=='on' || @$_SERVER['SERVER_PORT']==443)
              ? 'https' : 'http';
 $ScriptUrl = $UrlScheme.'://'.strval(@$_SERVER['HTTP_HOST']).strval(@$_SERVER['SCRIPT_NAME']);
 $PubDirUrl = preg_replace('#/[^/]*$#', '/pub', $ScriptUrl, 1);
+SDV($FarmPubDirPrefix, 'PmFarmPubDirUrl');
+if ($IsFarmArchive) SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
 $HTMLVSpace = "<vspace>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
