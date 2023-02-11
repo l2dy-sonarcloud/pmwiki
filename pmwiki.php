@@ -41,10 +41,15 @@ if (ini_get('register_globals'))
   }
 $UnsafeGlobals = array_keys($GLOBALS); $GCount=0; $FmtV=array();
 $FmtV['$TokenName'] = 'pmtoken';
-SDV($FarmD,dirname(__FILE__));
-SDV($WorkDir,'wiki.d');
 define('PmWiki',1);
-if (preg_match('/\\w\\w:/', $FarmD)) exit();
+SDV($WorkDir,'wiki.d');
+SDV($FarmD,dirname(__FILE__));
+SDV($FarmPubDirPrefix, 'PmFarmPubDirUrl');
+if (strpos($FarmD, 'phar://')===0) {
+  $IsFarmArchive = 1;
+  SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
+}
+elseif (preg_match('/\\w\\w:/', $FarmD)) exit();
 @include_once("$FarmD/scripts/version.php");
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
 $NamePattern = '[[:upper:]\\d][\\w]*(?:-\\w+)*';
@@ -372,6 +377,44 @@ $DenyHtaccessContent = <<<EOF
 </IfModule>
 
 EOF;
+
+SDVA($ServeFileExts, array(
+  'gif' => 'image/gif', 'png' => 'image/png', 'svg' => 'image/svg+xml',
+  'README' => 'text/plain', 'txt' => 'text/plain',
+  'js' => 'application/javascript', 
+));
+function pm_servefile($basedir, $path) {
+  global $ServeFileExts;
+  header("X-Sent-Via: pm_servefile");
+  $ext = preg_replace('!^.*[./]!', '', $path);
+  if (!isset($ServeFileExts[$ext]) || preg_match('/[?#${}]|\\.\\./', $path)) {
+    http_response_code(403);
+    die('Forbidden');
+  }
+  $filepath = "$basedir/$path";
+  if(!file_exists($filepath)) {
+    http_response_code(404);
+    die('File not found');
+  }
+  
+  header('Cache-Control: private');
+  header('Expires: ');
+  $filelastmod = gmdate('D, d M Y H:i:s \G\M\T', filemtime($filepath));
+  if (@$_SERVER['HTTP_IF_MODIFIED_SINCE'] == $filelastmod)
+    { http_response_code(304); exit(); }
+  header("Last-Modified: $filelastmod");
+  header("Content-Type: {$ServeFileExts[$ext]}");
+  $length = filesize($filepath);
+  header("Content-Length: $length");
+  readfile($filepath);
+  exit;
+}
+
+if (strpos($pagename, "$FarmPubDirPrefix/")===0) {
+  $path = substr($pagename, strlen("$FarmPubDirPrefix/"));
+  pm_servefile("$FarmD/pub", $path);
+  exit;
+}
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
