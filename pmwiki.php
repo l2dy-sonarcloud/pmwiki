@@ -379,7 +379,7 @@ EOF;
 SDVA($ServeFileExts, array(
   'gif' => 'image/gif', 'png' => 'image/png', 'svg' => 'image/svg+xml',
   'README' => 'text/plain', 'txt' => 'text/plain',
-  'js' => 'application/javascript', 
+  'css' => 'text/css', 'js' => 'application/javascript', 
 ));
 function pm_servefile($basedir, $path) {
   global $ServeFileExts;
