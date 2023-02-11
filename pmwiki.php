@@ -381,7 +381,7 @@ SDVA($ServeFileExts, array(
   'README' => 'text/plain', 'txt' => 'text/plain',
   'css' => 'text/css', 'js' => 'application/javascript', 
 ));
-function pm_servefile($basedir, $path) {
+function pm_servefile($basedir, $path, $cachecontrol='no-cache') {
   global $ServeFileExts;
   header("X-Sent-Via: pm_servefile");
   $ext = preg_replace('!^.*[./]!', '', $path);
@@ -395,7 +395,7 @@ function pm_servefile($basedir, $path) {
     die('File not found');
   }
   
-  header('Cache-Control: private');
+  header("Cache-Control: $cachecontrol");
   header('Expires: ');
   $filelastmod = gmdate('D, d M Y H:i:s \G\M\T', filemtime($filepath));
   if (@$_SERVER['HTTP_IF_MODIFIED_SINCE'] == $filelastmod)
