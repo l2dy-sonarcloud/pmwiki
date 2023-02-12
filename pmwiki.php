@@ -87,7 +87,7 @@ $UrlScheme = (@$_SERVER['HTTPS']=='on' || @$_SERVER['SERVER_PORT']==443)
 $ScriptUrl = $UrlScheme.'://'.strval(@$_SERVER['HTTP_HOST']).strval(@$_SERVER['SCRIPT_NAME']);
 $PubDirUrl = preg_replace('#/[^/]*$#', '/pub', $ScriptUrl, 1);
 SDV($FarmPubDirPrefix, 'PmFarmPubDirUrl');
-if ($IsFarmArchive) SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
+if (@$IsFarmArchive) SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
 $HTMLVSpace = "<vspace>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
