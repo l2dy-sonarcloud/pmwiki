@@ -44,7 +44,10 @@ $FmtV['$TokenName'] = 'pmtoken';
 define('PmWiki',1);
 SDV($WorkDir,'wiki.d');
 SDV($FarmD,dirname(__FILE__));
-if (strpos($FarmD, 'phar://')===0) $IsFarmArchive = 1;
+if (preg_match('!^phar://[^:]*$!', $FarmD)) {
+  $IsPmArchive = 1;
+  SDV($PmArchiveDir, substr(dirname(dirname($FarmD)), 7));
+}
 elseif (preg_match('/\\w\\w:/', $FarmD)) exit();
 @include_once("$FarmD/scripts/version.php");
 $GroupPattern = '[[:upper:]][\\w]*(?:-\\w+)*';
@@ -87,7 +90,7 @@ $UrlScheme = (@$_SERVER['HTTPS']=='on' || @$_SERVER['SERVER_PORT']==443)
 $ScriptUrl = $UrlScheme.'://'.strval(@$_SERVER['HTTP_HOST']).strval(@$_SERVER['SCRIPT_NAME']);
 $PubDirUrl = preg_replace('#/[^/]*$#', '/pub', $ScriptUrl, 1);
 SDV($FarmPubDirPrefix, 'PmFarmPubDirUrl');
-if (@$IsFarmArchive) SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
+if (@$IsPmArchive) SDV($FarmPubDirUrl, "$ScriptUrl/$FarmPubDirPrefix");
 $HTMLVSpace = "<vspace>";
 $HTMLPNewline = '';
 $MarkupFrame = array();
@@ -416,6 +419,8 @@ if (strpos($pagename, "$FarmPubDirPrefix/")===0) {
 
 if (file_exists("$FarmD/local/farmconfig.php")) 
   include_once("$FarmD/local/farmconfig.php");
+if (@$IsPmArchive && file_exists("$PmArchiveDir/local/farmconfig.php"))
+  include_once("$PmArchiveDir/local/farmconfig.php");
 if (IsEnabled($EnableLocalConfig,1)) {
   if (file_exists("$LocalDir/config.php")) 
     include_once("$LocalDir/config.php");
