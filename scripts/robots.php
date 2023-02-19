@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2017 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2023 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -50,7 +50,7 @@ SDV($RobotPattern,'\\w+[-_ ]?(bot|spider|crawler)'
   .'|Slurp|Teoma|ia_archiver|HTTrack|XML Sitemaps|Jabse|Yandex|PageAnalyzer|Yeti|Riddler|Aboundex|ADmantX|WikiDo'
   .'|Pinterest|Qwantify|worldwebheritage|coccoc|HostWallker|Add Catalog|idmarch|MegaIndex|heritrix|SEOdiver');
 SDV($IsRobotAgent, 
-  $RobotPattern && preg_match("!$RobotPattern!i", @$_SERVER['HTTP_USER_AGENT']));
+  $RobotPattern && preg_match("!$RobotPattern!i", strval(@$_SERVER['HTTP_USER_AGENT'])));
 if (!$IsRobotAgent) return;
 
 ## $RobotActions indicates which actions a robot is allowed to perform.

@@ -1,6 +1,6 @@
 /*
   JavaScript utilities for PmWiki
-  (c) 2009-2022 Petko Yotov www.pmwiki.org/petko
+  (c) 2009-2023 Petko Yotov www.pmwiki.org/petko
   based on PmWiki addons DeObMail, AutoTOC and Ape
   licensed GNU GPLv2 or any more recent version released by the FSF.
 
@@ -298,6 +298,12 @@
         tfoot.appendChild(rows[rows.length-1]);
       }
       mkdatasort(rows);
+    }
+    var times = dqsa('table.sortable time[datetime], table.sortable-footer time[datetime]');
+    for(var i=0; i<times.length; i++) {
+      var t = times[i];
+      var cell = t.closest('td, th');
+      if(cell) cell.dataset.sort = t.getAttribute('datetime');
     }
     libsortable();
   }
