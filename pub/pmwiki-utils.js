@@ -299,20 +299,14 @@
       }
       mkdatasort(rows);
     }
-    var times = dqsa('table.sortable time[datetime], table.sortable-footer time[datetime]');
-    for(var i=0; i<times.length; i++) {
-      var t = times[i];
-      var cell = t.closest('td, th');
-      if(cell) cell.dataset.sort = t.getAttribute('datetime');
-    }
     libsortable();
   }
   function mkdatasort(rows) {
     var hcells = rows[0].querySelectorAll('th,td');
     var specialsort = [], span;
     for(var i=0; i<hcells.length; i++) {
-      sortspan = hcells[i].querySelector('.sort-number,.sort-number-us,.sort-date');
-      if(sortspan) specialsort[i] = sortspan.className;
+      sortspan = hcells[i].querySelector('.sort-number,.sort-number-us,.sort-date,.sort-time');
+      specialsort[i] = sortspan? sortspan.className : false;
     }
     if(! specialsort.length) return;
     for(var i=1; i<rows.length; i++) {
@@ -324,7 +318,11 @@
         if(specialsort[j] == 'sort-number-us') {ds = t.replace(/[^-.\d]+/g, ''); }
         else if(specialsort[j] == 'sort-number') {ds = t.replace(/[^-,\d]+/g, '').replace(/,/g, '.'); }
         else if(specialsort[j] == 'sort-date') {ds = new Date(t).getTime(); }
-        if(ds) cells[j].setAttribute('data-sort', ds);
+        else if(specialsort[j] == 'sort-time') {
+          var time = cells[j].querySelector('time[datetime]');
+          if(time) ds = time.getAttribute('datetime');
+        }
+        if(ds) cells[j].dataset.sort = ds;
       }
     }
   }
