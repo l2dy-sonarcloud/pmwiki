@@ -40,6 +40,7 @@ SDVA($UploadExts,array(
   'rpm' => 'application/x-rpm', 
   'hqx' => 'application/mac-binhex40', 'sit' => 'application/x-stuffit',
   'doc' => 'application/msword', 'ppt' => 'application/vnd.ms-powerpoint',
+  'csv' => 'text/csv',
   'xls' => 'application/vnd.ms-excel', 'mdb' => 'text/plain',
   'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
