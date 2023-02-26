@@ -419,7 +419,12 @@
     var D = zpad(d.getDate()), M = zpad(d.getMonth()+1);
     var thedate = daymonth.replace(/%d/, D).replace(/%m/, M);
     if(Now-d < 334*24*3600000) return [thedate, tooltip];
-    return [thedate + '/' + d.getFullYear(), tooltip];
+ 
+    if(ltmode == 1)
+      return [thedate + '/' + d.getFullYear(), tooltip];
+    
+    if(ltmode == 3)
+      return [M + "'" + zpad(d.getFullYear()%100), tooltip];
   }
   
   function localTimes() {
