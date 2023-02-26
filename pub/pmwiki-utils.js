@@ -279,21 +279,19 @@
     var tables = dqsa('table.sortable,table.sortable-footer');
     for(var i=0; i<tables.length; i++) {
       // non-pmwiki-core table, already ready
-      if(tables[i].querySelector('thead')) continue;
-
-      tables[i].classList.add('sortable'); // for .sortable-footer
-
-      var thead = document.createElement('thead');
-      tables[i].insertBefore(thead, tables[i].firstChild);
-
       var rows = tables[i].querySelectorAll('tr');
-      thead.appendChild(rows[0]);
+      if(! tables[i].querySelector('thead')) {
+        var thead = document.createElement('thead');
+        tables[i].insertBefore(thead, tables[i].firstChild);
+        thead.appendChild(rows[0]);
+      }
       var tbody = tables[i].querySelector('tbody');
       if(! tbody) {
         tbody = tables[i].appendChild(document.createElement('tbody'));
         for(var r=1; r<rows.length; r++) tbody.appendChild(rows[r]);
       }
       if(tables[i].className.match(/sortable-footer/)) {
+        tables[i].classList.add('sortable');
         var tfoot = tables[i].appendChild(document.createElement('tfoot'));
         tfoot.appendChild(rows[rows.length-1]);
       }
@@ -328,6 +326,7 @@
   }
   function libsortable(){
     // adapted from Public Domain code by github.com/tofsjonas
+    // updated to keep any event handlers in the table
     function getValue(obj) {
       obj = obj.cells[column_index];
       return obj.getAttribute('data-sort') || obj.innerText;
