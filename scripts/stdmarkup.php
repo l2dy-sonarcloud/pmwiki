@@ -708,14 +708,14 @@ function AutoMarkupDirective($m) { # all, directive, params?, content?
   if(!isset($MarkupDirectiveFunctions[$directive])) return Keep($all);
   
   $args = ParseArgs(strval(@$params));
-  $content = trim(strval(@$content));
+  $content = strval(@$content);
   
   return $MarkupDirectiveFunctions[$directive]($pagename, $directive, $args, $content);
 }
 
 if(isset($MarkupDirectiveFunctions)) {
   $keys = implode('|', array_keys($MarkupDirectiveFunctions));
-  Markup('anydir', 'directives', "/\\(:($keys)(\\s+.*?)?:\\)/s", 'AutoMarkupDirective');
-  Markup('anydir2', '<anydir', "/\\(:($keys)(\\s+.*?)?:\\).*?\\(:\\1end:\\)/s", 'AutoMarkupDirective');
+  Markup('anydir2', '<split',  "/\\(:($keys)( .*?)?:\\)([\\s\\S]*?)\\(:\\1end:\\)/", 'AutoMarkupDirective');
+  Markup('anydir1', '>anydir2', "/\\(:($keys)(\\s+.*?)?:\\)/s", 'AutoMarkupDirective');
 }
 
