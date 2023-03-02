@@ -378,7 +378,6 @@
     var copytext = __script__.dataset.copycode
     if(!copytext) return;
     var pres = dqsa('#wikitext pre');
-    log(pres);
     var btn = "<span class='pmcopycode frame rfloat' title='"+PHSC(copytext)+"'></span>"
     for(var i=0; i<pres.length; i++) {
       adjab(pres[i], btn);
