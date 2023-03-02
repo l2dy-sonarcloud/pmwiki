@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2005-2021 Patrick R. Michaud (pmichaud@pobox.com)
+/*  Copyright 2005-2023 Patrick R. Michaud (pmichaud@pobox.com)
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ function AuthUserId($pagename, $id, $pw=NULL) {
   foreach ( (array)$AuthUserPageFmt as $aupn) {
     $pn = FmtPageName($aupn, $pagename);
     $apage = ReadPage($pn, READPAGE_CURRENT);
-    if ($apage && preg_match_all($AuthUserPat,
+    if ($apage && @$apage['text'] && preg_match_all($AuthUserPat,
                                 $apage['text'], $matches, PREG_SET_ORDER)) {
       foreach($matches as $m) {
         if (!preg_match_all('/\\bldaps?:\\S+|[^\\s,]+/', $m[2], $v))

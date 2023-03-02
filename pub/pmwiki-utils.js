@@ -374,6 +374,25 @@
     });
   }
 
+  function copy_pre() {
+    var copytext = __script__.dataset.copycode
+    if(!copytext) return;
+    var pres = dqsa('#wikitext pre');
+    log(pres);
+    var btn = "<span class='pmcopycode frame rfloat' title='"+PHSC(copytext)+"'></span>"
+    for(var i=0; i<pres.length; i++) {
+      adjab(pres[i], btn);
+    }
+    tap('.pmcopycode', function(e){
+      var cc = this;
+      var pre = cc.parentNode;
+      var tc = pre.textContent;
+      navigator.clipboard.writeText(tc);
+      cc.classList.add('copied');
+      setTimeout(function(){cc.classList.remove('copied');}, 3000);
+    });
+  }
+
   function highlight_pre() {
     if(!__script__.dataset.highlight) return;
     if (typeof hljs == 'undefined') return;
@@ -530,7 +549,7 @@
   function ready(){
     __script__ = dqs('script[src*="pmwiki-utils.js"]');
     wikitext = document.getElementById('wikitext');
-    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, makesortable];
+    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, copy_pre, makesortable];
     fn.forEach(function(a){a();});
   }
   if( document.readyState !== 'loading' ) ready();

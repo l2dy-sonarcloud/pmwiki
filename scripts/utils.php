@@ -1,5 +1,5 @@
 <?php if (!defined('PmWiki')) exit();
-/*  Copyright 2019-2022 Petko Yotov www.pmwiki.org/petko
+/*  Copyright 2019-2023 Petko Yotov www.pmwiki.org/petko
     This file is part of PmWiki; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation; either version 2 of the License, or
@@ -14,6 +14,7 @@
     * Improved recent changes
     * Syntax highlighting (PmWiki markup)
     * Syntax highlighting (external)
+    * Copy code button from <pre> blocks.
     * Collapsible sections
     * Email obfuscation
     
@@ -23,13 +24,27 @@
 
 function PmUtilsJS() {
   global $PmTOC, $EnableSortable, $EnableHighlight, $EnableLocalTimes, $ToggleNextSelector, 
-    $LinkFunctions, $FarmD, $HTMLHeaderFmt, $EnablePmSyntax, $CustomSyntax;
+    $LinkFunctions, $FarmD, $HTMLStylesFmt, $HTMLHeaderFmt, $EnablePmSyntax, $CustomSyntax, $EnableCopyCode;
 
   $utils = "$FarmD/pub/pmwiki-utils.js";
+  
+  $cc = IsEnabled($EnableCopyCode, 0)? PHSC(XL('Copy code'), ENT_QUOTES) : '';
+  
+  if($cc) {
+    SDVA($HTMLStylesFmt, array('copycode'=>'
+    .pmcopycode { cursor: pointer; display: inline-block; border-radius: 2px; opacity:.2; }
+    .pmcopycode.copied { background-color: #ffa;  }
+    .pmcopycode::before { content: "+"; display: block; width:em; height: .8em; line-height: .8em; text-align: center;  }
+    .pmcopycode.copied::before { content: "\\2714"; }
+    pre:hover .pmcopycode { opacity:1; }
+    '));
+  }
+  
   if (( IsEnabled($PmTOC['Enable'], 0)
     || IsEnabled($EnableSortable, 0)
     || $LinkFunctions['mailto:'] == 'ObfuscateLinkIMap' 
     || IsEnabled($EnableHighlight, 0)
+    || $cc
     || IsEnabled($ToggleNextSelector, 0)
     || IsEnabled($EnableLocalTimes, 0)
     ) && file_exists($utils)) {
@@ -37,6 +52,7 @@ function PmUtilsJS() {
       SDVA($HTMLHeaderFmt, array('pmwiki-utils' =>
         "<script type='text/javascript' src='\$FarmPubDirUrl/pmwiki-utils.js?st=$mtime'
           data-sortable='".@$EnableSortable."' data-highlight='".@$EnableHighlight."'
+          data-copycode='$cc'
           data-pmtoc='".pm_json_encode(@$PmTOC, true)."'
           data-toggle='".PHSC(@$ToggleNextSelector, ENT_QUOTES)."'
           data-localtimes='".@$EnableLocalTimes."' data-fullname='{\$FullName}'></script>"
