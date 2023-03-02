@@ -33,7 +33,7 @@ function PmUtilsJS() {
   if($cc) {
     SDVA($HTMLStylesFmt, array('copycode'=>'
     .pmcopycode { cursor: pointer; display: inline-block; border-radius: 2px; opacity:.2; }
-    .pmcopycode.copied { background-color: #ffa;  }
+    .pmcopycode.copied { background-color: #8f8;  }
     .pmcopycode::before { content: "+"; display: block; width:em; height: .8em; line-height: .8em; text-align: center;  }
     .pmcopycode.copied::before { content: "\\2714"; }
     pre:hover .pmcopycode { opacity:1; }
