@@ -208,7 +208,10 @@
         adjab(dqs(dtoc.ParentElement), wrap);
       }
       else {
-        adjbb(hcache[0][0], wrap);
+        var x1 = hcache[0][0];
+        var x0 = x1.previousElementSibling;
+        if(x0 && x0.classList.matches('.sectionedit.sectionhead')) x1 = x0;
+        adjbb(x1, wrap);
       }
       tocdiv = dqs('.PmTOCdiv');
 
