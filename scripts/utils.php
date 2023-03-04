@@ -32,9 +32,9 @@ function PmUtilsJS() {
   
   if($cc) {
     SDVA($HTMLStylesFmt, array('copycode'=>'
-    .pmcopycode { cursor: pointer; display: inline-block; border-radius: 2px; opacity:.2; }
-    .pmcopycode.copied { background-color: #8f8;  }
-    .pmcopycode::before { content: "+"; display: block; width:em; height: .8em; line-height: .8em; text-align: center;  }
+    .pmcopycode { cursor: pointer; display: block; border-radius: 2px; opacity:.2; position:relative; z-index: 2; }
+    .pmcopycode.copied { background-color: #8f8; }
+    .pmcopycode::before { content: "+"; display: block; width:.8em; height: .8em; line-height: .8em; text-align: center;  }
     .pmcopycode.copied::before { content: "\\2714"; }
     pre:hover .pmcopycode { opacity:1; }
     '));
