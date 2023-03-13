@@ -976,7 +976,8 @@ function DRange($when) {
 ## into a <time> element formatted according to $TimeFmt
 function FmtDateTimeZ($m) {
   global $TimeFmt, $TimeISOZFmt;
-  $time = strtotime(substr($m[0], 1)); # "@"
+  if (is_numeric($m)) $time = intval($m);
+  else $time = strtotime(substr($m[0], 1)); # "@"
   $iso = PSFT($TimeISOZFmt, $time, null, 'GMT');
   $text = PSFT($TimeFmt, $time);
   return "<time datetime='$iso'>$text</time>";
