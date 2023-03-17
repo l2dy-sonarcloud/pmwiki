@@ -1973,7 +1973,7 @@ function RedirectMarkup($pagename, $opt) {
   Redirect($to, "{\$PageUrl}"
     . (IsEnabled($EnableRedirectQuiet, 0) && IsEnabled($opt['quiet'], 0)
       ? '' : "?from=$pagename")
-    . $anchor);
+    . @$anchor);
   exit();
 }
    
