@@ -1968,7 +1968,7 @@ function RedirectMarkup($pagename, $opt) {
   if (@$opt['from'] 
       && !MatchPageNames($pagename, FixGlob($opt['from'], '$1*.$2')))
     return '';
-  if (preg_match('/^30[1237]$/', @$opt['status'])) 
+  if (preg_match('/^30[1237]$/', strval(@$opt['status']))) 
      header("HTTP/1.1 {$opt['status']}");
   Redirect($to, "{\$PageUrl}"
     . (IsEnabled($EnableRedirectQuiet, 0) && IsEnabled($opt['quiet'], 0)
