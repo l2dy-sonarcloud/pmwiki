@@ -1321,7 +1321,7 @@ function PageVar($pagename, $var, $pn = '') {
       if (@$page['=auth']['read']) $authpage = &$page;
     }
   } else { $group = ''; $name = ''; }
-  if (isset($FmtPV[$var])) return eval("return ({$FmtPV[$var]});");
+  if (isset($FmtPV[$var]) && strval($FmtPV[$var])>'') return eval("return ({$FmtPV[$var]});");
   if (strncmp($var, '$:', 2)==0) return PageTextVar($pn, substr($var, 2));
   return '';
 }
