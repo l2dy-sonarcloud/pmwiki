@@ -1976,7 +1976,7 @@ function RedirectMarkup($pagename, $opt) {
     . @$anchor);
   exit();
 }
-   
+
 
 function Block($b) {
   global $BlockMarkups,$HTMLVSpace,$HTMLPNewline,$MarkupFrame;

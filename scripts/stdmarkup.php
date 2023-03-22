@@ -708,6 +708,8 @@ function AutoMarkupDirective($m) { # all, directive, params?, content?
   if(!isset($MarkupDirectiveFunctions[$directive])) return Keep($all);
   
   $args = ParseArgs(strval(@$params));
+  foreach($args as $k=>&$v) if(is_numeric($v)) $v = floatval($v);
+  
   $content = strval(@$content);
   
   return $MarkupDirectiveFunctions[$directive]($pagename, $directive, $args, $content);
