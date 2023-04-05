@@ -547,11 +547,29 @@
     seenstamp[pagename] = Math.floor(Now.getTime()/1000);
     setLS('seenstamp', seenstamp);
   }
+  
+  function confirmForms(){
+    var forms = dqsa('form[data-pmconfirm]');
+    aE('form[data-pmconfirm]', 'submit', function(e){
+      if(!confirm(this.dataset.pmconfirm)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+    
+    tap('button[data-pmconfirm],input[data-pmconfirm]', function(e){
+      if(!confirm(this.dataset.pmconfirm)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+    
+  }
 
   function ready(){
     __script__ = dqs('script[src*="pmwiki-utils.js"]');
     wikitext = document.getElementById('wikitext');
-    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, copy_pre, makesortable];
+    var fn = [autotoc, inittoggle, PmXMail, localTimes, highlight_pre, copy_pre, makesortable, confirmForms];
     fn.forEach(function(a){a();});
   }
   if( document.readyState !== 'loading' ) ready();
