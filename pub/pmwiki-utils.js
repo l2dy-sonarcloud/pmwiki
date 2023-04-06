@@ -558,6 +558,7 @@
     });
     
     tap('button[data-pmconfirm],input[data-pmconfirm]', function(e){
+      if(this.tagName == 'INPUT' && !this.type.match(/^(submit|reset|button)$/i)) return;
       if(!confirm(this.dataset.pmconfirm)) {
         e.preventDefault();
         e.stopPropagation();
