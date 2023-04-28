@@ -2985,8 +2985,14 @@ function HandlePostAttr($pagename, $auth = 'attr') {
 
 
 function HandleLogoutA($pagename, $auth = 'read') {
-  global $LogoutRedirectFmt, $LogoutCookies;
+  global $LogoutRedirectFmt;
   SDV($LogoutRedirectFmt, '$FullName');
+  LogoutCookies($pagename);
+  Redirect(FmtPageName($LogoutRedirectFmt, $pagename));
+}
+
+function LogoutCookies($pagename) {
+  global $LogoutCookies;
   SDV($LogoutCookies, array());
   pm_session_start();
   $_SESSION = array();
@@ -2995,8 +3001,8 @@ function HandleLogoutA($pagename, $auth = 'read') {
   foreach ($LogoutCookies as $c)
     if (isset($_COOKIE[$c])) pmsetcookie($c, '', time()-43200, '/');
   session_destroy();
-  Redirect(FmtPageName($LogoutRedirectFmt, $pagename));
 }
+
 
 
 function HandleLoginA($pagename, $auth = 'login') {

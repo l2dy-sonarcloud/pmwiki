@@ -105,9 +105,15 @@ function PmFormTemplateRequires($pagename, &$text, $args=NULL) {
 
 
 function PmFormMarkup($m) {
-  global $PmFormTemplatesFmt;
+  global $PmFormTemplatesFmt, $InputTags, $PmFormEnablePmToken;
+  static $seen = 0;
   extract($GLOBALS["MarkupToHTML"]);
   @list($ignore, $target, $args) = $m;
+  
+  if(!$seen++ && isEnabled($PmFormEnablePmToken, true)) {
+    pmtoken();
+    $InputTags['pmform'][':html'] .= '<input type="hidden" name="$TokenName" value="$TokenValue" />';
+  }
   
   $target_opt = PmFormConfig($pagename, $target);
   $markup_opt = ParseArgs($args);
@@ -123,21 +129,17 @@ function PmFormMarkup($m) {
 
 
 function HandlePmForm($pagename, $auth = 'read') {
-  global $PmFormPostPatterns, $PmFormTemplatesFmt, $PmFormExitFunction;
-  $post_opt = RequestArgs($_POST);
-  if(function_exists('PPRA'))
-    $post_opt = PPRA($PmFormPostPatterns, $post_opt);
-  else {
-    $pat = array_keys($PmFormPostPatterns);
-    $rep = array_values($PmFormPostPatterns);
-    foreach($post_opt as $k => $v)
-      $post_opt[$k] = preg_replace($pat, $rep, $v);
-  }
+  global $PmFormPostPatterns, $PmFormEnablePmToken, $PmFormTemplatesFmt, $PmFormExitFunction;
+  $post_opt = PPRA($PmFormPostPatterns, RequestArgs($_POST));
+
   $target = @$post_opt['target'];
   $target_opt = PmFormConfig($pagename, $target);
   if (!$target_opt)
     return HandleDispatch($pagename, 'browse', "$[Unknown target] $target");
 
+  if(isEnabled($PmFormEnablePmToken, true) && !pmtoken(1))
+    return HandleDispatch($pagename, 'browse', "$[Token invalid or missing.]");
+  
   ##  Now, get the message template we will use
   $msgtmpl = RetrieveAuthSection($pagename, @$target_opt['fmt'], 
                                  $PmFormTemplatesFmt);
