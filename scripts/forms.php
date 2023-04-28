@@ -75,6 +75,7 @@ SDVA($InputTags['datalist'], array(
 # (:input defaults?:)
 SDVA($InputTags['default'], array(':fn' => 'InputDefault'));
 SDVA($InputTags['defaults'], array(':fn' => 'InputDefault'));
+SDVA($InputTags['pmtoken'], array(':fn' => 'InputPmToken'));
 
 ##  (:input ...:) directives
 Markup('input', 'directives',
@@ -285,6 +286,12 @@ function InputSelect($pagename, $type, $markup) {
   return Keep(FmtPageName($selectopt[':html'], $pagename));
 }
 
+##  (:input pmtoken:) helper
+function InputPmToken($pagename, $type, $args) {
+  global $FmtV;
+  $token = pmtoken();
+  return "<input type='hidden' name='{$FmtV['$TokenName']}' value='$token' />";
+}
 
 function InputActionForm($pagename, $type, $args) {
   global $InputAttrs;
