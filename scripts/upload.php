@@ -207,7 +207,7 @@ function UploadSetVars($pagename) {
   $uprname = PHSC(@$_REQUEST['uprname']);
   $FmtV['$upext'] = PHSC(@$_REQUEST['upext']);
   $FmtV['$upmax'] = PHSC(@$_REQUEST['upmax']);
-  $FmtV['$TokenValue'] = pmtoken();
+  pmtoken();
   $FmtV['$UploadResult'] = ($upresult) ?
     FmtPageName("<i>$uprname</i>: $[UL$upresult]",$pagename) : 
       (@$EnableReadOnly ? XL('Cannot modify site -- $EnableReadOnly is set'): '');
@@ -342,7 +342,7 @@ function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname=null) {
     $EnableUploadVersions, $UploadDirQuota, $UploadDir, $UploadBlacklist,
     $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
 
-  if(! AutoCheckToken()) {
+  if(! pmtoken(1)) {
     return 'upresult=invalidtoken';
   }
   

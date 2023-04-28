@@ -337,6 +337,8 @@ XLSDV('en', array(
 
 if ($action != 'edit') return;
 
+pmtoken();
+
 SDV($PageEditForm, '$SiteGroup.EditForm');
 SDV($PageEditFmt, '$EditForm');
 if (@$_REQUEST['editform']) {

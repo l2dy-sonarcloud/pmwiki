@@ -54,10 +54,11 @@ function LinkHTTP($pagename,$imap,$path,$alt,$txt,$fmt=NULL) {
   if (!IsEnabled($EnableUrlApprovalRequired,1))
     return LinkIMap($pagename,$imap,$path,$alt,$txt,$fmt);
   static $havereadpages;
-  if (!$havereadpages) { ReadApprovedUrls($pagename); $havereadpages=true; }
-  static $token;
-  if (!$token) $token = pmtoken();
-  $FmtV['$TokenValue'] = urlencode($token);
+  if (!$havereadpages) { 
+    ReadApprovedUrls($pagename); 
+    pmtoken(); 
+    $havereadpages=true;
+  }
   
   $p = str_replace(' ','%20',$path);
   $url = str_replace('$1',$p,$IMap[$imap]);
@@ -89,6 +90,11 @@ function ReadApprovedUrls($pagename) {
 
 function HandleApprove($pagename, $auth='edit') {
   global $ApproveUrlPattern,$WhiteUrlPatterns,$ApprovedUrlPagesFmt,$action;
+  pmtoken(2, true);
+  $aname = FmtPageName($ApprovedUrlPagesFmt[0],$pagename);
+  $apage = RetrieveAuthPage($aname, $auth);
+  if (!$apage) Abort("?cannot edit $aname");
+  
   Lock(2);
   $page = ReadPage($pagename);
   $text = preg_replace('/[()]/','',$page['text']);
@@ -101,12 +107,6 @@ function HandleApprove($pagename, $auth='edit') {
     $addpat[] = $a;
   }
   if (count($addpat)>0) {
-    $aname = FmtPageName($ApprovedUrlPagesFmt[0],$pagename);
-    $apage = RetrieveAuthPage($aname, $auth);
-    if (!$apage) Abort("?cannot edit $aname");
-    if(! AutoCheckToken()) {
-      Abort('? $[Token invalid or missing.]');
-    }
     $new = $apage;
     if (substr($new['text'],-1,1)!="\n") $new['text'].="\n";
     foreach($addpat as $a) {
