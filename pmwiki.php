@@ -815,7 +815,10 @@ function PRCB($pat, $repl, $subj, $vars=null, $limit=-1, &$count=null, $flags=0)
     $cb = new PPRC($vars, $repl);
     $repl = array($cb, 'callback');
   }
-  return preg_replace_callback($pat, $repl, $subj, $limit, $count, $flags);
+  
+  if (PHP_VERSION_ID >= 70400)
+    return preg_replace_callback($pat, $repl, $subj, $limit, $count, $flags);
+  return preg_replace_callback($pat, $repl, $subj, $limit, $count);
 }
 ## callback functions
 class PPRC { # PmWiki preg replace callbacks + pass local vars
