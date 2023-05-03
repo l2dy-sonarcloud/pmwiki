@@ -110,6 +110,7 @@ XLSDV('en',array(
   'ULby' => 'uploaded by',
   'ULsuccess' => 'successfully uploaded',
   'ULinvalidtoken' => 'Token invalid or missing.',
+  'ULmimemismatch' => 'extension \'$upext\' doesn\'t match file type \'$upmime\'',
   'ULauthorrequired' => 'An author name is required.',
   'ULbadname' => 'invalid attachment name',
   'ULbadtype' => '\'$upext\' is not an allowed file extension',
@@ -207,6 +208,7 @@ function UploadSetVars($pagename) {
   $uprname = PHSC(@$_REQUEST['uprname']);
   $FmtV['$upext'] = PHSC(@$_REQUEST['upext']);
   $FmtV['$upmax'] = PHSC(@$_REQUEST['upmax']);
+  $FmtV['$upmime'] = PHSC(@$_REQUEST['upmime']);
   pmtoken();
   $FmtV['$UploadResult'] = ($upresult) ?
     FmtPageName("<i>$uprname</i>: $[UL$upresult]",$pagename) : 
@@ -340,11 +342,13 @@ function HandlePostUpload($pagename, $auth = 'upload') {
 function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname=null) {
   global $EnableUploadOverwrite, $UploadExtSize, $UploadPrefixQuota,
     $EnableUploadVersions, $UploadDirQuota, $UploadDir, $UploadBlacklist,
-    $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired;
+    $Author, $EnablePostAuthorRequired, $EnableUploadAuthorRequired,
+    $UploadExts, $EnableUploadMimeMatch;
 
   if(! pmtoken(1)) {
     return 'upresult=invalidtoken';
   }
+  if (!is_uploaded_file(strval(@$uploadfile['tmp_name']))) return 'upresult=nofile';
   
   if (IsEnabled($EnableUploadAuthorRequired,0) && !$Author)
     return 'upresult=authorrequired';
@@ -384,7 +388,19 @@ function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname=null) {
     case 3: return 'upresult=partial';
     case 4: return 'upresult=nofile';
   }
-  if (!is_uploaded_file(strval(@$uploadfile['tmp_name']))) return 'upresult=nofile';
+  
+  
+  if (IsEnabled($EnableUploadMimeMatch,0)) {
+    $mime = mime_content_type($uploadfile['tmp_name']);
+    
+    if($mime != $UploadExts[$ext]) {
+      if(!is_array($EnableUploadMimeMatch) 
+      || !isset($EnableUploadMimeMatch[$ext]) 
+      || !preg_match($EnableUploadMimeMatch[$ext], $mime))
+        return "upresult=mimemismatch&upext=$ext&upmime=$mime";
+    }
+  }
+  
   $filedir = preg_replace('#/[^/]*$#','',$filepath);
   if ($UploadPrefixQuota && 
       (dirsize($filedir)-@filesize($filepath)+$uploadfile['size']) >
