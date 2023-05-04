@@ -2551,8 +2551,11 @@ function MergeLastMinorEdit($pagename, &$page, &$new) {
   if ($page['host'] != $_SERVER['REMOTE_ADDR']) return;
   if ($page['author'] != @$Author) return;
   
-  $time = $page['time'];
+  $time = intval($page['time']);
   $text = $page['text'];
+  if ($EnableMergeLastMinorEdit >= 120) {
+    if ($Now - $time > $EnableMergeLastMinorEdit) return;
+  }
   
   $x = preg_grep("/^diff:$time:/", array_keys($page));
   if (!$x) return;
