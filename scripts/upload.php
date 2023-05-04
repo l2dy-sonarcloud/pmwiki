@@ -394,8 +394,8 @@ function UploadVerifyBasic($pagename,$uploadfile,&$filepath,&$upname=null) {
     $mime = mime_content_type($uploadfile['tmp_name']);
     
     if($mime != $UploadExts[$ext]) {
-      if(!is_array($EnableUploadMimeMatch) 
-      || !isset($EnableUploadMimeMatch[$ext]) 
+      if(!is_array($EnableUploadMimeMatch)
+      || !isset($EnableUploadMimeMatch[$ext])
       || !preg_match($EnableUploadMimeMatch[$ext], $mime))
         return "upresult=mimemismatch&upext=$ext&upmime=$mime";
     }

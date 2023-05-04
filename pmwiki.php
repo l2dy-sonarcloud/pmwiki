@@ -3,7 +3,7 @@
     PmWiki
     Copyright 2001-2023 Patrick R. Michaud
     pmichaud@pobox.com
-    http://www.pmichaud.com/
+    https://www.pmichaud.com/
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
     write me at <pmichaud@pobox.com> with your question(s) and I'll
     provide explanations (and add comments) that answer them.
     
-    Script maintained by Petko YOTOV www.pmwiki.org/petko
+    Script maintained by Petko Yotov www.pmwiki.org/petko
     $Id$
 */
 error_reporting(E_ALL ^ E_NOTICE);
@@ -72,7 +72,7 @@ $MessagesFmt = array();
 $BlockMessageFmt = "<h3 class='wikimessage'>$[This post has been blocked by the administrator]</h3>";
 $EditFields = array('text');
 $EditFunctions = array('EditTemplate', 'RestorePage', 'ReplaceOnSave',
-  'SaveAttributes', 'PostPage', 'PostRecentChanges', 'AutoCreateTargets',
+  'SaveAttributes', 'MergeLastMinorEdit', 'SaveChangeSummary', 'PostPage', 'PostRecentChanges', 'AutoCreateTargets',
   'PreviewPage');
 $EnablePost = 1;
 $ChangeSummary = substr(preg_replace('/[\\x00-\\x1f]|=\\]/', '', 
@@ -2542,6 +2542,51 @@ function SaveAttributes($pagename,&$page,&$new) {
   unset($new['excerpt']);
 }
 
+## Based on Cookbook:FuseEdit
+function MergeLastMinorEdit($pagename, &$page, &$new) {
+  global $EnableMergeLastMinorEdit, $Now, $EnablePost, $Author;
+  if (!$EnablePost || !IsEnabled($EnableMergeLastMinorEdit, 0)) return;
+  if (@$_POST['diffclass'] !== 'minor') return;
+  if ($page['agent'] != @$_SERVER['HTTP_USER_AGENT']) return;
+  if ($page['host'] != $_SERVER['REMOTE_ADDR']) return;
+  if ($page['author'] != @$Author) return;
+  
+  $time = $page['time'];
+  $text = $page['text'];
+  
+  $x = preg_grep("/^diff:$time:/", array_keys($page));
+  if (!$x) return;
+  $lastdiffkey = array_shift($x);
+  
+  RestorePage($pagename,$page,$page,$lastdiffkey);
+  
+  if ($text == $page['text']) return;
+  
+  # We remove the last diff, but keep the record in the page file, 
+  # it may be needed for stats, troubleshooting, security;
+  # diffclass=hidden hides the entry from ?action=diff (from 2.3.0)
+  $_POST['diffclass'] = '';
+  unset($new[$lastdiffkey]);
+  $newdiffkey = preg_replace('/:[^:]*$/', ':hidden', $lastdiffkey);
+  $new[$newdiffkey] = '';
+  $new["csum:$time"] = XL('[Edit fused with more recent]')
+    . ' ' . $new["csum:$time"];
+}
+
+function SaveChangeSummary($pagename, &$page, &$new) {
+  global $Now, $EnablePost, $ChangeSummary, $EnableRCDiffBytes;
+  if (!$EnablePost) return;
+  if (isset($new["csum:$Now"])) return; # Possibly set by a recipe
+  
+  if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
+    $bytes = strlen($new['text']) - strlen(strval(@$page['text']));
+    if ($bytes>=0) $bytes = "+$bytes";
+    $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
+  }
+  $new['csum'] = $ChangeSummary;
+  if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
+}
+
 function PostPage($pagename, &$page, &$new) {
   global $DiffKeepDays, $DiffFunction, $DeleteKeyPattern, $EnablePost,
     $Now, $Charset, $Author, $WikiDir, $IsPagePosted, $DiffKeepNum;
@@ -2653,8 +2698,7 @@ function PreviewPage($pagename,&$page,&$new) {
 }
 
 function HandleEdit($pagename, $auth = 'edit') {
-  global $IsPagePosted, $EditFields, $ChangeSummary, $EditFunctions,
-    $EnablePost, $FmtV, $Now, $EditRedirectFmt, $EnableRCDiffBytes, 
+  global $IsPagePosted, $EditFields, $EnablePost, $FmtV, $Now, $EditRedirectFmt,
     $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
   SDV($EditRedirectFmt, '$FullName');
   if (@$_POST['cancel']) 
@@ -2665,14 +2709,7 @@ function HandleEdit($pagename, $auth = 'edit') {
   $new = $page;
   foreach((array)$EditFields as $k) 
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
-    
-  if (IsEnabled($EnableRCDiffBytes, 0) && isset($new['text'])) {
-    $bytes = strlen($new['text']) - strlen(strval(@$page['text']));
-    if ($bytes>=0) $bytes = "+$bytes";
-    $ChangeSummary = rtrim($ChangeSummary) . " ($bytes)";
-  }
-  $new['csum'] = $ChangeSummary;
-  if ($ChangeSummary) $new["csum:$Now"] = $ChangeSummary;
+
   $EnablePost &= (bool)preg_grep('/^post/', array_keys(@$_POST));
   if($EnablePost) pmtoken(1, true);
   $new['=preview'] = @$new['text'];
