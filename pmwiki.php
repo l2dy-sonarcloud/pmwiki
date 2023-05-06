@@ -3030,11 +3030,11 @@ function HandlePostAttr($pagename, $auth = 'attr') {
 function HandleLogoutA($pagename, $auth = 'read') {
   global $LogoutRedirectFmt;
   SDV($LogoutRedirectFmt, '$FullName');
-  LogoutCookies($pagename);
+  LogoutCookies();
   Redirect(FmtPageName($LogoutRedirectFmt, $pagename));
 }
 
-function LogoutCookies($pagename) {
+function LogoutCookies() {
   global $LogoutCookies;
   SDV($LogoutCookies, array());
   pm_session_start();
