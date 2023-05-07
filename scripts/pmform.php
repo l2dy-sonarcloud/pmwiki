@@ -92,6 +92,7 @@ function PmFormTemplateRequires($pagename, &$text, $args=NULL) {
     if (isset($opt['match'])) $match = $opt['match'];
     else if ($opt['']) $match = array_shift($opt['']);
     list($inclp, $exclp) = GlobToPCRE($match);
+    $argsn = ''; # for if= condition without field
     foreach(preg_split('/[\\s,]+/', $name, -1, PREG_SPLIT_NO_EMPTY) as $n) {
       $n = preg_replace('/^\\$:/', 'ptv_', $n);
       $argsn = strval(@$args[$n]);
