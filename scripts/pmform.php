@@ -31,7 +31,14 @@ SDVA($InputTags['pmform'], array(
 
 SDVA($Conditions, array(
   'validemail' => '(bool)filter_var($condparm, FILTER_VALIDATE_EMAIL)',
+//   'validemail' => 'IsValidEmail($condparm)',
 ));
+
+function IsValidEmail($x) {
+  $e = filter_var($x, FILTER_VALIDATE_EMAIL);
+  xmp(['IsValidEmail', $x=>$e]);
+  return $e;
+}
 
 Markup('pmform', '<input',
   '/\\(:pmform *([-\\w]+)( .*?)?:\\)/',
@@ -94,13 +101,14 @@ function PmFormTemplateRequires($pagename, &$text, $args=NULL) {
     list($inclp, $exclp) = GlobToPCRE($match);
     foreach(preg_split('/[\\s,]+/', $name, -1, PREG_SPLIT_NO_EMPTY) as $n) {
       $n = preg_replace('/^\\$:/', 'ptv_', $n);
+      $argsn = strval(@$args[$n]);
       if ($match == '' && $args[$n] != ''
-          || ($inclp && !preg_match("/$inclp/is", strval(@$args[$n])))
-          || ($exclp && preg_match("/$exclp/is", strval(@$args[$n]))))
+          || ($inclp && !preg_match("/$inclp/is", $argsn))
+          || ($exclp && preg_match("/$exclp/is", $argsn)))
         $errors[] = isset($opt['errmsg']) ? $opt['errmsg']
                     : "$[Invalid parameter] $n";
     }
-    if (@$opt['if'] && !CondText($pagename, 'if '.$opt['if'], 'hello'))
+    if (@$opt['if'] && !CondText($pagename, "if {$opt['if']} $argsn", 'hello'))
       $errors[] = isset($opt['errmsg']) ? $opt['errmsg']
                   : "$[Required condition failed]";
   }
@@ -188,7 +196,7 @@ function PmFormSave($pagename, $msgtmpl, $opt, $safe_opt) {
   $target = @$opt['target'];
   $page = ReadPage($saveto);
   if (preg_match("/.*\\(:pmform +$target( .*?)?:\\).*\n?/", strval(@$page['text']), $mark)) {
-    $mark_opt = ParseArgs($mark[1]);
+    $mark_opt = ParseArgs(strval(@$mark[1]));
     $mark_opt['=mark'] = $mark[0];
     $opt = array_merge($opt, $mark_opt);
     $safe_opt = array_merge($safe_opt, $mark_opt);
