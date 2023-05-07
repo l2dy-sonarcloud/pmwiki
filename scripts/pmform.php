@@ -31,14 +31,7 @@ SDVA($InputTags['pmform'], array(
 
 SDVA($Conditions, array(
   'validemail' => '(bool)filter_var($condparm, FILTER_VALIDATE_EMAIL)',
-//   'validemail' => 'IsValidEmail($condparm)',
 ));
-
-function IsValidEmail($x) {
-  $e = filter_var($x, FILTER_VALIDATE_EMAIL);
-  xmp(['IsValidEmail', $x=>$e]);
-  return $e;
-}
 
 Markup('pmform', '<input',
   '/\\(:pmform *([-\\w]+)( .*?)?:\\)/',
