@@ -30,7 +30,7 @@ SDVA($InputTags['pmform'], array(
   'method' => 'post'));
 
 SDVA($Conditions, array(
-  'validemail' => '(bool)filter_var(trim($condparm), FILTER_VALIDATE_EMAIL)',
+  'validemail' => '(bool)filter_var($condparm, FILTER_VALIDATE_EMAIL)',
 ));
 
 Markup('pmform', '<input',
