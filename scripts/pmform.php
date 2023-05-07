@@ -29,6 +29,10 @@ SDVA($InputTags['pmform'], array(
   ':html' => "<form action='{\$PageUrl}' \$InputFormArgs><input type='hidden' name='n' value='{\$FullName}' /><input type='hidden' name='action' value='pmform' />",
   'method' => 'post'));
 
+SDVA($Conditions, array(
+  'validemail' => '(bool)filter_var(trim($condparm), FILTER_VALIDATE_EMAIL)',
+));
+
 Markup('pmform', '<input',
   '/\\(:pmform *([-\\w]+)( .*?)?:\\)/',
   "PmFormMarkup");
