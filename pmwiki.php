@@ -851,11 +851,17 @@ function cb_toupper($m) { return strtoupper($m[1]); }
 function cb_tolower($m) { return strtolower($m[1]); }
 
 function pmcrypt($str, $salt=null) {
+  global $PmCryptAlgo;
+  SDV($PmCryptAlgo, PASSWORD_DEFAULT);
   if ($salt && preg_match('/^(-?@|\\*$)/',  $salt)) return false;
-  if (!is_null($salt)) return crypt($str, $salt);
+  if (!is_null($salt)) {
+    if(function_exists('password_verify'))
+      return password_verify($str, $salt);
+    return crypt($str, $salt);
+  }
 
   if (function_exists('password_hash'))
-    return password_hash($str, PASSWORD_DEFAULT);
+    return password_hash($str, $PmCryptAlgo);
   return crypt($str);
 }
 
