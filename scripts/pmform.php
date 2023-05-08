@@ -102,7 +102,7 @@ function PmFormTemplateRequires($pagename, &$text, $args=NULL) {
         $errors[] = isset($opt['errmsg']) ? $opt['errmsg']
                     : "$[Invalid parameter] $n";
     }
-    if (@$opt['if'] && !CondText($pagename, "if {$opt['if']} $argsn", 'hello'))
+    if (@$opt['if'] && !CondText($pagename, trim("if {$opt['if']} $argsn"), 'hello'))
       $errors[] = isset($opt['errmsg']) ? $opt['errmsg']
                   : "$[Required condition failed]";
   }
