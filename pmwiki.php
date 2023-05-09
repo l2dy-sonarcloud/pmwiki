@@ -855,8 +855,8 @@ function pmcrypt($str, $salt=null) {
   SDV($PmCryptAlgo, PASSWORD_DEFAULT);
   if ($salt && preg_match('/^(-?@|\\*$)/',  $salt)) return false;
   if (!is_null($salt)) {
-    if(function_exists('password_verify'))
-      return password_verify($str, $salt);
+//     if(function_exists('password_verify'))
+//       return password_verify($str, $salt);
     return crypt($str, $salt);
   }
 
