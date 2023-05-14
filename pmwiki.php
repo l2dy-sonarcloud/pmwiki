@@ -1626,14 +1626,7 @@ class PageStore {
     return ($pagefile && file_exists($pagefile));
   }
   function delete($pagename) {
-    global $Now, $PageExistsCache, $TrashNameFmt;
-    if(IsEnabled($TrashNameFmt,0)) {
-      $tn = FmtPageName($TrashNameFmt, $pagename);
-      if(strpos($tn, '%')!==false) $tn = PSFT($tn, $Now);
-      $tn = MakePageName($pagename, $tn);
-      $page = $this->read($pagename);
-      $this->write($tn,$page);
-    }
+    global $Now, $PageExistsCache;
     $pagefile = $this->pagefile($pagename);
     @rename($pagefile,"$pagefile,del-$Now");
     unset($PageExistsCache[$pagename]); # PITS:01401
