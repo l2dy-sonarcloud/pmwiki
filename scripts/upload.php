@@ -226,11 +226,19 @@ function HandleUpload($pagename, $auth = 'upload') {
 }
 
 function HandleDownload($pagename, $auth = 'read') {
-  global $UploadFileFmt, $UploadExts, $DownloadDisposition, $EnableIMSCaching;
-  SDV($DownloadDisposition, "inline");
+  global $UploadFileFmt;
   UploadAuth($pagename, $auth);
   $upname = MakeUploadName($pagename, @$_REQUEST['upname']);
   $filepath = FmtPageName("$UploadFileFmt/$upname", $pagename);
+  return ServeDownload($filepath, $upname);
+}
+
+function ServeDownload($filepath, $upname = null) {
+  global $UploadExts, $DownloadDisposition, $EnableIMSCaching;
+  SDV($DownloadDisposition, "inline");
+
+  if (is_null($upname)) $upname = preg_replace('!^.*/!', '', $filepath);
+  
   if (!$upname || !file_exists($filepath)) {
     header("HTTP/1.0 404 Not Found");
     Abort("?requested file not found");
@@ -244,7 +252,7 @@ function HandleDownload($pagename, $auth = 'read') {
       { header("HTTP/1.0 304 Not Modified"); exit(); }
     header("Last-Modified: $filelastmod");
   }
-  preg_match('/\\.([^.]+)$/',$filepath,$match); 
+  preg_match('/\\.([^.]+)$/',strtolower($filepath),$match); 
   if ($UploadExts[@$match[1]]) 
     header("Content-Type: {$UploadExts[@$match[1]]}");
   $fsize = $length = filesize($filepath);
