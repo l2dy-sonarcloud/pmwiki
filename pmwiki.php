@@ -1020,6 +1020,25 @@ function FileSizeCompact($n, $precision=1) {
   return round(pow(1024,$b-$fb),$precision).@$units[$fb];
 }
 
+function InsertEditFunction($newfn, $where='<PostPage') {
+  global $EditFunctions;
+  if ($where == "<") {
+    array_unshift($EditFunctions, $newfn);
+    return true;
+  }
+  if ($where == ">") {
+    $EditFunctions[] = $newfn;
+    return true;
+  }
+  if (!preg_match('/^([<>])(\\w+)$/', $where, $m)) return false;
+  
+  $offset = array_search($m[2], $EditFunctions);
+  if ($offset === false) return false;
+  if ($m[1]=='>') $offset++;
+  array_splice($EditFunctions, $offset, 0, $newfn);
+  return true;
+}
+
 ## AsSpaced converts a string with WikiWords into a spaced version
 ## of that string.  (It can be overridden via $AsSpacedFunction.)
 function AsSpaced($text) {
