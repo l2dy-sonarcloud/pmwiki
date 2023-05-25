@@ -2843,7 +2843,8 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
 
 ## Split from PmWikiAuth to allow for recipes to call it
 function PrintAuthForm($pagename) {
-  global $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt;
+  global $FmtV, $AuthPromptFmt, $PageStartFmt, $PageEndFmt, $AuthFormRespCode;
+  if(IsEnabled($AuthFormRespCode, 0)) http_response_code($AuthFormRespCode);
   $postvars = '';
   foreach($_POST as $k=>$v) {
     if ($k == 'authpw' || $k == 'authid') continue;
