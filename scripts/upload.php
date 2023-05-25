@@ -234,7 +234,7 @@ function HandleDownload($pagename, $auth = 'read') {
 }
 
 function ServeDownload($filepath, $upname = null) {
-  global $UploadExts, $DownloadDisposition, $EnableIMSCaching;
+  global $UploadExts, $DownloadDisposition, $EnableIMSCaching, $EnableDownloadRanges;
   SDV($DownloadDisposition, "inline");
 
   if (is_null($upname)) $upname = preg_replace('!^.*/!', '', $filepath);
@@ -257,8 +257,10 @@ function ServeDownload($filepath, $upname = null) {
     header("Content-Type: {$UploadExts[@$match[1]]}");
   $fsize = $length = filesize($filepath);
   $end = $fsize-1;
-  header("Accept-Ranges: bytes");
-  if (@$_SERVER['HTTP_RANGE']) {
+  
+  $ranges = IsEnabled($EnableDownloadRanges, 1);
+  if ($ranges) header("Accept-Ranges: bytes");
+  if ($ranges && @$_SERVER['HTTP_RANGE']) {
     if(! preg_match('/^\\s*bytes\\s*=\\s*(\\d*)\\s*-\\s*(\\d*)\\s*$/i', $_SERVER['HTTP_RANGE'], $r)
       || intval($r[1])>$end
       || intval($r[2])>$end
