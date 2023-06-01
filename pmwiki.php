@@ -2722,7 +2722,8 @@ function PreviewPage($pagename,&$page,&$new) {
 
 function HandleEdit($pagename, $auth = 'edit') {
   global $IsPagePosted, $EditFields, $EnablePost, $FmtV, $Now, $EditRedirectFmt,
-    $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt;
+    $PageEditForm, $HandleEditFmt, $PageStartFmt, $PageEditFmt, $PageEndFmt, 
+    $MessagesFmt;
   SDV($EditRedirectFmt, '$FullName');
   if (@$_POST['cancel']) 
     { Redirect(FmtPageName($EditRedirectFmt, $pagename)); return; }
@@ -2734,7 +2735,10 @@ function HandleEdit($pagename, $auth = 'edit') {
     if (isset($_POST[$k])) $new[$k]=str_replace("\r",'',stripmagic($_POST[$k]));
 
   $EnablePost &= (bool)preg_grep('/^post/', array_keys(@$_POST));
-  if($EnablePost) pmtoken(1, true);
+  if ($EnablePost && !pmtoken(1)) {
+    $MessagesFmt[] = '$[Token invalid or missing]';
+    $EnablePost = false;
+  }
   $new['=preview'] = @$new['text'];
   PCache($pagename, $new);
   UpdatePage($pagename, $page, $new);
