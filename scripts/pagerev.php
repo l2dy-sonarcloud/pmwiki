@@ -180,7 +180,7 @@ function HandleDiff($pagename, $auth='read') {
 }
 
 function HandleDiffList($pagename, $auth='read') {
-  global $EnableDiffHidden, $Now, $Charset, $EnableLocalTimes;
+  global $EnableDiffHidden, $Now, $Charset, $EnableLocalTimes, $EnableRCListLastEdit;
   $days = floor($EnableLocalTimes/10);
   if(!$days) $days = 3;
   $since = $Now - $days*24*3600;
@@ -196,7 +196,7 @@ function HandleDiffList($pagename, $auth='read') {
   $list = preg_grep("/^diff:(\\d+):\\d+:$hide\\w*$/", array_keys($page));
   foreach($list as $v) {
     list($key, $stamp) = explode(':', $v);
-    if ($stamp == $page['time']) continue;
+    if ($stamp == $page['time'] && !IsEnabled($EnableRCListLastEdit, 0)) continue;
     $author = @$page["author:$stamp"] ? $page["author:$stamp"] : '?';
     $csum = strval(@$page["csum:$stamp"]);
     $out .= "$stamp:".PHSC("$author: $csum")."\n";
