@@ -2839,7 +2839,7 @@ function PmWikiAuth($pagename, $level, $authprompt=true, $since=0) {
   if ($level=='ALWAYS' || @$page['=auth'][$level]) return $page;
   if (!$authprompt) return false;
   $GLOBALS['AuthNeeded'] = (@$_POST['authpw']) 
-    ? $page['=pwsource'][$level] . ' ' . $level : '';
+    ? strval(@$page['=pwsource'][$level]) . ' ' . $level : '';
   PCache($pagename, $page);
   PrintAuthForm($pagename);
   exit;
