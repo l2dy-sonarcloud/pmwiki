@@ -81,7 +81,7 @@ function ReadApprovedUrls($pagename) {
     $pn = FmtPageName($p, $pagename);
     StopWatch("ReadApprovedUrls $pn begin");
     $apage = ReadPage($pn, READPAGE_CURRENT);
-    preg_match_all("/$ApproveUrlPattern/",@$apage['text'],$match);
+    preg_match_all("/$ApproveUrlPattern/",strval(@$apage['text']),$match);
     foreach($match[0] as $a) 
       $WhiteUrlPatterns[] = preg_quote($a,'!');
     StopWatch("ReadApprovedUrls $pn end");
