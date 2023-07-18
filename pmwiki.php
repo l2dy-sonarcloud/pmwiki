@@ -2389,7 +2389,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
       elseif (strstr($x,$p)!==false) $x=eval($r);
       if (isset($php_errormsg)) ### TODO: $php_errormsg removed since PHP 8
         { echo "ERROR: pat=$p $php_errormsg"; unset($php_errormsg); }
-      if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); continue 2; }
+      if ($RedoMarkupLine) { $lines=array_merge((array)$x,$lines); $MarkupToHTML['markupid'] = $id; continue 2; }
     }
     if ($x>'') $out .= "$x\n";
   }
@@ -2398,7 +2398,7 @@ function MarkupToHTML($pagename, $text, $opt = NULL) {
   StopWatch('MarkupToHTML end');
   return $out;
 }
-   
+
 function HandleBrowse($pagename, $auth = 'read') {
   # handle display of a page
   global $DefaultPageTextFmt, $PageNotFoundHeaderFmt, $HTTPHeaders,

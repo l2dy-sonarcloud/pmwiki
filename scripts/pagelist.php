@@ -89,23 +89,23 @@ XLSDV('en', array(
 SDV($PageListArgPattern, '((?:\\$:?)?\\w[-\\w]*)[:=]');
 
 Markup('pagelist', 'directives',
-  '/\\(:pagelist(\\s+.*?)?:\\)/i', "MarkupPageList");
+  '/\\(:(pagelist)(\\s+.*?)?:\\)/i', "MarkupPageList");
 Markup('searchbox', 'directives',
-  '/\\(:searchbox(\\s.*?)?:\\)/', "MarkupPageList");
+  '/\\(:(searchbox)(\\s.*?)?:\\)/', "MarkupPageList");
 Markup('searchresults', 'directives',
-  '/\\(:searchresults(\\s+.*?)?:\\)/i', "MarkupPageList");
+  '/\\(:(searchresults)(\\s+.*?)?:\\)/i', "MarkupPageList");
 
 function MarkupPageList($m) {
-  extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
-  switch ($markupid) {
+  extract($GLOBALS["MarkupToHTML"]); # get $pagename
+  switch ($m[1]) {
     case 'pagelist': 
-      return FmtPageList('$MatchList', $pagename, array('o' => $m[1].' '));
+      return FmtPageList('$MatchList', $pagename, array('o' => $m[2].' '));
     case 'searchbox': 
       return SearchBox($pagename, 
-        ParseArgs(@$m[1], $GLOBALS['PageListArgPattern']));
+        ParseArgs(@$m[2], $GLOBALS['PageListArgPattern']));
     case 'searchresults': 
       return FmtPageList($GLOBALS['SearchResultsFmt'], 
-        $pagename, array('req' => 1, 'request'=>1, 'o' => @$m[1]));
+        $pagename, array('req' => 1, 'request'=>1, 'o' => @$m[2]));
   }
 }
 
