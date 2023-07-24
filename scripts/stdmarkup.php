@@ -124,41 +124,41 @@ function CondText2($pagename, $text, $code = '') {
 
 ## (:include:)
 Markup('include', '>if',
-  '/\\(:include\\s+(\\S.*?):\\)/i',
+  '/\\(:(include)\\s+(\\S.*?):\\)/i',
   "MarkupRedirectInclude");
 
 ## (:redirect:)
 Markup('redirect', '<include',
-  '/\\(:redirect\\s+(\\S.*?):\\)/i',
+  '/\\(:(redirect)\\s+(\\S.*?):\\)/i',
   "MarkupRedirectInclude");
 
 function MarkupRedirectInclude($m) {
   extract($GLOBALS["MarkupToHTML"]);
-  switch ($markupid) {
-    case 'include': return PRR(IncludeText($pagename, $m[1]));
-    case 'redirect': return RedirectMarkup($pagename, $m[1]);
+  switch ($m[1]) {
+    case 'include': return PRR(IncludeText($pagename, $m[2]));
+    case 'redirect': return RedirectMarkup($pagename, $m[2]);
   }
 }
 $SaveAttrPatterns['/\\(:(if\\d*|include|redirect)(\\s.*?)?:\\)/i'] = ' ';
 
 ## GroupHeader/GroupFooter handling
 Markup('nogroupheader', '>include',
-  '/\\(:nogroupheader:\\)/i',
+  '/\\(:(nogroupheader):\\)/i',
   "MarkupGroupHeaderFooter");
 Markup('nogroupfooter', '>include',
-  '/\\(:nogroupfooter:\\)/i',
+  '/\\(:(nogroupfooter):\\)/i',
   "MarkupGroupHeaderFooter");
 Markup('groupheader', '>nogroupheader',
-  '/\\(:groupheader:\\)/i',
+  '/\\(:(groupheader):\\)/i',
   "MarkupGroupHeaderFooter");
 Markup('groupfooter','>nogroupfooter',
-  '/\\(:groupfooter:\\)/i',
+  '/\\(:(groupfooter):\\)/i',
   "MarkupGroupHeaderFooter");
 
 function MarkupGroupHeaderFooter($m) {
   extract($GLOBALS["MarkupToHTML"]);
   global $GroupHeaderFmt, $GroupFooterFmt;
-  switch ($markupid) {
+  switch ($m[1]) {
     case 'nogroupheader': return PZZ($GroupHeaderFmt='');
     case 'nogroupfooter': return PZZ($GroupFooterFmt='');
     case 'groupheader': return PRR(FmtPageName($GroupHeaderFmt,$pagename));
