@@ -77,6 +77,8 @@ SDVA($InputTags['default'], array(':fn' => 'InputDefault'));
 SDVA($InputTags['defaults'], array(':fn' => 'InputDefault'));
 SDVA($InputTags['pmtoken'], array(':fn' => 'InputPmToken'));
 
+SDV($InputLabelFmt, ' <label for="$LabelFor" $LabelTitle>$LabelText</label> ');
+
 ##  (:input ...:) directives
 Markup('input', 'directives',
   '/\\(:input\\s+(\\w+)(.*?):\\)/i',
@@ -117,7 +119,7 @@ Markup('input+sp', '<split',
 function InputToHTML($pagename, $type, $args, &$opt) {
   global $InputTags, $InputAttrs, $InputValues, $FmtV, $KeepToken,
     $InputFocusLevel, $InputFocusId, $InputFocusFmt, $HTMLFooterFmt,
-    $EnableInputDataAttr;
+    $EnableInputDataAttr, $InputLabelFmt;
   if (!@$InputTags[$type]) return "(:input $type $args:)";
   ##  get input arguments
   if (!is_array($args)) $args = ParseArgs($args, '(?>([\\w-]+)[:=])');
@@ -177,8 +179,10 @@ function InputToHTML($pagename, $type, $args, &$opt) {
   if (isset($opt['label']) && strpos($InputTags[$type][':html'], '$InputFormLabel')!==false) {
     static $labelcnt = 0;
     if (!isset($opt['id'])) $opt['id'] = "lbl_". (++$labelcnt);
-    $lbtitle = isset($opt['title']) ? " title='".str_replace("'", '&#39;', $opt['title'])."'" : '';
-    $FmtV['$InputFormLabel'] = " <label for=\"{$opt['id']}\"$lbtitle>{$opt['label']}</label> ";
+    $FmtV['$LabelTitle'] = isset($opt['title']) ? " title='".str_replace("'", '&#39;', $opt['title'])."'" : '';
+    $FmtV['$LabelFor'] = $opt['id'];
+    $FmtV['$LabelText'] = $opt['label'];
+    $FmtV['$InputFormLabel'] = FmtPageName($InputLabelFmt, $pagename);
   }
   ##  handle focus=# option
   if (@$opt['focus']) {
