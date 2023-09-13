@@ -35,6 +35,12 @@ Markup('<|','><<|','/&lt;\\|([^|]+|\\[\\[(.+?)\\]\\])\\|&gt;/',
   "MarkupMakeTrail");
 Markup('^|','<links','/\\^\\|([^|]+|\\[\\[(.+?)\\]\\])\\|\\^/',
   "MarkupMakeTrail");
+  
+SDVA($TrailFmt, array(
+  '<<|' => "<span class='wikitrail'>&lt;&lt; \$prev | \$trailname | \$next &gt;&gt;</span>",
+  '<|'  => "<span class='wikitrail'>\$prev\$trailname\$next</span>",
+  '^|'  => "<span class='wikitrail'>\$crumbs</span>",
+));
 
 function MarkupMakeTrail($m) {
   extract($GLOBALS["MarkupToHTML"]); # get $pagename, $markupid
@@ -98,6 +104,7 @@ function ReadTrail($pagename, $trailname) {
 }
 
 function MakeTrailStop($pagename,$trailname) {
+  global $TrailFmt;
   $t = ReadTrail($pagename,$trailname);
   $prev=''; $next='';
   for($i=0;$i<count($t);$i++) {
@@ -106,10 +113,14 @@ function MakeTrailStop($pagename,$trailname) {
       if ($i+1<count($t)) $next = $t[$i+1]['markup'];
     }
   }
-  return "<span class='wikitrail'>&lt;&lt; $prev | $trailname | $next &gt;&gt;</span>";
+  return str_replace(
+    array('$prev', '$trailname', '$next'),
+    array( $prev,   $trailname,   $next),
+    $TrailFmt['<<|']);
 }
 
 function MakeTrailStopB($pagename,$trailname) {
+  global $TrailFmt;
   $t = ReadTrail($pagename,$trailname);
   $prev = ''; $next = '';
   for($i=0;$i<count($t);$i++) {
@@ -118,11 +129,14 @@ function MakeTrailStopB($pagename,$trailname) {
       if ($i+1<count($t)) $next = ' | '.$t[$i+1]['markup'].' &gt;';
     }
   }
-  return "<span class='wikitrail'>$prev$trailname$next</span>";
+  return str_replace(
+    array('$prev', '$trailname', '$next'),
+    array( $prev,   $trailname,   $next),
+    $TrailFmt['<|']);
 } 
 
 function MakeTrailPath($pagename,$trailname) {
-  global $TrailPathSep;
+  global $TrailPathSep, $TrailFmt;
   SDV($TrailPathSep,' | ');
   $t = ReadTrail($pagename,$trailname);
   $crumbs = '';
@@ -132,9 +146,9 @@ function MakeTrailPath($pagename,$trailname) {
         $crumbs = $TrailPathSep.$t[$i]['markup'].$crumbs;
         $i = @$t[$i]['parent'];
       }
-      return "<span class='wikitrail'>$trailname$crumbs</span>";
+      return str_replace('$crumbs', "$trailname$crumbs", $TrailFmt['^|']);
     }
   }
-  return "<span class='wikitrail'>$trailname</span>";
+  return str_replace('$crumbs', $trailname, $TrailFmt['^|']);
 }
 
