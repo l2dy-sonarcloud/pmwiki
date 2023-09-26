@@ -390,15 +390,18 @@ function PageListIf(&$list, &$opt, $pn, &$page) {
 }
 
 function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
-  global $PageIndexTermsFunction, $FmtV;
+  global $PageIndexTermsFunction, $FmtV, $EnableSearchAtLeastOneTerm;
   static $reindex = array();
   $fold = $GLOBALS['StrFoldFunction'];
 
   switch ($opt['=phase']) {
     case PAGELIST_PRE:
       $FmtV['$MatchSearched'] = count($list);
-      $incl = array(); $excl = array();
-      foreach((array)@$opt[''] as $i) { $incl[] = $fold($i); }
+      $incl = $incl1 = $excl = array();
+      if(IsEnabled($EnableSearchAtLeastOneTerm, 0))
+        foreach((array)@$opt[''] as $i) { $incl1[] = $fold($i); }
+      else
+        foreach((array)@$opt[''] as $i) { $incl[] = $fold($i); }
       foreach((array)@$opt['+'] as $i) { $incl[] = $fold($i); }
       foreach((array)@$opt['-'] as $i) { $excl[] = $fold($i); }
 
@@ -407,6 +410,8 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
         $delim = (!preg_match('/[^\\w\\x80-\\xff]/', $i)) ? '$' : '/';
         $opt['=inclp'][] = $delim . preg_quote($i,$delim) . $delim . 'i';
       }
+      if ($incl1) 
+        $opt['=inclp'][] = '/'.implode('|', array_map('preg_quote',$incl1)).'/i';
       if ($excl) 
         $opt['=exclp'][] = '$'.implode('|', array_map('preg_quote',$excl)).'$i';
 
@@ -425,7 +430,6 @@ function PageListTermsTargets(&$list, &$opt, $pn, &$page) {
         $c = preg_replace('/(^|,)([+-]?)/', '$1$2!', $opt['category']);
         $opt['=linka'] = array_merge($opt['=linka'], PageListLinkPatterns($c));
       }
-      
       
       if (@$opt['=cached']) return 0;
       if ($indexterms||@$opt['=linka']) {
