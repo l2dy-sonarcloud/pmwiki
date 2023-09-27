@@ -72,6 +72,7 @@ SDV($UploadPrefixQuota,0);
 SDV($UploadDirQuota,0);
 foreach($UploadExts as $k=>$v) 
   if (!isset($UploadExtSize[$k])) $UploadExtSize[$k]=$UploadMaxSize;
+  elseif ($UploadExtSize[$k] <= 0) unset($UploadExts[$k]);
 
 SDV($UploadDir,'uploads');
 SDV($UploadPermAdd,0444);
