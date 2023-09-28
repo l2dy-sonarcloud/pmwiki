@@ -230,7 +230,7 @@ function HandleFeed($pagename, $auth = 'read') {
   foreach($pagelist as $pn) {
     $page = &$PCache[$pn];
     $FmtV['$ItemDesc'] = @$page['description'];
-    $FmtV['$ItemISOTime'] = gmstrftime($TimeISOZFmt, $page['time']);
+    $FmtV['$ItemISOTime'] = PSFT($TimeISOZFmt, $page['time'], null, 'GMT');
     $FmtV['$ItemRSSTime'] = gmdate($RSSTimeFmt, $page['time']);
 
     $out .= FmtPageName($f['item']['_start'], $pn);
