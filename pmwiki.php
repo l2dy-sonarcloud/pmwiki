@@ -762,7 +762,8 @@ function cb_PSFT($fmt, $vars) {
 
   if (isset($iformats[$fmt])) {
     $ifmt = $iformats[$fmt];
-    return datefmt_create(@$locale, $ifmt[0], $ifmt[1], $tz, null, @$ifmt[2])->format($timestamp);
+    $dfmt = datefmt_create(@$locale, $ifmt[0], $ifmt[1], $tz, null, @$ifmt[2]);
+    if ($dfmt) return $dfmt->format($timestamp);
   }
   return $fmt;
 }
@@ -2564,7 +2565,8 @@ function SaveAttributes($pagename,&$page,&$new) {
 
 ## Based on Cookbook:FuseEdit
 function MergeLastMinorEdit($pagename, &$page, &$new) {
-  global $EnableMergeLastMinorEdit, $Now, $EnablePost, $Author;
+  global $EnableMergeLastMinorEdit, $Now, $EnablePost, $Author, 
+    $EnableRCDiffBytes, $ChangeSummary;
   if (!$EnablePost || !IsEnabled($EnableMergeLastMinorEdit, 0)) return;
   if (@$_POST['diffclass'] !== 'minor') return;
   if ($page['agent'] != @$_SERVER['HTTP_USER_AGENT']) return;
@@ -2594,6 +2596,14 @@ function MergeLastMinorEdit($pagename, &$page, &$new) {
   $new[$newdiffkey] = '';
   $new["csum:$time"] = XL('[Edit fused with more recent]')
     . ' ' . $new["csum:$time"];
+  
+  # If $ChangeSummary is empty, reuse the previous one
+  if (!$ChangeSummary) {
+    $csum = $page["csum"];
+    if (IsEnabled($EnableRCDiffBytes, 0)) 
+      $csum = preg_replace('/\\s*\\([-+]\\d+\\)\\s*$/', '', $csum);
+    $ChangeSummary = $page["csum"];
+  }
 }
 
 function SaveChangeSummary($pagename, &$page, &$new) {
