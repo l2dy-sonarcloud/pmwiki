@@ -2602,7 +2602,7 @@ function MergeLastMinorEdit($pagename, &$page, &$new) {
     $csum = $page["csum"];
     if (IsEnabled($EnableRCDiffBytes, 0)) 
       $csum = preg_replace('/\\s*\\([-+]\\d+\\)\\s*$/', '', $csum);
-    $ChangeSummary = $page["csum"];
+    $ChangeSummary = $csum;
   }
 }
 
