@@ -305,7 +305,7 @@ div.faqtoc div.faq p.question * { display:inline; }
 .diffadd { border-left:5px #9f9 solid; padding-left:5px; }
 .diffdel { border-left:5px #ff9 solid; padding-left:5px; }
 .diffrestore { margin:20px 0px; }
-.diffmarkup { font-size:14px;  } 
+.diffmarkup { font-size:14px; white-space: pre-wrap; } 
 .diffmarkup del { background:#ff9; text-decoration: none; }
 .diffmarkup ins { background:#9f9; text-decoration: none; }
 .rcplus { cursor:pointer; opacity:.3; font-weight:bold; padding: 0 .3em; }

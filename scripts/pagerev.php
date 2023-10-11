@@ -60,7 +60,7 @@ SDV($HTMLStylesFmt['diff'], "
   .diffdel { border-left:5px #ffff99 solid; padding-left:5px; }
   .diffrestore { clear:both; font-family:verdana,sans-serif; 
     font-size:66%; margin:1.5em 0px; }
-  .diffmarkup { font-family:monospace; } 
+  .diffmarkup { font-family:monospace; white-space: pre-wrap; } 
   .diffmarkup del { background:#ffff99; text-decoration: none; }
   .diffmarkup ins { background:#99ff99; text-decoration: none; }
   .rcplus { cursor:pointer; opacity:.3; font-weight:bold; padding: 0 .3em; }
@@ -248,13 +248,29 @@ function DiffRenderSource($in, $out, $which) {
     }
   }
   $line = array_shift($z2);
-  $z2[0] = $line.$z2[0];
+  $z2[0] = $line.@$z2[0];
   foreach ($cnt as $a) $lines[] = implode('', array_slice($z2, $a[0], $a[1]));
   $ret = implode("\n", $lines);
   $ret = str_replace(array('</del> <del>', '</ins> <ins>'), ' ', $ret);
   $ret = preg_replace('/(<(ins|del)>|^) /', '$1&nbsp;', $ret);
-  return str_replace(array("  ", "\n ", "\n"),array("&nbsp; ", "<br />&nbsp;", "<br />"),$ret);
+  $ret = preg_replace_callback('!<(ins|del)>(.*?)(</\\1>|$)!s', 'cb_diffsplit', $ret);
+  $ret = str_replace(array("  ", "\n ", "\n"),array("&nbsp; ", "<br />&nbsp;", "<br />"),$ret);
+  return $ret;
 }
+
+## Keep closing tags on the same line they are opened
+function cb_diffsplit($m) {
+  $tag = $m[1];
+  if ($m[2] === '') return '';
+  if (strpos($m[2], "\n")===false) return "<$tag>{$m[2]}</$tag>";
+  $lines = explode("\n", $m[2]);
+  foreach ($lines as &$line) {
+    if ($line === '') continue;
+    $line = "<$tag>$line</$tag>";
+  }
+  return implode("\n", $lines);
+}
+
 ## Split a line into pieces before passing it through `diff`
 function DiffPrepareInline($x) {
   global $DiffSplitInlineDelims;
