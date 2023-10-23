@@ -216,18 +216,46 @@ function EditAutoText(){
 
     var content = this.value;
     
-    // Ctrl+L (lowercase), Ctrl+Shift+L (uppercase)
-    if((e.key.toLowerCase() === 'l') && e.ctrlKey && caret != endcaret && document.execCommand) {
-      e.preventDefault();
-      var sel = content.substring(caret, endcaret);
-      sel = e.shiftKey? sel.toUpperCase(): sel.toLowerCase();
-      document.execCommand('insertText', false, sel);
-      this.selectionStart = caret;
-      return;
+    if(e.ctrlKey && document.execCommand) {
+      
+      // Ctrl+L (lowercase), Ctrl+Shift+L (uppercase)
+      if((e.key.toLowerCase() === 'l') && caret != endcaret) {
+        e.preventDefault();
+        var sel = content.substring(caret, endcaret);
+        sel = e.shiftKey? sel.toUpperCase(): sel.toLowerCase();
+        document.execCommand('insertText', false, sel);
+        this.selectionStart = caret;
+        return;
+      }
+      
+      // Ctrl+K - link/unlink - add or remove double brackets
+      if((e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        var sel = content.substring(caret, endcaret);
+        if(sel.match(/\[\[|\]\]/)) {
+          sel = sel.replace(/\[\[|\]\]/g, '');
+          document.execCommand('insertText', false, sel);
+          this.selectionStart = caret;
+        }
+        else insMarkup('[[', ']]', '');
+        return;
+      }
+      
+      // Ctrl+B - bold - wrap in ''' ... '''
+      if((e.key.toLowerCase() === 'b')) {
+        e.preventDefault();
+        return insMarkup("'''", "'''", '');
+      }
+      
+      // Ctrl+I - italics - wrap in '' ... ''
+      if((e.key.toLowerCase() === 'i')) {
+        e.preventDefault();
+        return insMarkup("''", "''", '');
+      }
     }
     
     // Ctrl+Shift+ArrowUp, Ctrl+Shift+ArrowDown: swap lines
-    else if(e.ctrlKey && e.shiftKey && e.key.match(/Arrow(Up|Down)/) && document.execCommand) {
+    else if(e.ctrlKey && e.shiftKey && e.key.match(/^(Arrow(Up|Down))$/) && document.execCommand) {
       e.preventDefault();
       
       var before = content.slice(0, caret), 
