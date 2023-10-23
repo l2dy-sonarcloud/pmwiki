@@ -252,48 +252,49 @@ function EditAutoText(){
         e.preventDefault();
         return insMarkup("''", "''", '');
       }
+      
+      // Ctrl+Shift+ArrowUp, Ctrl+Shift+ArrowDown: swap lines
+      if(e.shiftKey && e.key.match(/^(Arrow(Up|Down))$/)) {
+        e.preventDefault();
+        
+        var before = content.slice(0, caret), 
+          after = content.slice(endcaret), 
+          sel = content.slice(caret, endcaret);
+        var a = before.match(/[^\n]+$/);
+        if(a) {
+          sel = a[0]+sel;
+          before = before.slice(0, -a[0].length);
+        }
+        a = after.match(/^[^\n]*(\n|$)/);
+        sel = sel+a[0];
+        after = after.slice(a[0].length);
+        
+        if(e.key == 'ArrowUp') {
+          a = before.match(/[^\n]*\n$/);
+          if(!a) return;
+          var lineA = sel, lineB = a[0];
+          var deltacaret = -lineB.length;
+        }
+        else if(e.key == 'ArrowDown') {
+          a = after.match(/^([^\n]+$|[^\n]*\n)/);
+          if(!a) return;
+          var lineA = a[0], lineB = sel;
+          var deltacaret = lineA.length;
+        }
+        if(!lineA.match(/\n$/)) { // last line
+          lineB = "\n" + lineB.slice(0, -1);
+          if(deltacaret>0) deltacaret+=1;
+        }
+        var insert = lineA + lineB;
+        this.selectionStart = before.length + Math.min(deltacaret,0);
+        this.selectionEnd = this.selectionStart + insert.length;
+        document.execCommand('insertText', false, insert);
+        this.selectionStart = caret + deltacaret;
+        this.selectionEnd = endcaret + deltacaret;
+        return;
+      }
     }
     
-    // Ctrl+Shift+ArrowUp, Ctrl+Shift+ArrowDown: swap lines
-    else if(e.ctrlKey && e.shiftKey && e.key.match(/^(Arrow(Up|Down))$/) && document.execCommand) {
-      e.preventDefault();
-      
-      var before = content.slice(0, caret), 
-        after = content.slice(endcaret), 
-        sel = content.slice(caret, endcaret);
-      var a = before.match(/[^\n]+$/);
-      if(a) {
-        sel = a[0]+sel;
-        before = before.slice(0, -a[0].length);
-      }
-      a = after.match(/^[^\n]*(\n|$)/);
-      sel = sel+a[0];
-      after = after.slice(a[0].length);
-      
-      if(e.key == 'ArrowUp') {
-        a = before.match(/[^\n]*\n$/);
-        if(!a) return;
-        var lineA = sel, lineB = a[0];
-        var deltacaret = -lineB.length;
-      }
-      else if(e.key == 'ArrowDown') {
-        a = after.match(/^([^\n]+$|[^\n]*\n)/);
-        if(!a) return;
-        var lineA = a[0], lineB = sel;
-        var deltacaret = lineA.length;
-      }
-      if(!lineA.match(/\n$/)) { // last line
-        lineB = "\n" + lineB.slice(0, -1);
-        if(deltacaret>0) deltacaret+=1;
-      }
-      var insert = lineA + lineB;
-      this.selectionStart = before.length + Math.min(deltacaret,0);
-      this.selectionEnd = this.selectionStart + insert.length;
-      document.execCommand('insertText', false, insert);
-      this.selectionStart = caret + deltacaret;
-      this.selectionEnd = endcaret + deltacaret;
-      return;
-    }
     
     if (e.key != "Enter") return;
 
