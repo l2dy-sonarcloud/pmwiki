@@ -704,6 +704,10 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
     $fmt = preg_replace('/(?<!%)(%L)/', $gmt, $fmt);
   }
 
+  if ($tz) {
+    $tzo = @timezone_open($tz);
+    if (!@$tzo) unset($tz);
+  }
   if (! $cached['new']) {
     if (@$locale) 
       setlocale(LC_TIME, preg_split('/[, ]+/', $locale, -1, PREG_SPLIT_NO_EMPTY));
@@ -718,10 +722,6 @@ function PSFT($fmt, $stamp=null, $locale=null, $tz=null) { # strftime() replacem
   }
   
   $timestamp = date_create("@$stamp");
-  if ($tz) {
-    $tzo = @timezone_open($tz);
-    if (!@$tzo) unset($tz);
-  }
   if (!@$tz) { # need to set it otherwise resets to GMT
     $tz = $cached['dtz'];
     $tzo = $cached['dtzo'];
