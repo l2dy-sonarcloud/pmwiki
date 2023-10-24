@@ -20,7 +20,8 @@ SDV($InputAttrs, array('name', 'value', 'id', 'class', 'rows', 'cols',
 
 # Set up formatting for text, submit, hidden, radio, etc. types
 foreach(array('text', 'submit', 'hidden', 'password', 'reset', 'file',
-    'image', 'email', 'url', 'tel', 'number', 'search', 'date', 'button') as $t) 
+    'image', 'email', 'url', 'tel', 'number', 'search', 'date', 'month', 
+    'button') as $t) 
   SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
 
 foreach(array('text', 'password', 'email', 'url', 'tel', 'number', 'search', 'date') as $t) 
