@@ -24,7 +24,7 @@ foreach(array('text', 'submit', 'hidden', 'password', 'reset', 'file',
     'button') as $t) 
   SDV($InputTags[$t][':html'], "<input type='$t' \$InputFormArgs />");
 
-foreach(array('text', 'password', 'email', 'url', 'tel', 'number', 'search', 'date') as $t) 
+foreach(array('text', 'password', 'email', 'url', 'tel', 'number', 'search', 'date', 'month') as $t) 
   SDV($InputTags[$t]['class'], "inputbox");
 
 foreach(array('submit', 'button', 'reset') as $t) 
